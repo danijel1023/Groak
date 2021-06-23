@@ -16,8 +16,10 @@ public:
     int Send_Event(GEvent& Event);
     void Post_Event(GEvent& Event);
 
-    GString Get_Name();
     void Set_Focus(GBasic_Window* Window);
+
+    GString Get_Name() { return m_Name; }
+    GRenderer* Get_Renderer() { return m_Renderer; }
 
 protected:
     int Dispatcher_Func(GEvent* Event);
@@ -44,11 +46,13 @@ private:
     void Worker();
 
     GRenderer* m_Renderer = nullptr;
-    std::vector<unsigned int> m_Last_Framebuffer;
+    std::stack<GFrameBuffer*> m_Last_Framebuffer = std::stack<GFrameBuffer*>({ nullptr });
+    GPos m_FB_Ancor = { 0, 0 };
 
     static int Dispatcher_Func(void* _This, GEvent* Event);
     static int Callback_Func(void* _This, GEvent* Event);
 
     friend class GApplication;
     friend class GBasic_Window;
+    friend class GFrameBuffer;
 };

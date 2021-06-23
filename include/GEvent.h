@@ -1,11 +1,12 @@
 #include <stdint.h>
+#include <functional>
 
 //Core type doesn't exist since you have
-//to use GApp-calls (eg. GApp()->Post_Event(...)) directly, to write to it's queue
+//to use GApp-calls (eg. GApp()->Post_Event(...)) directly, to write to its queue
 enum class GEType { Window, Mouse, Keyboard, Custom };
 
 enum class GECore_Message {
-    Register,
+    Register, Run_Lambda,
 
     Move, Minimise, Maximise, Recenter,
     Render, Show, Hide,
@@ -68,6 +69,8 @@ struct GEvent {
     GSize WS;   //Window size
     GSize FS;   //Framebuffer size
     GPos  WP;   //Window position
+
+    std::function<int()> Lambda;
 
     struct {
         bool Modifier_Alt = false;

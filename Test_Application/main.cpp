@@ -57,7 +57,6 @@ private:
 };
 
 
-
 Child_Window* Title_Bar;
 Window* Main_Wind;
 void App::On_Startup() {
@@ -70,29 +69,20 @@ void App::On_Startup() {
 
     Main_Wind = new Window("Main_Wind", 300 * Scale, 400 * Scale, 1100, 500);
     Register_Window(Main_Wind);
-    //Attach_Simulator(Main_Wind, false);
-
-    Title_Bar = new Child_Window(Main_Wind, Main_Wind->Get_Window_X(), 50, 0, 50);
-
-    GQuad Close(50, 50, 0, 0);
-    Close.m_Blue = 1.0;
-    Close.m_Rotation = 20;
-    Close.m_Alpha = 0.1;
-    Title_Bar->Add_Quad(Close);
-
+    //Attach_Simulator(Main_Wind, true);
 
     //Register_Window(new Window("Console", 400, 300, 600, 200));
-
+    
     GEvent Event;
     Event.Type = GEType::Custom;
     Event.Data_Ptr = Main_Wind;
     Event.Data = 4025;
     Main_Wind->Post_Event(Event);
-
+    
     GEvent Render_Event;
     Render_Event.Core_Message = GECore_Message::Render;
     Render_Event.Data_Ptr = Main_Wind;
-
+    
     GApp()->Post_Event(Render_Event);
 }
 
@@ -108,7 +98,15 @@ int Window::Callback_Func(GEvent* Event) {
     switch (Event->Type) {
         case GEType::Window:
         {
-            if (Event->Wind_Message == GEWind_Message::Close) {
+            if (Event->Wind_Message == GEWind_Message::Run) {
+                Title_Bar = new Child_Window(this, m_Window_X, 50, 0, 50);
+            }
+
+            else if (Event->Wind_Message == GEWind_Message::Move) {
+                //GInfo() << "Window Move (" << This->Get_Name() << "): [x, y] [" << Event->WP.X << ", " << Event->WP.Y << "]";
+            }
+
+            else if (Event->Wind_Message == GEWind_Message::Close) {
                 std::cout << "On_Close: Terminate application" << std::endl;
                 GEvent Event;
                 Event.Core_Message = GECore_Message::Terminate;
@@ -117,8 +115,8 @@ int Window::Callback_Func(GEvent* Event) {
                 return 1;
             }
 
-            else if (Event->Wind_Message == GEWind_Message::Move) {
-                //GInfo() << "Window Move (" << This->Get_Name() << "): [x, y] [" << Event->WP.X << ", " << Event->WP.Y << "]";
+            else if (Event->Wind_Message == GEWind_Message::Render) {
+                glClear(GL_COLOR_BUFFER_BIT);
             }
 
             break;
@@ -193,26 +191,52 @@ int Window::Callback_Func(GEvent* Event) {
 }
 
 
+GQuad* Close_TTB;
+GFrameBuffer* Titlebar_Fb;
 int Child_Window::Callback_Func(GEvent* Event) {
-
     switch (Event->Type) {
+        case GEType::Window:
+        {
+            if (Event->Wind_Message == GEWind_Message::Run) {
+                Titlebar_Fb = Create_Framebuffer();
+
+                Close_TTB = new GQuad(m_Window_X, m_Window_Y, 0, 0);
+                Close_TTB->m_Blue = 1.0;
+                Close_TTB->m_Alpha = 1;
+                Add_Quad(Close_TTB);
+            }
+
+
+            else if (Event->Wind_Message == GEWind_Message::Render) {
+                Close_TTB->m_Rotation++;
+
+                auto& Renderer = *(m_Main_Window->Get_Renderer());
+                Titlebar_Fb->Use();
+                glClear(GL_COLOR_BUFFER_BIT);
+
+                Set_Viewport();
+                for (auto& Quad : m_Quad_List) if (Quad->m_Active) Renderer.Add_Quad(*Quad);
+                Renderer.Flush();
+
+                Titlebar_Fb->Render();
+                return 0;
+            }
+
+            break;
+        }
+
         case GEType::Mouse:
         {
-            if (Event->Mouse_Message == GEMouse_Message::Move) {
-                std::cout << "Mouse move (Title_Bar) (x, y): [" << Event->MP.X << ", " << Event->MP.Y << "]" << std::endl;
-            }
-
-            else if (Event->Mouse_Message == GEMouse_Message::Enter) {
-                std::cout << "Mouse enter (Title_Bar) (x, y): [" << Event->MP.X << ", " << Event->MP.Y << "]" << std::endl;
-            }
-
-            else if (Event->Mouse_Message == GEMouse_Message::Leave) {
-                std::cout << "Mouse leave (Title_Bar) (x, y): [" << Event->MP.X << ", " << Event->MP.Y << "]" << std::endl;
-            }
-
-            else if (Event->Mouse_Message == GEMouse_Message::Down) {
+            if (Event->Mouse_Message == GEMouse_Message::Down) {
                 m_Main_Window->Set_Focus(this);
             }
+
+
+            GEvent Render_Event;
+            Render_Event.Core_Message = GECore_Message::Render;
+            Render_Event.Data_Ptr = Main_Wind;
+
+            GApp()->Post_Event(Render_Event);
 
             return 1;
         }
@@ -228,6 +252,8 @@ int Child_Window::Callback_Func(GEvent* Event) {
                     GInfo() << (char)Event->Key;
                 }
             }
+
+            break;
         }
     }
 

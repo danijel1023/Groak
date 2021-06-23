@@ -14,8 +14,8 @@ GBasic_Window::GBasic_Window(GBasic_Window* Parent, int Window_X, int Window_Y, 
 		m_Parent->m_Child_Windows.push_back(this);
 
 		//Register the absolute position from (0, 0) from main window
-		m_Absolute_Pos_X = m_Parent->m_Absolute_Pos_X + Screen_X;
-		m_Absolute_Pos_Y = m_Parent->m_Absolute_Pos_Y + Screen_Y;
+		m_Absolute_Screen_X = m_Parent->m_Absolute_Screen_X + Screen_X;
+		m_Absolute_Screen_Y = m_Parent->m_Absolute_Screen_Y + Screen_Y;
 	}
 }
 
@@ -27,9 +27,20 @@ GBasic_Window::~GBasic_Window() {
 
 
 
-void GBasic_Window::Add_Framebuffer() {}
-void GBasic_Window::Add_Quad(GQuad& Quad) {
+GFrameBuffer* GBasic_Window::Create_Framebuffer() {
+	return new GFrameBuffer(m_Window_X, m_Window_Y, this);
+}
+
+void GBasic_Window::Add_Quad(GQuad* Quad) {
 	m_Quad_List.push_back(Quad);
+}
+
+
+void GBasic_Window::Set_Viewport() {
+	auto& Renderer = *(m_Main_Window->m_Renderer);
+	Renderer.Set_Window_Screen(m_Absolute_Screen_X - m_Main_Window->m_FB_Ancor.X,
+							   m_Absolute_Screen_Y - m_Main_Window->m_FB_Ancor.Y,
+							   m_Window_X, m_Window_Y);
 }
 
 
@@ -153,8 +164,8 @@ int GBasic_Window::Callback_Func(GEvent* Event) {
 				{
 					auto& Renderer = *(m_Main_Window->m_Renderer);
 
-					Renderer.Set_Window(m_Absolute_Pos_X, m_Absolute_Pos_Y, m_Window_X, m_Window_Y);
-					for (auto& Quad : m_Quad_List) if (Quad.m_Active) Renderer.Add_Quad(Quad);
+					Set_Viewport();
+					for (auto& Quad : m_Quad_List) if (Quad->m_Active) Renderer.Add_Quad(*Quad);
 					Renderer.Flush();
 
 					return 1;
@@ -165,8 +176,8 @@ int GBasic_Window::Callback_Func(GEvent* Event) {
 					m_Screen_X = Event->WP.X;
 					m_Screen_Y = Event->WP.Y;
 
-					m_Absolute_Pos_X = m_Parent->m_Absolute_Pos_X + m_Screen_X;
-					m_Absolute_Pos_Y = m_Parent->m_Absolute_Pos_Y + m_Screen_Y;
+					m_Absolute_Screen_X = m_Parent->m_Absolute_Screen_X + m_Screen_X;
+					m_Absolute_Screen_Y = m_Parent->m_Absolute_Screen_Y + m_Screen_Y;
 					break;
 				}
 

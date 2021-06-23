@@ -7,7 +7,6 @@ GWindow::GWindow(const GString& Name, int Window_X, int Window_Y, int Screen_X, 
     m_Main_Window = this;
     m_Dispatcher_Ptr = &GWindow::Dispatcher_Func;
     m_Callback_Ptr = &GWindow::Callback_Func;
-    m_Last_Framebuffer.push_back(0);
 }
 
 GWindow::~GWindow() {}
@@ -25,11 +24,6 @@ void GWindow::Post_Event(GEvent& Event) {
     m_Queue.Insert(Node);
 
     m_DCV.notify_all();
-}
-
-
-GString GWindow::Get_Name() {
-    return m_Name;
 }
 
 
@@ -107,6 +101,13 @@ int GWindow::Callback_Func(GEvent* Event) {
                 m_Focused = false;
                 break;
             }
+
+            case GEWind_Message::Move:
+            {
+                m_Screen_X = Event->WP.X;
+                m_Screen_Y = Event->WP.Y;
+                return 0;
+            }
         }
     }
 
@@ -149,14 +150,14 @@ void GWindow::Run() {
     glfwSwapBuffers(m_Window_Hndl);
 
     m_Renderer = new GRenderer();
-    m_Renderer->Set_Window(0, 0, m_Window_X, m_Window_Y);
+    m_Renderer->Set_Window_Screen(0, 0, m_Window_X, m_Window_Y);
 
     m_Worker = std::thread(&GWindow::Worker, this);
 
     GEvent Run_E;
     Run_E.Type = GEType::Window;
     Run_E.Wind_Message = GEWind_Message::Run;
-    Post_Event(Run_E);
+    Send_Event(Run_E);
 }
 
 void GWindow::Worker() {

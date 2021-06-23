@@ -82,7 +82,7 @@ void GRenderer::Set_Scale(int X, int Y) {
     glUniform2f(m_Scale, (float)X, (float)Y);
 }
 
-void GRenderer::Set_Window(int Screen_X, int Screen_Y, int Window_X, int Window_Y) {
+void GRenderer::Set_Window_Screen(int Screen_X, int Screen_Y, int Window_X, int Window_Y) {
     glViewport(Screen_X, Screen_Y, Window_X, Window_Y);
     Set_Scale(Window_X, Window_Y);
 }

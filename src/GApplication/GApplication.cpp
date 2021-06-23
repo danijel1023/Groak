@@ -68,6 +68,9 @@ void GApplication::Attach_Callbacks(GWindow* Window) {
             glfwSetWindowSizeCallback(Window->m_Window_Hndl, GLFW_Recording_Window_Size_Callback);
             glfwSetWindowPosCallback(Window->m_Window_Hndl, GLFW_Recording_Window_Pos_Callback);
             glfwSetWindowFocusCallback(Window->m_Window_Hndl, GLFW_Recording_Window_Focus_Callback);
+            //glfwSetWindowCloseCallback(Window->m_Window_Hndl, window_close_callback);
+            //glfwSetWindowMaximizeCallback();
+            //glfwSetWindowIconifyCallback(, window_iconify_callback);
         }
     }
 
@@ -220,6 +223,12 @@ void GApplication::Worker(GEvent& Event) {
         case GECore_Message::Hide:
         {
             GWindow* Window = static_cast<GWindow*>(Event.Data_Ptr);
+
+            break;
+        }
+
+        case GECore_Message::Run_Lambda:
+        {
 
             break;
         }
