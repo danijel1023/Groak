@@ -1,4 +1,4 @@
 out/*
 build/*
-.vs
-.a
+*.vs
+*.a
