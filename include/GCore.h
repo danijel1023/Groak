@@ -6,8 +6,9 @@
 #define Gcout(x)
 #endif // NDEBUG
 
-#include "../Vendor/glew-2.1.0/include/GLEW/glew.h"
-#include "../Vendor/glfw3/include/GLFW/glfw3.h"
+
+#include "../Vendor/GLEW/include/GL/glew.h"
+#include "../Vendor/GLFW/include/GLFW/glfw3.h"
 
 
 #ifdef _WIN64
@@ -27,8 +28,8 @@
 #include "GQueue/GTQueue.h"
 #include "GString.h"
 
-using GCallback = int(*)(void* _This, GEvent* Event);
-using GDispatcher = int(*)(void* _This, GEvent* Event);
+using GCallback = int(*)(void* _This, const GEvent* Event);
+using GDispatcher = int(*)(void* _This, const GEvent* Event);
 using GEQueue = GQueue<GEvent>;     //Groak Event Queue
 using GTEQueue = GTQueue<GEvent>;   //Groak Thread safe Event Queue
 

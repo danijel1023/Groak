@@ -2,6 +2,7 @@
 #include <vector>
 #include <condition_variable>
 #include <fstream>
+#include <thread>
 
 #include "GCore.h"
 
@@ -15,9 +16,9 @@ public:
 
     static GApplication* m_Instance;
 
-    void Post_Event(GEvent& Event);
-    void Send_Event_NL(GEvent& Event);
-    void Send_Event(GEvent& Event);
+    void Post_Event(const GEvent& Event);
+    void Send_Event_NL(const GEvent& Event);
+    void Send_Event(const GEvent& Event);
 
     void Register_Window(GWindow* Window);
     void Set_Context(GWindow* Window);
@@ -27,14 +28,14 @@ public:
 
 private:
     bool m_Running = true;
-    void Worker(GEvent& Event);
+    void Worker(const GEvent& Event);
     GWindow* Current_Context = nullptr;
 
     std::recursive_mutex m_SERM;
     std::condition_variable_any m_SECV;
     bool m_SE = false;
     bool m_SE_Continue = false;
-    GEvent* m_SEEvent = nullptr;
+    const GEvent* m_SEEvent = nullptr;
 
     std::recursive_mutex m_QRM;
     GTEQueue m_Queue;
@@ -61,6 +62,9 @@ private:
     static void GLFW_Window_Size_Callback(GLFWwindow* Window_Hndl, int Width, int Height);
     static void GLFW_Window_Pos_Callback(GLFWwindow* Window_Hndl, int X_Pos, int Y_Pos);
     static void GLFW_Window_Focus_Callback(GLFWwindow* Window_Hndl, int Focused);
+    static void GLFW_Window_Close_Callback(GLFWwindow* Window_Hndl);
+    static void GLFW_Window_Maximize_Callback(GLFWwindow* Window_Hndl, int Maximized);
+    static void GLFW_Window_Iconify_Callback(GLFWwindow* Window_Hndl, int Iconified);
 
     // Callbacks with recording
     static void GLFW_Recording_Key_Callback(GLFWwindow* Window_Hndl, int Key, int Scancode, int Action, int Mods);
@@ -74,4 +78,7 @@ private:
     static void GLFW_Recording_Window_Size_Callback(GLFWwindow* Window_Hndl, int Width, int Height);
     static void GLFW_Recording_Window_Pos_Callback(GLFWwindow* Window_Hndl, int X_Pos, int Y_Pos);
     static void GLFW_Recording_Window_Focus_Callback(GLFWwindow* Window_Hndl, int Focused);
+    static void GLFW_Recording_Window_Close_Callback(GLFWwindow* Window_Hndl);
+    static void GLFW_Recording_Window_Maximize_Callback(GLFWwindow* Window_Hndl, int Maximized);
+    static void GLFW_Recording_Window_Iconify_Callback(GLFWwindow* Window_Hndl, int Iconified);
 };

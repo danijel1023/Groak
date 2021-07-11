@@ -4,7 +4,7 @@
 #include "GWindow.h"
 #include "GBasic_Window.h"
 
-GFrameBuffer::GFrameBuffer(int Window_X, int Window_Y, GBasic_Window* Current_Window) {
+GFramebuffer::GFramebuffer(int Window_X, int Window_Y, GBasic_Window* Current_Window) {
     m_Current_Window = Current_Window;
     m_FB_Quad.m_Window.X = Window_X;
     m_FB_Quad.m_Window.Y = Window_Y;
@@ -24,14 +24,14 @@ GFrameBuffer::GFrameBuffer(int Window_X, int Window_Y, GBasic_Window* Current_Wi
     m_FB_Quad.m_Texture = m_FB_Texture;
 }
 
-GFrameBuffer::~GFrameBuffer() {
+GFramebuffer::~GFramebuffer() {
     glDeleteTextures(1, &m_FB_Texture);
     glDeleteFramebuffers(1, &m_Framebuffer);
 }
 
 
 
-void GFrameBuffer::Use() {
+void GFramebuffer::Use() {
     m_Current_Window->m_Main_Window->m_FB_Ancor = { m_Current_Window->m_Absolute_Screen_X,
                                                     m_Current_Window->m_Absolute_Screen_Y };
 
@@ -40,7 +40,7 @@ void GFrameBuffer::Use() {
 }
 
 
-void GFrameBuffer::Render() {
+void GFramebuffer::Render() {
     auto& Main_Window = m_Current_Window->m_Main_Window;
     Main_Window->m_Last_Framebuffer.pop();
     auto& Previous_Framebuffer = Main_Window->m_Last_Framebuffer.top();

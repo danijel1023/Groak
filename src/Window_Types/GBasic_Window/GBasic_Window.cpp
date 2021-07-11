@@ -27,8 +27,8 @@ GBasic_Window::~GBasic_Window() {
 
 
 
-GFrameBuffer* GBasic_Window::Create_Framebuffer() {
-	return new GFrameBuffer(m_Window_X, m_Window_Y, this);
+GFramebuffer* GBasic_Window::Create_Framebuffer() {
+	return new GFramebuffer(m_Window_X, m_Window_Y, this);
 }
 
 void GBasic_Window::Add_Quad(GQuad* Quad) {
@@ -45,17 +45,17 @@ void GBasic_Window::Set_Viewport() {
 
 
 
-int GBasic_Window::Dispatcher_Func(void* _This, GEvent* Event) {
+int GBasic_Window::Dispatcher_Func(void* _This, const GEvent* Event) {
 	auto This = static_cast<GBasic_Window*>(_This);
 	return This->Dispatcher_Func(Event);
 }
 
-int GBasic_Window::Callback_Func(void* _This, GEvent* Event) {
+int GBasic_Window::Callback_Func(void* _This, const GEvent* Event) {
 	auto This = static_cast<GBasic_Window*>(_This);
 	return This->Callback_Func(Event);
 }
 
-int GBasic_Window::Dispatcher_Func(GEvent* Event) {
+int GBasic_Window::Dispatcher_Func(const GEvent* Event) {
 	switch (Event->Type) {
 		case GEType::Mouse:
 		{
@@ -155,7 +155,7 @@ int GBasic_Window::Dispatcher_Func(GEvent* Event) {
 }
 
 
-int GBasic_Window::Callback_Func(GEvent* Event) {
+int GBasic_Window::Callback_Func(const GEvent* Event) {
 	switch (Event->Type) {
 		case GEType::Window:
 		{

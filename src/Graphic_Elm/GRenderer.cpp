@@ -5,12 +5,18 @@
 
 #include "GCore.h"
 #include "GRenderer.h"
+#include "GWindow.h"
+
+#include "GBasic_Framebuffer.h"
+#include "GFramebuffer.h"
+
 
 #define __Quad_Count 256
-unsigned int Create_Shader(const std::string& Vertex, const std::string& Fragment);
+static unsigned int Create_Shader(const std::string& Vertex, const std::string& Fragment);
 
 
-GRenderer::GRenderer() {
+GRenderer::GRenderer(GWindow* Main_Wind)
+    : m_Main_Wind(Main_Wind) {
     m_Buffer = new GVertex[__Quad_Count * 4];
 
     m_Shader = Create_Shader(Vertex_Shader, Fragment_Shader);
@@ -27,19 +33,17 @@ GRenderer::GRenderer() {
     glBufferData(GL_ARRAY_BUFFER, __Quad_Count * 4 * sizeof(GVertex), nullptr, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribIPointer(0, 2, GL_INT, sizeof(GVertex), (void*)offsetof(GVertex, Pos));
     glEnableVertexAttribArray(1);
-    glVertexAttribIPointer(1, 2, GL_INT, sizeof(GVertex), (void*)offsetof(GVertex, Centre));
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(GVertex), (void*)offsetof(GVertex, Color));
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(GVertex), (void*)offsetof(GVertex, Tex_Coords));
     glEnableVertexAttribArray(4);
-    glVertexAttribIPointer(4, 1, GL_INT, sizeof(GVertex), (void*)offsetof(GVertex, Tex_id));
     glEnableVertexAttribArray(5);
-    glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(GVertex), (void*)offsetof(GVertex, Alpha));
-    glEnableVertexAttribArray(6);
-    glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, sizeof(GVertex), (void*)offsetof(GVertex, Rotation));
+    glVertexAttribIPointer(0, 2, GL_INT,             sizeof(GVertex), (void*)offsetof(GVertex, Pos));
+    glVertexAttribIPointer(1, 2, GL_INT,             sizeof(GVertex), (void*)offsetof(GVertex, Centre));
+    glVertexAttribPointer (2, 4, GL_FLOAT, GL_FALSE, sizeof(GVertex), (void*)offsetof(GVertex, Color));
+    glVertexAttribPointer (3, 2, GL_FLOAT, GL_FALSE, sizeof(GVertex), (void*)offsetof(GVertex, Tex_Coords));
+    glVertexAttribIPointer(4, 1, GL_INT,             sizeof(GVertex), (void*)offsetof(GVertex, Tex_id));
+    glVertexAttribPointer (5, 1, GL_FLOAT, GL_FALSE, sizeof(GVertex), (void*)offsetof(GVertex, Rotation));
 
     // Index (element) buffer
     unsigned int Indices[__Quad_Count * 6];
@@ -111,6 +115,51 @@ void GRenderer::Add_Quad(GQuad& Quad) {
     //Copy the vertices of quad to memory
     Quad.Insert_Vertices(&m_Buffer[Quad_i * 4], Textures_id[Quad.m_Texture]);
     Quad_i += 1;
+}
+
+
+void GRenderer::Add_Char(GCharacter& CH) {
+    int Sprite_ID = CH.m_Code_Point / (28 * 60);
+    if (m_Sprite_List.find(Sprite_ID) == m_Sprite_List.end()) { //Create Sprite sheet
+        auto New_FB = new GBasic_Framebuffer(1600, 1600); //Create buffer
+
+        //Load characters and render them to the framebuffer
+
+        New_FB->Bind();
+        Set_Window_Screen(0, 0, 1919, 1919);
+
+        FT_Library ft = nullptr;
+        FT_Face face = nullptr;
+
+        if (FT_Init_FreeType(&ft)) {
+            std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+            __debugbreak();
+        }
+
+        if (FT_New_Face(ft, "C:/Windows/Fonts/consola.ttf", 0, &face)) {
+            std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
+            __debugbreak();
+        }
+
+        if (!FT_IS_FIXED_WIDTH(face)) {
+            __debugbreak();
+        }
+
+        FT_Set_Pixel_Sizes(face, 0, 58);
+
+        //render
+
+        //Back to the last framebuffer
+        New_FB->Un_Bind(m_Main_Wind->Get_Last_FB());
+    }
+
+
+
+    // - Generate sprite sheet (if needed)
+    // - Create quad for char
+    //     +> Do a texture offset calculation
+    // - Add quad to buffer
+
 }
 
 

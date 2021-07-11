@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Groak.h"
+#include "GCharacter.h"
 
 
 class App : public GApplication {
@@ -27,10 +28,10 @@ public:
 
 
 protected:
-    int Callback_Func(GEvent* Event);
+    int Callback_Func(const GEvent* Event);
 
 private:
-    static int Callback_Func(void* _This, GEvent* Event) {
+    static int Callback_Func(void* _This, const GEvent* Event) {
         auto This = static_cast<Window*>(_This);
         return This->Callback_Func(Event);
     }
@@ -47,10 +48,10 @@ public:
 
 
 protected:
-    int Callback_Func(GEvent* Event);
+    int Callback_Func(const GEvent* Event);
 
 private:
-    static int Callback_Func(void* _This, GEvent* Event) {
+    static int Callback_Func(void* _This, const GEvent* Event) {
         auto This = static_cast<Child_Window*>(_This);
         return This->Callback_Func(Event);
     }
@@ -94,7 +95,7 @@ void App::On_Close() {
 
 GPos MP;
 bool Track = false;
-int Window::Callback_Func(GEvent* Event) {
+int Window::Callback_Func(const GEvent* Event) {
     switch (Event->Type) {
         case GEType::Window:
         {
@@ -191,9 +192,10 @@ int Window::Callback_Func(GEvent* Event) {
 }
 
 
+std::vector<GCharacter> Text;
 GQuad* Close_TTB;
-GFrameBuffer* Titlebar_Fb;
-int Child_Window::Callback_Func(GEvent* Event) {
+GFramebuffer* Titlebar_Fb;
+int Child_Window::Callback_Func(const GEvent* Event) {
     switch (Event->Type) {
         case GEType::Window:
         {
@@ -201,22 +203,31 @@ int Child_Window::Callback_Func(GEvent* Event) {
                 Titlebar_Fb = Create_Framebuffer();
 
                 Close_TTB = new GQuad(m_Window_X, m_Window_Y, 0, 0);
-                Close_TTB->m_Blue = 1.0;
-                Close_TTB->m_Alpha = 1;
+                Close_TTB->m_Color = { 1.0, 0.0, 1.0, 1.0 };
+
                 Add_Quad(Close_TTB);
             }
 
 
             else if (Event->Wind_Message == GEWind_Message::Render) {
+                auto& Renderer = *(m_Main_Window->Get_Renderer());
                 Close_TTB->m_Rotation++;
 
-                auto& Renderer = *(m_Main_Window->Get_Renderer());
                 Titlebar_Fb->Use();
                 glClear(GL_COLOR_BUFFER_BIT);
-
                 Set_Viewport();
+
                 for (auto& Quad : m_Quad_List) if (Quad->m_Active) Renderer.Add_Quad(*Quad);
                 Renderer.Flush();
+
+                for (auto& Char : Text) {
+                    Renderer.Add_Char(Char);
+                    // - Generate sprite sheet (if needed)
+                    // - Create quad for char
+                    //     +> Do a texture offset calculation
+                    // - Add quad to buffer
+                }
+                //Renderer.Flush();
 
                 Titlebar_Fb->Render();
                 return 0;
@@ -229,8 +240,13 @@ int Child_Window::Callback_Func(GEvent* Event) {
         {
             if (Event->Mouse_Message == GEMouse_Message::Down) {
                 m_Main_Window->Set_Focus(this);
-            }
 
+
+                if (Event->Mouse_Button == GEMouse_Button::MMB) {
+                    Text.push_back({ 'A', { 0.0f, 0.0f, 1.0f, 1.0f }, { 0, 0 } });
+                }
+            }
+            
 
             GEvent Render_Event;
             Render_Event.Core_Message = GECore_Message::Render;

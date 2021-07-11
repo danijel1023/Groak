@@ -2,16 +2,14 @@
 
 layout(location = 0) in ivec2   cpu_Pos;
 layout(location = 1) in ivec2   cpu_Centre;
-layout(location = 2) in vec3    cpu_Color;
+layout(location = 2) in vec4    cpu_Color;
 layout(location = 3) in vec2    cpu_Tex_Coord;
-layout(location = 4) in int     cpu_Tex_id;
-layout(location = 5) in float   cpu_Alpha;
-layout(location = 6) in float   cpu_Rotation;
+layout(location = 4) in int     cpu_Tex_Slot;
+layout(location = 5) in float   cpu_Rotation;
 
-out vec3        v_Color;
+out vec4        v_Color;
 out vec2        v_Tex_Coord;
-flat out int    v_Tex_id;
-out float       v_Alpha;
+flat out int    v_Tex_Slot;
 
 uniform vec2 u_Scale;
 
@@ -33,9 +31,9 @@ void main() {
 
 
     v_Color = cpu_Color;
-    v_Alpha = cpu_Alpha;
 
-    v_Tex_id = cpu_Tex_id;
+    v_Tex_Slot = cpu_Tex_Slot;
     v_Tex_Coord = cpu_Tex_Coord;
-    if (v_Tex_id < -1.0) v_Tex_Coord.y = 1.0 - v_Tex_Coord.y;
+
+    if (v_Tex_Slot < -1.0) v_Tex_Coord.y = 1.0 - v_Tex_Coord.y;
 }

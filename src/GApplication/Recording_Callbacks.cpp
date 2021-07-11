@@ -164,3 +164,41 @@ void GApplication::GLFW_Recording_Window_Focus_Callback(GLFWwindow* Window_Hndl,
     GApp()->m_Simulator_File.flush();
     _This->Post_Event(Event);
 }
+
+void GApplication::GLFW_Recording_Window_Close_Callback(GLFWwindow* Window_Hndl) {
+    auto _This = static_cast<GWindow*>(glfwGetWindowUserPointer(Window_Hndl));
+
+    GEvent Event;
+    Event.Type = GEType::Window;
+    Event.Wind_Message = GEWind_Message::Close;
+
+    GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
+    GApp()->m_Simulator_File.flush();
+    _This->Post_Event(Event);
+}
+
+void GApplication::GLFW_Recording_Window_Maximize_Callback(GLFWwindow* Window_Hndl, int Maximized) {
+    auto _This = static_cast<GWindow*>(glfwGetWindowUserPointer(Window_Hndl));
+
+    GEvent Event;
+    Event.Type = GEType::Window;
+    if (Maximized) Event.Wind_Message = GEWind_Message::Maximise;
+    else           Event.Wind_Message = GEWind_Message::Restore;
+
+    GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
+    GApp()->m_Simulator_File.flush();
+    _This->Post_Event(Event);
+}
+
+void GApplication::GLFW_Recording_Window_Iconify_Callback(GLFWwindow* Window_Hndl, int Iconified) {
+    auto _This = static_cast<GWindow*>(glfwGetWindowUserPointer(Window_Hndl));
+
+    GEvent Event;
+    Event.Type = GEType::Window;
+    if (Iconified) Event.Wind_Message = GEWind_Message::Iconify;
+    else           Event.Wind_Message = GEWind_Message::Restore;
+
+    GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
+    GApp()->m_Simulator_File.flush();
+    _This->Post_Event(Event);
+}

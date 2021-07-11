@@ -4,13 +4,14 @@
 #include "GQuad.h"
 
 class GBasic_Window;
-class GFrameBuffer {
+class GFramebuffer {
 public:
-    GFrameBuffer(int Window_X, int Window_Y, GBasic_Window* Current_Window);
-    ~GFrameBuffer();
+    GFramebuffer(int Window_X, int Window_Y, GBasic_Window* Current_Window);
+    ~GFramebuffer();
 
     void Use();
     void Render();
+    unsigned int Get_FB() { return m_Framebuffer; }
 
 private:
     GQuad m_FB_Quad;

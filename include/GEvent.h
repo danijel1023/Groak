@@ -1,5 +1,7 @@
+#pragma once
 #include <stdint.h>
 #include <functional>
+#include "GPos.h"
 
 //Core type doesn't exist since you have
 //to use GApp-calls (eg. GApp()->Post_Event(...)) directly, to write to its queue
@@ -8,7 +10,7 @@ enum class GEType { Window, Mouse, Keyboard, Custom };
 enum class GECore_Message {
     Register, Run_Lambda,
 
-    Move, Minimise, Maximise, Recenter,
+    Move, Minimise, Maximise, Restore,
     Render, Show, Hide,
     Close,
 
@@ -19,7 +21,7 @@ enum class GEWind_Message {
     Resize, Lose_Focus, Gain_Focus,
 
     Run,
-    Move, Minimise, Maximise, Recenter,
+    Move, Iconify, Maximise, Restore,
     Render, Show, Hide,
     Close, Terminate_Thread
 };
@@ -38,20 +40,6 @@ enum class GEMouse_Message {
 
 enum class GEKeyboard_Message { Key, Text };
 enum class GEKey_Action { Up, Down, Repeat };
-
-
-
-struct GPos {
-    int X = 0, Y = 0;
-
-    GPos operator+(GPos Right) { return { (X + Right.X), (Y + Right.Y) }; }
-    GPos operator-(GPos Right) { return { (X - Right.X), (Y - Right.Y) }; }
-
-    GPos& operator+=(GPos Right) { X += Right.X; Y += Right.Y; return *this; }
-    GPos& operator-=(GPos Right) { X -= Right.X; Y -= Right.Y; return *this; }
-};
-
-using GSize = GPos;
 
 
 struct GEvent {

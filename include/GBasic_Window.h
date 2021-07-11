@@ -11,7 +11,7 @@ public:
     GBasic_Window(GBasic_Window* Parent, int Window_X, int Window_Y, int Screen_X, int Screen_Y);
     virtual ~GBasic_Window();
     
-    GFrameBuffer* Create_Framebuffer();
+    GFramebuffer* Create_Framebuffer();
     void Add_Quad(GQuad* Quad);
     void Set_Viewport();
 
@@ -25,14 +25,14 @@ protected:
     std::vector<GQuad*> m_Quad_List;
 
     GDispatcher m_Dispatcher_Ptr = &GBasic_Window::Dispatcher_Func;
-    int Dispatcher_Func(GEvent* Event);
+    int Dispatcher_Func(const GEvent* Event);
 
     GCallback m_Callback_Ptr = &GBasic_Window::Callback_Func;
-    int Callback_Func(GEvent* Event);
+    int Callback_Func(const GEvent* Event);
 
 private:
-    static int Dispatcher_Func(void* _This, GEvent* Event);
-    static int Callback_Func(void* _This, GEvent* Event);
+    static int Dispatcher_Func(void* _This, const GEvent* Event);
+    static int Callback_Func(void* _This, const GEvent* Event);
 
 public:
     //"Getters" and "setters"
@@ -50,5 +50,5 @@ public:
     inline GWindow* Main_Window() { return m_Main_Window; }
 
     friend class GWindow;
-    friend class GFrameBuffer;
+    friend class GFramebuffer;
 };

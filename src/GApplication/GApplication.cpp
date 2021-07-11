@@ -68,9 +68,9 @@ void GApplication::Attach_Callbacks(GWindow* Window) {
             glfwSetWindowSizeCallback(Window->m_Window_Hndl, GLFW_Recording_Window_Size_Callback);
             glfwSetWindowPosCallback(Window->m_Window_Hndl, GLFW_Recording_Window_Pos_Callback);
             glfwSetWindowFocusCallback(Window->m_Window_Hndl, GLFW_Recording_Window_Focus_Callback);
-            //glfwSetWindowCloseCallback(Window->m_Window_Hndl, window_close_callback);
-            //glfwSetWindowMaximizeCallback();
-            //glfwSetWindowIconifyCallback(, window_iconify_callback);
+            glfwSetWindowCloseCallback(Window->m_Window_Hndl, GLFW_Recording_Window_Close_Callback);
+            glfwSetWindowMaximizeCallback(Window->m_Window_Hndl, GLFW_Recording_Window_Maximize_Callback);
+            glfwSetWindowIconifyCallback(Window->m_Window_Hndl, GLFW_Recording_Window_Iconify_Callback);
         }
     }
 
@@ -88,6 +88,9 @@ void GApplication::Attach_Callbacks(GWindow* Window) {
         glfwSetWindowSizeCallback(Window->m_Window_Hndl, GLFW_Window_Size_Callback);
         glfwSetWindowPosCallback(Window->m_Window_Hndl, GLFW_Window_Pos_Callback);
         glfwSetWindowFocusCallback(Window->m_Window_Hndl, GLFW_Window_Focus_Callback);
+        glfwSetWindowCloseCallback(Window->m_Window_Hndl, GLFW_Window_Close_Callback);
+        glfwSetWindowMaximizeCallback(Window->m_Window_Hndl, GLFW_Window_Maximize_Callback);
+        glfwSetWindowIconifyCallback(Window->m_Window_Hndl, GLFW_Window_Iconify_Callback);
     }
 }
 
@@ -102,7 +105,7 @@ void GApplication::Register_Window(GWindow* Window) {
 
 
 
-void GApplication::Post_Event(GEvent& Event) {
+void GApplication::Post_Event(const GEvent& Event) {
     auto Node = m_Queue.Get_Node();
     Node->Data = Event;
     m_Queue.Insert(Node);
@@ -110,7 +113,7 @@ void GApplication::Post_Event(GEvent& Event) {
     glfwPostEmptyEvent();
 }
 
-void GApplication::Send_Event(GEvent& Event) {
+void GApplication::Send_Event(const GEvent& Event) {
     {
         std::unique_lock<std::recursive_mutex> Lck(m_QRM);
 
@@ -127,14 +130,14 @@ void GApplication::Send_Event(GEvent& Event) {
     }
 }
 
-void GApplication::Send_Event_NL(GEvent& Event) {
+void GApplication::Send_Event_NL(const GEvent& Event) {
     std::unique_lock<std::recursive_mutex> Lck(m_QRM);
     Worker(Event);
 }
 
 
 
-void GApplication::Worker(GEvent& Event) {
+void GApplication::Worker(const GEvent& Event) {
     switch (Event.Core_Message) {
         case GECore_Message::Register:
         {
@@ -251,7 +254,7 @@ int GApplication::Run() {
         }
 
         else while (!m_Queue.Empty()) {
-            GEvent& Event = m_Queue.Peek_Front();
+            const GEvent& Event = m_Queue.Peek_Front();
             Worker(Event);
             m_Queue.Pop();
         }

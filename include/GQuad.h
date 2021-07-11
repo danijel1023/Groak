@@ -1,6 +1,10 @@
 #pragma once
 #include "GVertex.h"
 
+struct GColor {
+    float Red = 0.0f, Green = 0.0f, Blue = 0.0f, Alpha = 1.0f;
+};
+
 struct GTexture;
 struct GQuad {
     GQuad();
@@ -16,7 +20,7 @@ struct GQuad {
     bool m_Character = false;
     ivec2 m_Window = { 0, 0 };
     ivec2 m_Screen = { 0, 0 };
-    float m_Red = 0.0f, m_Green = 0.0f, m_Blue = 0.0f, m_Alpha = 1.0f;
+    GColor m_Color;
     float m_Rotation = 0.0f;
     unsigned int m_Texture = -1;
     vec2 m_Tex_Coords[4] = {
@@ -29,5 +33,5 @@ struct GQuad {
     void Repeat_Texture(const GTexture& Texture, unsigned int X_Repeat, unsigned int Y_Repeat);
     void Texture_Region(const GTexture& Texture, unsigned int Window_X, unsigned int Window_Y, unsigned int Screen_X, unsigned int Screen_Y);
 
-    void GQuad::Insert_Vertices(GVertex* Buffer, int Texture_Slot);
+    void Insert_Vertices(GVertex* Buffer, int Texture_Slot);
 };

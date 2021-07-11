@@ -13,12 +13,12 @@ GWindow::~GWindow() {}
 
 
 
-int GWindow::Send_Event(GEvent& Event) {
+int GWindow::Send_Event(const GEvent& Event) {
     std::unique_lock<std::recursive_mutex> Lck(m_Dispatcher_Mutex);
     return GCall(this, m_Dispatcher_Ptr, &Event);
 }
 
-void GWindow::Post_Event(GEvent& Event) {
+void GWindow::Post_Event(const GEvent& Event) {
     auto Node = m_Queue.Get_Node();
     Node->Data = Event;
     m_Queue.Insert(Node);
@@ -33,18 +33,18 @@ void GWindow::Set_Focus(GBasic_Window* Window) {
 
 
 
-int GWindow::Callback_Func(void* _This, GEvent* Event) {
+int GWindow::Callback_Func(void* _This, const GEvent* Event) {
     auto This = static_cast<GWindow*>(_This);
     return This->Callback_Func(Event);
 }
 
-int GWindow::Dispatcher_Func(void* _This, GEvent* Event) {
+int GWindow::Dispatcher_Func(void* _This, const GEvent* Event) {
     auto This = static_cast<GWindow*>(_This);
     return This->Dispatcher_Func(Event);
 }
 
 
-int GWindow::Dispatcher_Func(GEvent* Event) {
+int GWindow::Dispatcher_Func(const GEvent* Event) {
     switch (Event->Type) {
         case GEType::Custom:
         {
@@ -87,7 +87,7 @@ int GWindow::Dispatcher_Func(GEvent* Event) {
     return GBasic_Window::Dispatcher_Func(Event);
 }
 
-int GWindow::Callback_Func(GEvent* Event) {
+int GWindow::Callback_Func(const GEvent* Event) {
     if (Event->Type == GEType::Window) {
         switch (Event->Wind_Message) {
             case GEWind_Message::Gain_Focus:
@@ -149,7 +149,7 @@ void GWindow::Run() {
     glClear(GL_COLOR_BUFFER_BIT);
     glfwSwapBuffers(m_Window_Hndl);
 
-    m_Renderer = new GRenderer();
+    m_Renderer = new GRenderer(this);
     m_Renderer->Set_Window_Screen(0, 0, m_Window_X, m_Window_Y);
 
     m_Worker = std::thread(&GWindow::Worker, this);
@@ -166,7 +166,8 @@ void GWindow::Worker() {
         m_DCV.wait(Lck, [=] { return !m_Queue.Empty(); });
 
         while (!m_Queue.Empty()) {
-            GCall(this, m_Dispatcher_Ptr, &m_Queue.Peek_Front());
+            GEvent Event = m_Queue.Peek_Front();
+            GCall(this, m_Dispatcher_Ptr, &Event);
             m_Queue.Pop();
         }
     }
