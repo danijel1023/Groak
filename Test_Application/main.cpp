@@ -203,7 +203,7 @@ int Child_Window::Callback_Func(const GEvent* Event) {
                 Titlebar_Fb = Create_Framebuffer();
 
                 Close_TTB = new GQuad(m_Window_X, m_Window_Y, 0, 0);
-                Close_TTB->m_Color = { 1.0, 0.0, 1.0, 1.0 };
+                Close_TTB->m_Color = { 1.0, 1.0, 1.0, 1.0 };
 
                 Add_Quad(Close_TTB);
             }
