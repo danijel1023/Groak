@@ -31,7 +31,7 @@ void GQuad::Texture_Region(const GTexture& Texture, unsigned int Window_X, unsig
 }
 
 
-void GQuad::Insert_Vertices(GVertex* Buffer, int Texture_Slot) {
+void GQuad::Insert_Vertices(GVertex* Buffer, int Texture_Slot) const {
     Buffer[0] = GVertex{ m_Screen.X,              m_Screen.Y,              m_Screen.X + (m_Window.X / 2), m_Screen.Y + (m_Window.Y / 2), m_Color.Red, m_Color.Green, m_Color.Blue, m_Color.Alpha, m_Tex_Coords[0], Texture_Slot, m_Rotation };
     Buffer[1] = GVertex{ m_Screen.X + m_Window.X, m_Screen.Y,              m_Screen.X + (m_Window.X / 2), m_Screen.Y + (m_Window.Y / 2), m_Color.Red, m_Color.Green, m_Color.Blue, m_Color.Alpha, m_Tex_Coords[1], Texture_Slot, m_Rotation };
     Buffer[2] = GVertex{ m_Screen.X + m_Window.X, m_Screen.Y + m_Window.Y, m_Screen.X + (m_Window.X / 2), m_Screen.Y + (m_Window.Y / 2), m_Color.Red, m_Color.Green, m_Color.Blue, m_Color.Alpha, m_Tex_Coords[2], Texture_Slot, m_Rotation };

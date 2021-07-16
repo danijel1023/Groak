@@ -33,5 +33,5 @@ struct GQuad {
     void Repeat_Texture(const GTexture& Texture, unsigned int X_Repeat, unsigned int Y_Repeat);
     void Texture_Region(const GTexture& Texture, unsigned int Window_X, unsigned int Window_Y, unsigned int Screen_X, unsigned int Screen_Y);
 
-    void Insert_Vertices(GVertex* Buffer, int Texture_Slot);
+    void Insert_Vertices(GVertex* Buffer, int Texture_Slot) const;
 };

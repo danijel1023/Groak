@@ -12,8 +12,8 @@ public:
     ~GRenderer();
 
     //Call to add a quad to render
-    void Add_Quad(GQuad& Quad);
-    void Add_Char(GCharacter& CH);
+    void Add_Quad(const GQuad& Quad);
+    void Add_Char(const GCharacter& CH, const GPos& Pos);
 
     
     void Flush();   //Flush / render to the framebuffer
@@ -21,6 +21,9 @@ public:
 
     void Set_Scale(int X, int Y);
     void Set_Window_Screen(int Screen_X, int Screen_Y, int Window_X, int Window_Y);
+
+    void Text_Size();
+    void Text_Scale();
 
     unsigned int Get_Shader();
 

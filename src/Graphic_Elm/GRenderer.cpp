@@ -9,6 +9,7 @@
 
 #include "GBasic_Framebuffer.h"
 #include "GFramebuffer.h"
+#include "GTexture.h"
 
 
 #define __Quad_Count 256
@@ -93,7 +94,7 @@ void GRenderer::Set_Window_Screen(int Screen_X, int Screen_Y, int Window_X, int 
 
 
 
-void GRenderer::Add_Quad(GQuad& Quad) {
+void GRenderer::Add_Quad(const GQuad& Quad) {
     //Switching textures - if the texture is set
     if (Quad.m_Texture != -1) {
         if (Textures_id.find(Quad.m_Texture) == Textures_id.end()) {
@@ -118,10 +119,12 @@ void GRenderer::Add_Quad(GQuad& Quad) {
 }
 
 
-void GRenderer::Add_Char(GCharacter& CH) {
+#define Sprite_Size_X 1600
+#define Sprite_Size_Y 1600
+void GRenderer::Add_Char(const GCharacter& CH, const GPos& Pos) {
     int Sprite_ID = CH.m_Code_Point / (28 * 60);
     if (m_Sprite_List.find(Sprite_ID) == m_Sprite_List.end()) { //Create Sprite sheet
-        auto New_FB = new GBasic_Framebuffer(1600, 1600); //Create buffer
+        auto New_FB = new GBasic_Framebuffer(Sprite_Size_X, Sprite_Size_Y); //Create buffer
 
         //Load characters and render them to the framebuffer
 
@@ -134,15 +137,22 @@ void GRenderer::Add_Char(GCharacter& CH) {
         if (FT_Init_FreeType(&ft)) {
             std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
             __debugbreak();
+            delete New_FB;
+            return;
         }
 
         if (FT_New_Face(ft, "C:/Windows/Fonts/consola.ttf", 0, &face)) {
             std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
             __debugbreak();
+            delete New_FB;
+            return;
         }
 
         if (!FT_IS_FIXED_WIDTH(face)) {
+            std::cout << "ERROR::FREETYPE: face is not fixed size!" << std::endl;
             __debugbreak();
+            delete New_FB;
+            return;
         }
 
         FT_Set_Pixel_Sizes(face, 0, 58);
@@ -151,15 +161,28 @@ void GRenderer::Add_Char(GCharacter& CH) {
 
         //Back to the last framebuffer
         New_FB->Un_Bind(m_Main_Wind->Get_Last_FB());
+        m_Sprite_List[Sprite_ID] = New_FB;
     }
 
+    auto& Sprite = m_Sprite_List.at(Sprite_ID);
 
+    GQuad Char_Quad(10, 20, Pos.X, Pos.Y);
+    Char_Quad.m_Color = CH.m_Color;
 
-    // - Generate sprite sheet (if needed)
-    // - Create quad for char
-    //     +> Do a texture offset calculation
-    // - Add quad to buffer
+    GTexture Char_Texture;
+    Char_Texture.ID = Sprite->Get_Texture();
+    Char_Texture.Height = Sprite_Size_Y;
+    Char_Texture.Width = Sprite_Size_X;
 
+    //Calculate offset (from code point)
+    Char_Quad.Texture_Region(Char_Texture, 30, 70, 40, 40);
+
+    // - Generate sprite sheet (if needed)      -done
+    // - Create quad for char                   -done
+    //     +> Do a texture offset calculation   -working on it
+    // - Add quad to buffer                     -done
+
+    Add_Quad(Char_Quad);
 }
 
 

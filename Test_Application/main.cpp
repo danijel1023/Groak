@@ -203,7 +203,7 @@ int Child_Window::Callback_Func(const GEvent* Event) {
                 Titlebar_Fb = Create_Framebuffer();
 
                 Close_TTB = new GQuad(m_Window_X, m_Window_Y, 0, 0);
-                Close_TTB->m_Color = { 1.0, 1.0, 1.0, 1.0 };
+                Close_TTB->m_Color = { 1.0, 0.0, 1.0, 1.0 };
 
                 Add_Quad(Close_TTB);
             }
@@ -220,8 +220,12 @@ int Child_Window::Callback_Func(const GEvent* Event) {
                 for (auto& Quad : m_Quad_List) if (Quad->m_Active) Renderer.Add_Quad(*Quad);
                 Renderer.Flush();
 
+                //Pixel size
+                //Renderer.Text_Size(15);
+                //Scale of the original text size (percentage)
+                //Renderer.Text_Scale(30);
                 for (auto& Char : Text) {
-                    Renderer.Add_Char(Char);
+                    Renderer.Add_Char(Char, { 0, 0 });
                     // - Generate sprite sheet (if needed)
                     // - Create quad for char
                     //     +> Do a texture offset calculation
@@ -243,7 +247,7 @@ int Child_Window::Callback_Func(const GEvent* Event) {
 
 
                 if (Event->Mouse_Button == GEMouse_Button::MMB) {
-                    Text.push_back({ 'A', { 0.0f, 0.0f, 1.0f, 1.0f }, { 0, 0 } });
+                    Text.push_back({ 'A', { 0.0f, 0.0f, 1.0f, 1.0f }});
                 }
             }
             
