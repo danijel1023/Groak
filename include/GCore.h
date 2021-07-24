@@ -7,20 +7,11 @@
 #endif // NDEBUG
 
 
-#include "../Vendor/GLEW/include/GL/glew.h"
-#include "../Vendor/GLFW/include/GLFW/glfw3.h"
+#include "../Vendor/glad/include/glad/glad.h"
+#include "../Vendor/glfw3/include/GLFW/glfw3.h"
 
-
-#ifdef _WIN64
-#include "ft2build.h"
-#include FT_FREETYPE_H
-#else
-// I've put the whole include directory with library to force platform
-// specific code seperation - in this case the binaries
-// ; After code seperation, the freetype include dir should be seperated from
-// os-specific binaries and this #ifdef must be removed
-#error Add OS-specific FreeType binaries
-#endif
+//#include "ft2build.h"
+//#include FT_FREETYPE_H
 
 
 #include "GEvent.h"

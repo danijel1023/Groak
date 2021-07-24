@@ -139,7 +139,7 @@ int Window::Callback_Func(const GEvent* Event) {
         case GEType::Mouse:
         {
             if (Event->Mouse_Message == GEMouse_Message::Move) {
-                GInfo() << "Mouse move (" << Get_Name() << ") (x, y): [" << Event->MP.X << ", " << Event->MP.Y << "]";
+                //GInfo() << "Mouse move (" << Get_Name() << ") (x, y): [" << Event->MP.X << ", " << Event->MP.Y << "]";
 
                 if (Track) {
                     GEvent Move_E;

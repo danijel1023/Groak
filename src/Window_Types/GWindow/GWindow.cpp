@@ -129,10 +129,8 @@ void GWindow::Run() {
 
     GApp()->Set_Context(this);
 
-    auto Glew_Err = glewInit();
-    if (Glew_Err != GLEW_OK) {
-        GError() << "Could not initialise glew on: " << m_Name;
-        GError() << glewGetErrorString(Glew_Err);
+    if (!gladLoadGL()) {
+        GError() << "GLAD: Failed to initialize OpenGL context";
         return;
     }
 

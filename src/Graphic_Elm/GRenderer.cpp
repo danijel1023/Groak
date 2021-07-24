@@ -131,31 +131,28 @@ void GRenderer::Add_Char(const GCharacter& CH, const GPos& Pos) {
         New_FB->Bind();
         Set_Window_Screen(0, 0, 1919, 1919);
 
-        FT_Library ft = nullptr;
-        FT_Face face = nullptr;
-
-        if (FT_Init_FreeType(&ft)) {
-            std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
-            __debugbreak();
-            delete New_FB;
-            return;
-        }
-
-        if (FT_New_Face(ft, "C:/Windows/Fonts/consola.ttf", 0, &face)) {
-            std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
-            __debugbreak();
-            delete New_FB;
-            return;
-        }
-
-        if (!FT_IS_FIXED_WIDTH(face)) {
-            std::cout << "ERROR::FREETYPE: face is not fixed size!" << std::endl;
-            __debugbreak();
-            delete New_FB;
-            return;
-        }
-
-        FT_Set_Pixel_Sizes(face, 0, 58);
+        //FT_Library ft = nullptr;
+        //FT_Face face = nullptr;
+        
+        //if (FT_Init_FreeType(&ft)) {
+        //    std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+        //    delete New_FB;
+        //    return;
+        //}
+        
+        //if (FT_New_Face(ft, "C:/Windows/Fonts/consola.ttf", 0, &face)) {
+        //    std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
+        //    delete New_FB;
+        //    return;
+        //}
+        
+        //if (!FT_IS_FIXED_WIDTH(face)) {
+        //    std::cout << "ERROR::FREETYPE: face is not fixed size!" << std::endl;
+        //    delete New_FB;
+        //    return;
+        //}
+        
+        //FT_Set_Pixel_Sizes(face, 0, 58);
 
         //render
 
@@ -216,7 +213,7 @@ static unsigned int Compile_Shader(unsigned int Type, const std::string& Src) {
     if (Result == GL_FALSE) {
         int Length;
         glGetShaderiv(id, GL_INFO_LOG_LENGTH, &Length);
-        char* Message = (char*)_malloca(Length * sizeof(char));
+        char* Message = (char*)alloca(Length * sizeof(char));
 
         glGetShaderInfoLog(id, Length, &Length, Message);
         std::cout << "[Error::Compile_Shader] " << Message << std::endl;
@@ -244,7 +241,7 @@ static unsigned int Create_Shader(const std::string& Vertex, const std::string& 
     if (Result == GL_FALSE) {
         int Length;
         glGetProgramiv(Program, GL_INFO_LOG_LENGTH, &Length);
-        char* Message = (char*)_malloca(Length * sizeof(char));
+        char* Message = (char*)alloca(Length * sizeof(char));
 
         glGetProgramInfoLog(Program, Length, &Length, Message);
         std::cout << "[Error::Link_Program] " << Message << std::endl;
