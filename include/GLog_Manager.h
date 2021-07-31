@@ -12,7 +12,7 @@ public:
     static void End();
     static void Set_Line_Ending(GString Line_Ending);
 
-    static void Set_Device(GLog_Device Out);
+    static void Set_Device(GLog_Device Out, const GString& File = "");
     static void Set_Log_Level(GLog_Level Log_Lvl);
 
     //No Line Ending

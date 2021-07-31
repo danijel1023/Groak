@@ -9,9 +9,17 @@ void GLog_Manager::Init()   { m_Stream_Ptr = new GLog_Stream; }
 void GLog_Manager::End()    { delete m_Stream_Ptr; }
 
 
-void GLog_Manager::Set_Log_Level(GLog_Level Log_Lvl)        { m_Log_Lvl = Log_Lvl; }
-void GLog_Manager::Set_Line_Ending(GString Line_Ending)     { m_Stream_Ptr->Set_Line_Ending(Line_Ending); }
-void GLog_Manager::Set_Device(GLog_Device Out)              { m_Stream_Ptr->Set_Device(Out); }
+void GLog_Manager::Set_Log_Level(GLog_Level Log_Lvl) {
+    m_Log_Lvl = Log_Lvl;
+}
+
+void GLog_Manager::Set_Line_Ending(GString Line_Ending) {
+    m_Stream_Ptr->Set_Line_Ending(Line_Ending);
+}
+
+void GLog_Manager::Set_Device(GLog_Device Out, const GString& File) {
+    m_Stream_Ptr->Set_Device(Out, File);
+}
 
 
 GLog_Manager::GLog_Manager() {}
@@ -49,6 +57,9 @@ GLog_Manager& GLog_Manager::GLog(GLog_Level Log_Lvl) {
                 break;
             case GLog_Level::Fatal:
                 (*m_Stream_Ptr) << "[Fatal] ";
+                break;
+            default:
+                (*m_Stream_Ptr) << "[Unknown] ";
                 break;
         }
     }

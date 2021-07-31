@@ -4,7 +4,7 @@
 
 
 enum class GLog_Device {
-    Null, Std_Console, GConsole, File
+    Std_Console, GConsole, File
 };
 
 enum class GLog_Level {
@@ -19,7 +19,7 @@ public:
     ~GLog_Stream();
 
     void Enable_Log(bool Enable_Log);
-    void Set_Device(GLog_Device Out);
+    void Set_Device(GLog_Device Out, const GString& File);
     void Set_Line_Ending(GString Line_Ending);
 
     void New_Line();
@@ -43,7 +43,7 @@ public:
 
 private:
     GString m_Line_Ending = "\n";
-    GLog_Device m_Out = GLog_Device::Null;
+    GLog_Device m_Out = GLog_Device::Std_Console;
 
     std::ofstream* m_File = nullptr;
     std::ostream* m_Stream_Ptr = nullptr;

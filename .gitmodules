@@ -4,3 +4,6 @@
 [submodule "Vendor/glfw3"]
 	path = Vendor/glfw3
 	url = https://github.com/glfw/glfw.git
+[submodule "Vendor/tinyutf8"]
+	path = Vendor/tinyutf8
+	url = https://github.com/DuffsDevice/tiny-utf8

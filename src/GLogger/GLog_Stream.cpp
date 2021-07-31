@@ -5,12 +5,11 @@
 
 
 GLog_Stream::GLog_Stream() {
-    m_File = new std::ofstream("log.txt");
+    m_File = new std::ofstream;
 }
 
 GLog_Stream::~GLog_Stream() {
-    m_File->close();
-    delete m_File;
+    delete m_File;  //Auto close
 }
 
 
@@ -21,29 +20,33 @@ void GLog_Stream::Enable_Log(bool Enable_Log) {
 
 
 
-void GLog_Stream::Set_Device(GLog_Device Out) {
+void GLog_Stream::Set_Device(GLog_Device Out, const GString& File) {
     if (Out == GLog_Device::GConsole) {
+        if (m_Stream_Ptr == m_File)
+            m_File->close();
+
         m_File_Lock = false;
         //[TODO] Implement custom console
         assert(0);
     }
 
     else if (Out == GLog_Device::Std_Console) {
+        if (m_Stream_Ptr == m_File)
+            m_File->close();
+
         m_File_Lock = false;
         m_Stream_Ptr = &std::cout;
     }
 
     else if (Out == GLog_Device::File) {
+        m_File->open(File.cpp_str());
+
         if (m_File->is_open())
             m_Stream_Ptr = m_File;
         else {
             m_File_Lock = true;
             m_Enable_Log = false;
         }
-    }
-
-    else if (Out == GLog_Device::Null) {
-        m_Stream_Ptr = nullptr;
     }
 
     m_Out = Out;
