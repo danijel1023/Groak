@@ -10,9 +10,14 @@
 #include "../Vendor/glad/include/glad/glad.h"
 #include "../Vendor/glfw3/include/GLFW/glfw3.h"
 
-//#include "ft2build.h"
-//#include FT_FREETYPE_H
+#include "ft2build.h"
+#include FT_FREETYPE_H
 
+#ifdef _WIN64
+#  define GROAK_FONT_FILE "C:/Windows/Fonts/consola.ttf"
+#else
+#  error supply font file for specific platform
+#endif
 
 #include "GEvent.h"
 #include "GQueue/GQueue.h"

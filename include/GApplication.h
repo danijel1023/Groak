@@ -26,6 +26,8 @@ public:
     void Attach_Simulator(GWindow* Window, bool Recording);
     void Attach_Callbacks(GWindow* Window);
 
+    FT_Library& Get_FT_Lib();
+
 private:
     bool m_Running = true;
     void Worker(const GEvent& Event);
@@ -48,6 +50,7 @@ private:
     std::thread m_Simulator_Thread;
     void Simulator_Thread();
 
+    FT_Library m_FreeType;
 
 
     // Callbacks

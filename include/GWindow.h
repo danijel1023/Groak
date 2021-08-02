@@ -25,6 +25,13 @@ public:
         else                          return 0;
     }
 
+
+    GFont* Load_Font(const GString& Font_File);
+    GFont* Set_Default_Font(GFont* Font);
+    GFont* Get_Default_Font();
+    void Set_Text_Height(int Height);   //Use default font
+    void Set_Text_Height(int Height, GFont* Font);
+
 protected:
     int Dispatcher_Func(const GEvent* Event);
     int Callback_Func(const GEvent* Event);
@@ -52,6 +59,9 @@ private:
     GRenderer* m_Renderer = nullptr;
     std::stack<GFramebuffer*> m_Last_Framebuffer = std::stack<GFramebuffer*>({ nullptr });
     GPos m_FB_Ancor = { 0, 0 };
+
+    GFont* m_Default_Font = nullptr;
+    std::vector<GFont*> m_Font_List;
 
     static int Dispatcher_Func(void* _This, const GEvent* Event);
     static int Callback_Func(void* _This, const GEvent* Event);

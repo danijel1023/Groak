@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <functional>
-#include "GPos.h"
+#include "GUnits.h"
 
 //Core type doesn't exist since you have
 //to use GApp-calls (eg. GApp()->Post_Event(...)) directly, to write to its queue

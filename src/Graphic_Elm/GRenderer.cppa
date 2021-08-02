@@ -115,7 +115,7 @@ void GRenderer::Add_Quad(const GQuad& Quad) {
 
     //Copy the vertices of quad to memory
     Quad.Insert_Vertices(&m_Buffer[Quad_i * 4], Textures_id[Quad.m_Texture]);
-    if (++Quad_i == __Quad_Count) Flush();
+    Quad_i += 1;
 }
 
 
@@ -123,10 +123,10 @@ void GRenderer::Flush() { Render(); }
 void GRenderer::Render() {
     glBindVertexArray(m_VAO);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-    
+
     glBufferSubData(GL_ARRAY_BUFFER, 0, Quad_i * 4 * sizeof(GVertex), m_Buffer);
     glDrawElements(GL_TRIANGLES, (GLsizei)Quad_i * 6, GL_UNSIGNED_INT, nullptr);
-    
+
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -204,15 +204,12 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
 
     unsigned int Textures[16], Tex_I = 0;
     int X_Offset = 0, Y_Offset = 0;
-    unsigned int Ch = 0;
+    FT_UInt Index;
+    FT_ULong Ch;
 
-    unsigned int Index = 0;
-    if (Atlas.Min != FT_Get_First_Char(Font->Face, &Index))
-        GError() << "asd";
-
-    Ch = Atlas.Min;
+    Ch = FT_Get_First_Char(Font->Face, &Index);
     glGenTextures(16, Textures);
-    while (Ch <= Atlas.Max) {
+    while (Index != 0) {
         GAChar_Data Ch_Data;
         if (FT_Load_Char(Font->Face, Ch, FT_LOAD_RENDER)) {
             GError() << "FreeType: Failed to load Glyph";
@@ -238,37 +235,34 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
         Ch_Data.Bearing = {      Glyph->bitmap_left,       Glyph->bitmap_top };
         Ch_Data.Advance =        Glyph->advance.x >> 6;
 
-
         if (X_Offset + Ch_Data.Advance >= 2048) {
             X_Offset = 0;
             Y_Offset += Font->Height;
         }
 
-
         GQuad Quad(Ch_Data.Size.X, Ch_Data.Size.Y,
-                   X_Offset + Ch_Data.Bearing.X,
-                   Y_Offset + Ch_Data.Bearing.Y + Font->Descender - Ch_Data.Size.Y);
+                   Ch_Data.Bearing.X + X_Offset,
+                   Y_Offset - Ch_Data.Size.Y + Ch_Data.Bearing.Y + Font->Descender);
+
         Quad.m_Type = GQuad_Type::Atlas;
         Quad.m_Texture = Textures[Tex_I];
         Quad.m_Color = { 1.0, 1.0, 1.0, 1.0 };
         Add_Quad(Quad);
+        //Flush();
+
 
 
         Ch_Data.Pos = Quad.m_Screen;
         Atlas.Map[Ch] = Ch_Data;
+
         X_Offset += Ch_Data.Advance;
-
-
         Ch = FT_Get_Next_Char(Font->Face, Ch, &Index);
-        if (++Tex_I == 16) { Tex_I = 0; Flush(); }
-
-
-        Flush();
+        if (++Tex_I == 16) Tex_I = 0;
     }
 
-    Flush();
-    glDeleteTextures(16, Textures);
     FB->Un_Bind(m_Main_Wind->Get_Last_FB());
+
+    glDeleteTextures(16, Textures);
 }
 
 

@@ -9,7 +9,12 @@ GWindow::GWindow(const GString& Name, int Window_X, int Window_Y, int Screen_X, 
     m_Callback_Ptr = &GWindow::Callback_Func;
 }
 
-GWindow::~GWindow() {}
+GWindow::~GWindow() {
+    for (auto Font : m_Font_List) {
+        FT_Done_Face(Font->Face);
+        delete Font;
+    }
+}
 
 
 
@@ -42,7 +47,6 @@ int GWindow::Dispatcher_Func(void* _This, const GEvent* Event) {
     auto This = static_cast<GWindow*>(_This);
     return This->Dispatcher_Func(Event);
 }
-
 
 int GWindow::Dispatcher_Func(const GEvent* Event) {
     switch (Event->Type) {
@@ -108,6 +112,16 @@ int GWindow::Callback_Func(const GEvent* Event) {
                 m_Screen_Y = Event->WP.Y;
                 return 0;
             }
+
+            case GEWind_Message::Close:
+            {
+                GEvent Event;
+                Event.Core_Message = GECore_Message::Close;
+                Event.Data_Ptr = this;
+                GApp()->Post_Event(Event);
+
+                return 0;
+            }
         }
     }
 
@@ -118,6 +132,7 @@ int GWindow::Callback_Func(const GEvent* Event) {
 
 void GWindow::Run() {
     glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+    glfwWindowHint(GLFW_SAMPLES, 32);
     m_Window_Hndl = glfwCreateWindow(m_Window_X, m_Window_Y, m_Name.c_str(), NULL, NULL);
     if (!m_Window_Hndl) {
         const char* Error_Msg;
@@ -136,19 +151,20 @@ void GWindow::Run() {
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_MULTISAMPLE);
 
     glfwSetWindowPos(m_Window_Hndl, m_Screen_X, m_Screen_Y);
 
     GApp()->Attach_Callbacks(this);
 
-    glClearColor((86.0f / 255.0f), (156.0f / 255.0f), (214.0f / 255.0f), 1.0f);
+    glClearColor((0.0f / 255.0f), (45.0f / 255.0f), (82.0f / 255.0f), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     glfwSwapBuffers(m_Window_Hndl);
     glClear(GL_COLOR_BUFFER_BIT);
     glfwSwapBuffers(m_Window_Hndl);
 
     m_Renderer = new GRenderer(this);
-    m_Renderer->Set_Window_Screen(0, 0, m_Window_X, m_Window_Y);
+    m_Renderer->Set_Window_Space(0, 0, m_Window_X, m_Window_Y);
 
     m_Worker = std::thread(&GWindow::Worker, this);
 
@@ -166,6 +182,10 @@ void GWindow::Worker() {
         while (!m_Queue.Empty()) {
             GEvent Event = m_Queue.Peek_Front();
             GCall(this, m_Dispatcher_Ptr, &Event);
+
+            if (Event.Type == GEType::Window && Event.Wind_Message == GEWind_Message::Terminate_Thread)
+                m_Running = false;
+
             m_Queue.Pop();
         }
     }
@@ -173,12 +193,103 @@ void GWindow::Worker() {
 
 
 void GWindow::Terminate() {
-    m_Running = false;
-
     GEvent Event;
     Event.Type = GEType::Window;
     Event.Wind_Message = GEWind_Message::Terminate_Thread;
 
     Post_Event(Event);
     m_Worker.join();
+}
+
+
+
+GFont* GWindow::Load_Font(const GString& Font_File) {
+    GFont* Font = new GFont;
+    Font->File = Font_File;
+
+    auto Error = FT_New_Face(GApp()->Get_FT_Lib(), Font_File.c_str(), 0, &Font->Face);
+    if (Error == FT_Err_Unknown_File_Format) {
+        GError() << Font_File
+            << " - FreeType: The font file could be opened and read, but it appears that its font format is unsupported.";
+        delete Font;
+        return nullptr;
+    }
+    else if (Error) {
+        GError() << Font_File
+            << " - FreeType: another error code means that the font file could not be opened or read, or that it is broken.";
+        delete Font;
+        return nullptr;
+    }
+
+    FT_Set_Pixel_Sizes(Font->Face, 0, 58);
+
+    Font->Height = Font->Face->size->metrics.height >> 6;
+    Font->Descender = -(Font->Face->size->metrics.descender >> 6);
+    Font->Max_Advance_Width = Font->Face->size->metrics.max_advance >> 6;
+    Font->Scale_Height = Font->Height;
+
+
+    GAtlas* Atlas = nullptr;
+    int X_Offset = 0, Y_Offset = 0;
+    unsigned int Ch = 0, Prev_Ch = 0;
+
+    unsigned int Index = 0;
+    Ch = FT_Get_First_Char(Font->Face, &Index);
+    Prev_Ch = Ch;
+
+    Atlas = &Font->Atlas_List.emplace_back();
+    Atlas->Min = Ch;
+
+    while (Index != 0) {
+        if (FT_Load_Char(Font->Face, Ch, FT_LOAD_RENDER)) {
+            GError() << "FreeType: Failed to load Glyph";
+        }
+
+        int Advance = Font->Face->glyph->advance.x >> 6;
+        if (X_Offset + Advance >= 2048) {
+            X_Offset = 0;
+            Y_Offset += Font->Height;
+        }
+
+        if (Y_Offset + Font->Height >= 2048) {
+            Atlas->Max = Prev_Ch;
+            Y_Offset = 0;
+
+            Atlas = &Font->Atlas_List.emplace_back();
+            Atlas->Min = Ch;
+        }
+
+        X_Offset += Advance;
+        Prev_Ch = Ch;
+        Ch = FT_Get_Next_Char(Font->Face, Ch, &Index);
+    }
+
+    Atlas->Max = Prev_Ch;
+
+    m_Font_List.push_back(Font);
+    return Font;
+}
+
+GFont* GWindow::Set_Default_Font(GFont* Font) {
+    auto Last_Default_Font = m_Default_Font;
+    m_Default_Font = Font;
+    return Last_Default_Font;
+}
+
+GFont* GWindow::Get_Default_Font() {
+    return m_Default_Font;
+}
+
+
+void GWindow::Set_Text_Height(int Height) {
+    if (!m_Default_Font) {
+        GError() << "Set_Text_Height(d:" << Height << ") called on no default font";
+        return;
+    }
+
+    Set_Text_Height(Height, m_Default_Font);
+}
+
+void GWindow::Set_Text_Height(int Height, GFont* Font) {
+    Font->Scale_Height = Height;
 }

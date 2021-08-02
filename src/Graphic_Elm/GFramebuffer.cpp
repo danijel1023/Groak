@@ -2,7 +2,6 @@
 #include "GFramebuffer.h"
 #include "GRenderer.h"
 #include "GWindow.h"
-#include "GBasic_Window.h"
 
 GFramebuffer::GFramebuffer(int Window_X, int Window_Y, GBasic_Window* Current_Window) {
     m_Current_Window = Current_Window;
@@ -13,11 +12,11 @@ GFramebuffer::GFramebuffer(int Window_X, int Window_Y, GBasic_Window* Current_Wi
     glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
 
     glGenTextures(1, &m_FB_Texture);
-    glBindTexture(GL_TEXTURE_2D, m_FB_Texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Window_X, Window_Y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_FB_Texture, 0);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_FB_Texture);
+    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 32, GL_RGBA, Window_X, Window_Y, GL_TRUE);
+    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_FB_Texture, 0);
 
     glClear(GL_COLOR_BUFFER_BIT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

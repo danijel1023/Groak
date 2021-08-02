@@ -20,10 +20,18 @@ GApplication::GApplication() {
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
+
+    FT_Init_FreeType(&m_FreeType);
 }
 
 GApplication::~GApplication() {
     GLog_Manager::End();
+    FT_Done_FreeType(m_FreeType);
+}
+
+
+FT_Library& GApplication::Get_FT_Lib() {
+    return m_FreeType;
 }
 
 
@@ -172,12 +180,6 @@ void GApplication::Worker(const GEvent& Event) {
 
                 if (Window == static_cast<GWindow*>(Event.Data_Ptr)) {
                     Window->Terminate();
-
-                    GEvent Event;
-                    Event.Type = GEType::Window;
-                    Event.Wind_Message = GEWind_Message::Close;
-                    Window->Send_Event(Event);
-
                     glfwDestroyWindow(Window->m_Window_Hndl);
 
                     m_Window_List.erase(m_Window_List.begin() + i);
@@ -192,19 +194,14 @@ void GApplication::Worker(const GEvent& Event) {
         case GECore_Message::Terminate:
         {
             m_Running = false;
-            glfwTerminate();
-
             for (auto& Window : m_Window_List) {
                 Window->Terminate();
-
-                GEvent Event;
-                Event.Type = GEType::Window;
-                Event.Wind_Message = GEWind_Message::Close;
-                Window->Send_Event(Event);
+                glfwDestroyWindow(Window->m_Window_Hndl);
 
                 delete Window;
             }
 
+            glfwTerminate();
             break;
         }
 
