@@ -39,8 +39,8 @@ void GBasic_Window::Add_Quad(GQuad* Quad) {
 void GBasic_Window::Set_Viewport() {
 	auto& Renderer = *(m_Main_Window->m_Renderer);
 	Renderer.Set_Window_Space(m_Absolute_Screen_X - m_Main_Window->m_FB_Ancor.X,
-							   m_Absolute_Screen_Y - m_Main_Window->m_FB_Ancor.Y,
-							   m_Window_X, m_Window_Y);
+							  m_Absolute_Screen_Y - m_Main_Window->m_FB_Ancor.Y,
+							  m_Window_X, m_Window_Y);
 }
 
 

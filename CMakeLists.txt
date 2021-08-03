@@ -17,6 +17,7 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory("Vendor/glfw3")
 add_subdirectory("Vendor/freetype")
+add_subdirectory("Vendor/stb")
 
 
 add_compile_definitions(GLEW_STATIC)
@@ -26,7 +27,7 @@ target_include_directories(Groak PRIVATE "include")
 target_include_directories(Groak PUBLIC "Vendor/freetype/include")
 
 #link all of the libraries
-target_link_libraries(Groak PUBLIC glad glfw freetype)
+target_link_libraries(Groak PUBLIC glad glfw freetype stb)
 #target_link_libraries(Groak PUBLIC "OpenGL")
 
 

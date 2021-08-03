@@ -68,6 +68,8 @@ GRenderer::GRenderer(GWindow* Main_Wind)
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    Textures_id[-1] = -1;
 }
 
 GRenderer::~GRenderer() {
@@ -123,10 +125,16 @@ void GRenderer::Flush() { Render(); }
 void GRenderer::Render() {
     glBindVertexArray(m_VAO);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-    
+
     glBufferSubData(GL_ARRAY_BUFFER, 0, Quad_i * 4 * sizeof(GVertex), m_Buffer);
     glDrawElements(GL_TRIANGLES, (GLsizei)Quad_i * 6, GL_UNSIGNED_INT, nullptr);
-    
+
+    //Not sure about this - just in case
+    for (int i = 0; i < 16; i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -252,6 +260,7 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
         Quad.m_Texture = Textures[Tex_I];
         Quad.m_Color = { 1.0, 1.0, 1.0, 1.0 };
         Add_Quad(Quad);
+        //Flush();
 
 
         Ch_Data.Pos = Quad.m_Screen;
@@ -261,9 +270,6 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
 
         Ch = FT_Get_Next_Char(Font->Face, Ch, &Index);
         if (++Tex_I == 16) { Tex_I = 0; Flush(); }
-
-
-        Flush();
     }
 
     Flush();
@@ -328,7 +334,7 @@ static unsigned int Create_Shader(const std::string& Vertex, const std::string& 
     if (Result == GL_FALSE) {
         int Length;
         glGetProgramiv(Program, GL_INFO_LOG_LENGTH, &Length);
-    
+
     #ifdef _WIN64
         char* Message = (char*)_malloca(Length * sizeof(char));
     #else

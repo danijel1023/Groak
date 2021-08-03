@@ -17,6 +17,37 @@ int main() {
     return Application.Run();
 }
 
+GTexture Load_Texture(const GString& Str) {
+    GTexture Texture;
+    glGenTextures(1, &Texture.ID);
+    glBindTexture(GL_TEXTURE_2D, Texture.ID);
+
+    // set the texture wrapping/filtering options (on the currently bound texture object)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    // load and generate the texture
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* Data = stbi_load(Str.c_str(), &Texture.Width, &Texture.Height, &Texture.Channels, 0);
+    if (Data) {
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        if (Texture.Channels == 4)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Texture.Width, Texture.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, Data);
+        else
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Texture.Width, Texture.Height, 0, GL_RGB, GL_UNSIGNED_BYTE, Data);
+
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else {
+        GError() << "Failed to load texture";
+    }
+    glBindTexture(GL_TEXTURE_2D, 0);
+    stbi_image_free(Data);
+
+    return Texture;
+}
 
 
 class Window : public GWindow {
@@ -53,10 +84,12 @@ void App::On_Startup() {
     Render_Event.Data_Ptr = Main_Wind;
     
     GApp()->Post_Event(Render_Event);
+    GApp()->Post_Event(Render_Event);
 }
 void App::On_Close() {}
 
 
+GTexture Textures[24];
 GText Text;
 int Window::Callback_Func(const GEvent* Event) {
     switch (Event->Type) {
@@ -64,26 +97,54 @@ int Window::Callback_Func(const GEvent* Event) {
         {
             if (Event->Wind_Message == GEWind_Message::Run) {
                 Set_Default_Font(Load_Font("C:/Windows/Fonts/segoeui.ttf"));
+                Get_Renderer()->Fill_Atlas(Get_Default_Font(), Get_Default_Font()->Atlas_List.front());
+
                 //Set_Default_Font(Load_Font("C:/Windows/Fonts/consola.ttf"));
 
-                Set_Text_Height(20);
+                //Set_Text_Height(20);
                 //Set text height -> store the height in 'default' GFont struct; later for scaling
 
-                Set_Focus(this);
+                //Text.push_back({ '!', {1.0, 0.0, 1.0}});
+
+                //C:/Users/PC/Desktop/test-tex/
+
+                for (int i = 0; i < 24; i++) {
+                    GString Path = GString("C:/Users/PC/Desktop/test-tex/") + std::to_string(i) + ".png";
+                    GInfo() << Path;
+
+                    Textures[i] = Load_Texture(Path);
+                    GQuad* Quad = new GQuad(20, 20, (i % 10) * 20, (i / 10) * 20);
+                    Quad->m_Texture = Textures[i].ID;
+
+                    Add_Quad(Quad);
+                }
+
+                //Textures[0] = Load_Texture("C:/cat0.png");  //jujment
+                //Textures[1] = Load_Texture("C:/cat1.png");  //whaaatt
+                //
+                //GQuad* Cat0 = new GQuad(50, 50, 0,  50);
+                //GQuad* Cat1 = new GQuad(50, 50, 75, 50);
+                //Cat0->m_Texture = Textures[0].ID;
+                //Cat1->m_Texture = Textures[1].ID;
+                //Cat0->m_Color = {1.0, 0.0, 0.0, 1.0};
+                //Cat1->m_Color = {0.0, 1.0, 0.0, 1.0};
+                //
+                //Add_Quad(Cat0);
+                //Add_Quad(Cat1);
             }
 
-            else if (Event->Wind_Message == GEWind_Message::Render) {
+            else if (Event->Wind_Message == GEWind_Message::Render && 0) {
                 GRenderer& Renderer = *Get_Renderer();
                 Renderer.Clear();
                 
                 //Default
                 GWindow::Callback_Func(Event);
-
+                
                 //Render text
                 Renderer.Draw_Text(Text, { 0, 0 });
-
+                
                 Renderer.Flush();
-
+                
                 return 0;
             }
 
@@ -101,7 +162,7 @@ int Window::Callback_Func(const GEvent* Event) {
 
         case GEType::Keyboard:
         {
-            if (Event->Keyboard_Message == GEKeyboard_Message::Key) {
+            if (Event->Keyboard_Message == GEKeyboard_Message::Key && 0) {
                 if (Event->Key_Action == GEKey_Action::Up) {
                     static int Scale = 25;
                     Set_Text_Height(Scale++);

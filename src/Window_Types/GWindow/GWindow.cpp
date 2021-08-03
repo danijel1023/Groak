@@ -157,14 +157,14 @@ void GWindow::Run() {
 
     GApp()->Attach_Callbacks(this);
 
-    glClearColor((0.0f / 255.0f), (45.0f / 255.0f), (82.0f / 255.0f), 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glfwSwapBuffers(m_Window_Hndl);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glfwSwapBuffers(m_Window_Hndl);
-
     m_Renderer = new GRenderer(this);
     m_Renderer->Set_Window_Space(0, 0, m_Window_X, m_Window_Y);
+
+    glClearColor((0.0f / 255.0f), (0.0f / 255.0f), (255.0f / 255.0f), 1.0f);
+    m_Renderer->Clear();
+    glfwSwapBuffers(m_Window_Hndl);
+    m_Renderer->Clear();
+    glfwSwapBuffers(m_Window_Hndl);
 
     m_Worker = std::thread(&GWindow::Worker, this);
 

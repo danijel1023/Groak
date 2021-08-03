@@ -161,7 +161,7 @@ void GApplication::Worker(const GEvent& Event) {
             GWindow* Window = static_cast<GWindow*>(Event.Data_Ptr);
             Set_Context(Window);
 
-            glClear(GL_COLOR_BUFFER_BIT);
+            Window->m_Renderer->Clear();
 
             GEvent Event;
             Event.Type = GEType::Window;

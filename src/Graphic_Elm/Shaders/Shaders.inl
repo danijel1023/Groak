@@ -82,9 +82,26 @@ vec4 Get_Texture(int Tex_Slot) {
 
 void main() {
     switch (v_Type) {
-    case 0: Color = v_Color; break;
-    case 1: Color = vec4(1.0, 1.0, 1.0, Get_Texture(v_Tex_Slot).r); break;
-    case 2: Color = Get_Texture(v_Tex_Slot) * v_Color; break;
+    case 0: {
+        if (v_Tex_Slot == -1)   Color = v_Color;
+        else                    Color = Get_Texture(v_Tex_Slot);
+
+        break;
+    }
+
+    case 1: {
+        Color = vec4(1.0, 1.0, 1.0, Get_Texture(v_Tex_Slot).r);
+        break;
+    }
+
+    case 2: {
+        Color = Get_Texture(v_Tex_Slot) * v_Color;
+        break;
+    }
+
+    default:
+        Color = vec4(0.0, 0.0, 0.0, 1.0);
+        break;
     }
 }
 
