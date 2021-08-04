@@ -106,11 +106,8 @@ void GRenderer::Add_Quad(const GQuad& Quad) {
         if (Textures_id.find(Quad.m_Texture) == Textures_id.end()) {
             //Flush the buffer if more than 16 textures are used
             if (Current_Tex_id == 16) Render();
+
             Textures_id[Quad.m_Texture] = Current_Tex_id;
-
-            glActiveTexture(GL_TEXTURE0 + Current_Tex_id);
-            glBindTexture(GL_TEXTURE_2D, Quad.m_Texture);
-
             Current_Tex_id++;
         }
     }
@@ -126,14 +123,13 @@ void GRenderer::Render() {
     glBindVertexArray(m_VAO);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 
+    for (const auto& Texture : Textures_id) {
+        glActiveTexture(GL_TEXTURE0 + Texture.second);
+        glBindTexture(GL_TEXTURE_2D, Texture.first);
+    }
+
     glBufferSubData(GL_ARRAY_BUFFER, 0, Quad_i * 4 * sizeof(GVertex), m_Buffer);
     glDrawElements(GL_TRIANGLES, (GLsizei)Quad_i * 6, GL_UNSIGNED_INT, nullptr);
-
-    //Not sure about this - just in case
-    for (int i = 0; i < 16; i++) {
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -260,13 +256,11 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
         Quad.m_Texture = Textures[Tex_I];
         Quad.m_Color = { 1.0, 1.0, 1.0, 1.0 };
         Add_Quad(Quad);
-        //Flush();
 
 
         Ch_Data.Pos = Quad.m_Screen;
         Atlas.Map[Ch] = Ch_Data;
         X_Offset += Ch_Data.Advance;
-
 
         Ch = FT_Get_Next_Char(Font->Face, Ch, &Index);
         if (++Tex_I == 16) { Tex_I = 0; Flush(); }

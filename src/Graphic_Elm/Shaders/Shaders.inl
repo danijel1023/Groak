@@ -72,7 +72,7 @@ vec4 Get_Texture(int Tex_Slot) {
     case  9: return texture(u_Textures[ 9], v_Tex_Coord);
     case 10: return texture(u_Textures[10], v_Tex_Coord);
     case 11: return texture(u_Textures[11], v_Tex_Coord);
-    case 12: return texture(u_Textures[11], v_Tex_Coord);
+    case 12: return texture(u_Textures[12], v_Tex_Coord);
     case 13: return texture(u_Textures[13], v_Tex_Coord);
     case 14: return texture(u_Textures[14], v_Tex_Coord);
     case 15: return texture(u_Textures[15], v_Tex_Coord);

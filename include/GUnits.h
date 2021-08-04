@@ -45,5 +45,13 @@ using GUIVec2 = Template_Vec2<unsigned int>;
 using GUIVec3 = Template_Vec3<unsigned int>;
 using GUIVec4 = Template_Vec4<unsigned int>;
 
+using GCVec2 = Template_Vec2<char>;
+using GCVec3 = Template_Vec3<char>;
+using GCVec4 = Template_Vec4<char>;
+
+using GUCVec2 = Template_Vec2<unsigned char>;
+using GUCVec3 = Template_Vec3<unsigned char>;
+using GUCVec4 = Template_Vec4<unsigned char>;
+
 using GPos = Template_Vec2<int>;
 using GSize = Template_Vec2<int>;
