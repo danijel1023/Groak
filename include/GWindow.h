@@ -10,7 +10,7 @@
 
 class GWindow : public GBasic_Window {
 public:
-    GWindow(const GString& Name, int Window_X, int Window_Y, int Screen_X = 0, int Screen_Y = 0);
+    GWindow(const GString& Name, int Window_X, int Window_Y);
     virtual ~GWindow();
 
     int Send_Event(const GEvent& Event);
@@ -25,6 +25,7 @@ public:
         else                          return 0;
     }
 
+    GTexture Load_Texture(const GString& Path);
 
     GFont* Load_Font(const GString& Font_File);
     GFont* Set_Default_Font(GFont* Font);
@@ -33,8 +34,8 @@ public:
     void Set_Text_Height(int Height, GFont* Font);
 
 protected:
-    int Dispatcher_Func(const GEvent* Event);
-    int Callback_Func(const GEvent* Event);
+    int Dispatcher_Func(const GEvent& Event);
+    int Callback_Func(const GEvent& Event);
 
     bool m_Focused = true;
     GBasic_Window* m_Focus = this;
@@ -63,8 +64,10 @@ private:
     GFont* m_Default_Font = nullptr;
     std::vector<GFont*> m_Font_List;
 
-    static int Dispatcher_Func(void* _This, const GEvent* Event);
-    static int Callback_Func(void* _This, const GEvent* Event);
+    std::vector<GTexture> m_Texture_List;
+
+    static int Dispatcher_Func(void* _This, const GEvent& Event);
+    static int Callback_Func(void* _This, const GEvent& Event);
 
     friend class GApplication;
     friend class GBasic_Window;

@@ -20,6 +20,7 @@ void GApplication::GLFW_Key_Callback(GLFWwindow* Window_Hndl, int Key, int Scanc
     if (Mods & GLFW_MOD_CONTROL)    Event.Modifier_Ctrl = true;
 
     Event.Key = Key;
+    Event.Scancode = Scancode;
     _This->Post_Event(Event);
 }
 

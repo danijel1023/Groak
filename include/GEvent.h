@@ -70,6 +70,7 @@ struct GEvent {
     GEMouse_Button Mouse_Button = {};
 
     int Key = 0;
+    int Scancode = 0;
     uint32_t Code_Point = 0;
     GEKey_Action Key_Action = {};
 };

@@ -21,6 +21,7 @@ void GLog_Manager::Set_Device(GLog_Device Out, const GString& File) {
     m_Stream_Ptr->Set_Device(Out, File);
 }
 
+void GLog_Manager::Close_GConsole() { m_Stream_Ptr->Close_GConsole(); }
 
 GLog_Manager::GLog_Manager() {}
 GLog_Manager::~GLog_Manager() {

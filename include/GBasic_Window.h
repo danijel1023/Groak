@@ -25,14 +25,14 @@ protected:
     std::vector<GQuad*> m_Quad_List;
 
     GDispatcher m_Dispatcher_Ptr = &GBasic_Window::Dispatcher_Func;
-    int Dispatcher_Func(const GEvent* Event);
+    int Dispatcher_Func(const GEvent& Event);
 
     GCallback m_Callback_Ptr = &GBasic_Window::Callback_Func;
-    int Callback_Func(const GEvent* Event);
+    int Callback_Func(const GEvent& Event);
 
 private:
-    static int Dispatcher_Func(void* _This, const GEvent* Event);
-    static int Callback_Func(void* _This, const GEvent* Event);
+    static int Dispatcher_Func(void* _This, const GEvent& Event);
+    static int Callback_Func(void* _This, const GEvent& Event);
 
 public:
     //"Getters" and "setters"

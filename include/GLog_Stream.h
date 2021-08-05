@@ -18,6 +18,7 @@ public:
     GLog_Stream();
     ~GLog_Stream();
 
+    void Close_GConsole();
     void Enable_Log(bool Enable_Log);
     void Set_Device(GLog_Device Out, const GString& File);
     void Set_Line_Ending(GString Line_Ending);

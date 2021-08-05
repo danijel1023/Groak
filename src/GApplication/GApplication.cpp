@@ -179,11 +179,14 @@ void GApplication::Worker(const GEvent& Event) {
                 auto& Window = m_Window_List[i];
 
                 if (Window == static_cast<GWindow*>(Event.Data_Ptr)) {
+                    auto Hndl = Window->m_Window_Hndl;
+
                     Window->Terminate();
-                    glfwDestroyWindow(Window->m_Window_Hndl);
+                    delete Window;
+                    
+                    glfwDestroyWindow(Hndl);
 
                     m_Window_List.erase(m_Window_List.begin() + i);
-                    delete Window;
                     break;
                 }
             }
@@ -195,10 +198,10 @@ void GApplication::Worker(const GEvent& Event) {
         {
             m_Running = false;
             for (auto& Window : m_Window_List) {
-                Window->Terminate();
-                glfwDestroyWindow(Window->m_Window_Hndl);
-
-                delete Window;
+                GEvent Event;
+                Event.Core_Message = GECore_Message::Close;
+                Event.Data_Ptr = Window;
+                Send_Event_NL(Event);
             }
 
             glfwTerminate();
@@ -216,14 +219,14 @@ void GApplication::Worker(const GEvent& Event) {
         case GECore_Message::Show:
         {
             GWindow* Window = static_cast<GWindow*>(Event.Data_Ptr);
-
+            glfwShowWindow(Window->m_Window_Hndl);
             break;
         }
 
         case GECore_Message::Hide:
         {
             GWindow* Window = static_cast<GWindow*>(Event.Data_Ptr);
-
+            glfwHideWindow(Window->m_Window_Hndl);
             break;
         }
 

@@ -25,8 +25,8 @@
 #include "GQueue/GTQueue.h"
 #include "GString.h"
 
-using GCallback = int(*)(void* _This, const GEvent* Event);
-using GDispatcher = int(*)(void* _This, const GEvent* Event);
+using GCallback = int(*)(void* _This, const GEvent& Event);
+using GDispatcher = int(*)(void* _This, const GEvent& Event);
 using GEQueue = GQueue<GEvent>;     //Groak Event Queue
 using GTEQueue = GTQueue<GEvent>;   //Groak Thread safe Event Queue
 

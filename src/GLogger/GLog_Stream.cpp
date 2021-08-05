@@ -1,9 +1,12 @@
 #include "GLog_Stream.h"
+#include "GConsole.h"
+#include "GApplication.h"
 
 #include <fstream>
 #include <assert.h>
 
 
+static GConsole* Console = nullptr;
 GLog_Stream::GLog_Stream() {
     m_File = new std::ofstream;
 }
@@ -13,6 +16,10 @@ GLog_Stream::~GLog_Stream() {
 }
 
 
+void GLog_Stream::Close_GConsole() {
+    Console = nullptr;
+}
+
 void GLog_Stream::Enable_Log(bool Enable_Log) {
     if (!m_File_Lock)
         m_Enable_Log = Enable_Log;
@@ -21,31 +28,45 @@ void GLog_Stream::Enable_Log(bool Enable_Log) {
 
 
 void GLog_Stream::Set_Device(GLog_Device Out, const GString& File) {
-    if (Out == GLog_Device::GConsole) {
-        if (m_Stream_Ptr == m_File)
-            m_File->close();
+    switch (Out) {
+        case GLog_Device::GConsole:
+        {
+            if (m_Stream_Ptr == m_File) m_File->close();
+            if (!Console) {
+                Console = new GConsole;
+                GApp()->Register_Window(Console);
+            }
 
-        m_File_Lock = false;
-        //[TODO] Implement custom console
-        assert(0);
-    }
+            Console->Show();
+            m_File_Lock = false;
+            m_Stream_Ptr = Console->Get_Stream();
 
-    else if (Out == GLog_Device::Std_Console) {
-        if (m_Stream_Ptr == m_File)
-            m_File->close();
+            break;
+        }
 
-        m_File_Lock = false;
-        m_Stream_Ptr = &std::cout;
-    }
+        case GLog_Device::Std_Console:
+        {
+            if (m_Stream_Ptr == m_File) m_File->close();
 
-    else if (Out == GLog_Device::File) {
-        m_File->open(File.cpp_str());
+            if (Console) Console->Hide();
+            m_File_Lock = false;
+            m_Stream_Ptr = &std::cout;
 
-        if (m_File->is_open())
-            m_Stream_Ptr = m_File;
-        else {
-            m_File_Lock = true;
-            m_Enable_Log = false;
+            break;
+        }
+
+        case GLog_Device::File:
+        {
+            m_File->open(File.c_str());
+            if (Console) Console->Hide();
+
+            if (m_File->is_open()) m_Stream_Ptr = m_File;
+            else {
+                m_File_Lock = true;
+                m_Enable_Log = false;
+            }
+
+            break;
         }
     }
 
@@ -61,7 +82,6 @@ void GLog_Stream::Set_Line_Ending(GString Line_Ending) {
 void GLog_Stream::New_Line() {
     if (m_Enable_Log) {
         (*m_Stream_Ptr) << m_Line_Ending;
-
         m_Stream_Ptr->flush();
     }
 }

@@ -211,8 +211,7 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
     unsigned int Ch = 0;
 
     unsigned int Index = 0;
-    if (Atlas.Min != FT_Get_First_Char(Font->Face, &Index))
-        GError() << "asd";
+    if (Atlas.Min != FT_Get_First_Char(Font->Face, &Index)) GError() << "SHIUWHSLFJANC ?!?!!?";
 
     Ch = Atlas.Min;
     glGenTextures(16, Textures);
@@ -264,6 +263,8 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
 
         Ch = FT_Get_Next_Char(Font->Face, Ch, &Index);
         if (++Tex_I == 16) { Tex_I = 0; Flush(); }
+        //It's using the same 16 textures, so it is important to manually flush
+        //The automatic flush will occur only if 17 or more textures are in use
     }
 
     Flush();
@@ -284,7 +285,7 @@ GAtlas& GRenderer::Get_Empty_Atlas() {
 
 
 
-unsigned int Compile_Shader(unsigned int Type, const std::string& Src) {
+static unsigned int Compile_Shader(unsigned int Type, const std::string& Src) {
     unsigned int id = glCreateShader(Type);
     const char* _src = Src.c_str();
     glShaderSource(id, 1, &_src, nullptr);
@@ -312,7 +313,7 @@ unsigned int Compile_Shader(unsigned int Type, const std::string& Src) {
     return id;
 }
 
-static unsigned int Create_Shader(const std::string& Vertex, const std::string& Fragment) {
+unsigned int Create_Shader(const std::string& Vertex, const std::string& Fragment) {
     unsigned int Program = glCreateProgram();
     unsigned int vs = Compile_Shader(GL_VERTEX_SHADER, Vertex);
     unsigned int fs = Compile_Shader(GL_FRAGMENT_SHADER, Fragment);

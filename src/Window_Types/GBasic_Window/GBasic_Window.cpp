@@ -45,21 +45,21 @@ void GBasic_Window::Set_Viewport() {
 
 
 
-int GBasic_Window::Dispatcher_Func(void* _This, const GEvent* Event) {
+int GBasic_Window::Dispatcher_Func(void* _This, const GEvent& Event) {
 	auto This = static_cast<GBasic_Window*>(_This);
 	return This->Dispatcher_Func(Event);
 }
 
-int GBasic_Window::Callback_Func(void* _This, const GEvent* Event) {
+int GBasic_Window::Callback_Func(void* _This, const GEvent& Event) {
 	auto This = static_cast<GBasic_Window*>(_This);
 	return This->Callback_Func(Event);
 }
 
-int GBasic_Window::Dispatcher_Func(const GEvent* Event) {
-	switch (Event->Type) {
+int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
+	switch (Event.Type) {
 		case GEType::Mouse:
 		{
-			auto& MP = Event->MP;
+			auto& MP = Event.MP;
 			for (auto Ch_Wnd : m_Child_Windows) {
 				//If the mouse is left form the child wondow, ignore
 				if (MP.X < Ch_Wnd->m_Screen_X) {
@@ -84,14 +84,14 @@ int GBasic_Window::Dispatcher_Func(const GEvent* Event) {
 
 				//else - the mouse is inside the child windows' box
 				GEvent Child_Event;
-				Child_Event = *Event;
+				Child_Event = Event;
 				Child_Event.MP.X -= Ch_Wnd->m_Screen_X;
 				Child_Event.MP.Y -= Ch_Wnd->m_Screen_Y;
-				if (GCall(Ch_Wnd, m_Dispatcher_Ptr, &Child_Event)) return 1;
+				if (GCall(Ch_Wnd, m_Dispatcher_Ptr, Child_Event)) return 1;
 			}
 
 			//No child window handled the event so this window will now process the event
-			switch (Event->Mouse_Message) {
+			switch (Event.Mouse_Message) {
 				case GEMouse_Message::Down:
 				{
 					m_Main_Window->m_Mouse_Focus = this;
@@ -113,17 +113,17 @@ int GBasic_Window::Dispatcher_Func(const GEvent* Event) {
 						GEvent Leave;
 						Leave.Type = GEType::Mouse;
 						Leave.Mouse_Message = GEMouse_Message::Leave;
-						Leave.MP = Event->MP;
+						Leave.MP = Event.MP;
 
-						GCall(Top_Window, m_Callback_Ptr, &Leave);
+						GCall(Top_Window, m_Callback_Ptr, Leave);
 					}
 
 					GEvent Enter;
 					Enter.Type = GEType::Mouse;
 					Enter.Mouse_Message = GEMouse_Message::Enter;
-					Enter.MP = Event->MP;
+					Enter.MP = Event.MP;
 
-					GCall(this, m_Callback_Ptr, &Enter);
+					GCall(this, m_Callback_Ptr, Enter);
 					Top_Window = this;
 				}
 			}
@@ -133,7 +133,7 @@ int GBasic_Window::Dispatcher_Func(const GEvent* Event) {
 
 		case GEType::Window:
 		{
-			if (Event->Wind_Message == GEWind_Message::Close) {
+			if (Event.Wind_Message == GEWind_Message::Close) {
 				for (auto& Ch_Wnd : m_Child_Windows) {
 					GCall(Ch_Wnd, m_Dispatcher_Ptr, Event);
 				}
@@ -155,11 +155,11 @@ int GBasic_Window::Dispatcher_Func(const GEvent* Event) {
 }
 
 
-int GBasic_Window::Callback_Func(const GEvent* Event) {
-	switch (Event->Type) {
+int GBasic_Window::Callback_Func(const GEvent& Event) {
+	switch (Event.Type) {
 		case GEType::Window:
 		{
-			switch (Event->Wind_Message) {
+			switch (Event.Wind_Message) {
 				case GEWind_Message::Render:
 				{
 					auto& Renderer = *(m_Main_Window->m_Renderer);
@@ -173,8 +173,8 @@ int GBasic_Window::Callback_Func(const GEvent* Event) {
 
 				case GEWind_Message::Move:
 				{
-					m_Screen_X = Event->WP.X;
-					m_Screen_Y = Event->WP.Y;
+					m_Screen_X = Event.WP.X;
+					m_Screen_Y = Event.WP.Y;
 
 					m_Absolute_Screen_X = m_Parent->m_Absolute_Screen_X + m_Screen_X;
 					m_Absolute_Screen_Y = m_Parent->m_Absolute_Screen_Y + m_Screen_Y;
@@ -183,8 +183,8 @@ int GBasic_Window::Callback_Func(const GEvent* Event) {
 
 				case GEWind_Message::Resize:
 				{
-					m_Window_X = Event->WS.X;
-					m_Window_Y = Event->WS.Y;
+					m_Window_X = Event.WS.X;
+					m_Window_Y = Event.WS.Y;
 
 					break;
 				}
@@ -198,7 +198,7 @@ int GBasic_Window::Callback_Func(const GEvent* Event) {
 		//[TODO] This is for Child Window
 		//case EType::Mouse:
 		//{
-		//	switch (*static_cast<EMouse_Message*>(Event->Message)) {
+		//	switch (*static_cast<EMouse_Message*>(Event.Message)) {
 		//		case EMouse_Message::LMB_Down:
 		//		{
 		//			m_Main_hwnd->m_Focus = this;

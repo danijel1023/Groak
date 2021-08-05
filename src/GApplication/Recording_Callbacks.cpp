@@ -20,6 +20,7 @@ void GApplication::GLFW_Recording_Key_Callback(GLFWwindow* Window_Hndl, int Key,
     if (Mods & GLFW_MOD_CONTROL)    Event.Modifier_Ctrl = true;
 
     Event.Key = Key;
+    Event.Scancode = Scancode;
 
     GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
     GApp()->m_Simulator_File.flush();

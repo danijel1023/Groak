@@ -1,2 +1,0 @@
-Check `imgui_draw.cpp`
- > void ImFontAtlasBuildFinish
