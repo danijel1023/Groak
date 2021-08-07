@@ -2,12 +2,17 @@
 #include "GApplication.h"
 #include "GLog_Manager.h"
 
+
 GWindow::GWindow(const GString& Name, int Window_X, int Window_Y)
-    : GBasic_Window(nullptr, Window_X, Window_Y, 0, 0), m_Name(Name) {
+    : GWindow(Name, { Window_X, Window_Y }) {}
+
+GWindow::GWindow(const GString& Name, const GSize& Window)
+    : GBasic_Window(nullptr, Window, { 0, 0 }), m_Name(Name) {
     m_Main_Window = this;
     m_Dispatcher_Ptr = &GWindow::Dispatcher_Func;
     m_Callback_Ptr = &GWindow::Callback_Func;
 }
+
 
 GWindow::~GWindow() {
     for (auto& Font : m_Font_List) {
@@ -15,15 +20,9 @@ GWindow::~GWindow() {
         delete Font;
     }
 
-    for (auto& Quad : m_Quad_List) {
-        delete Quad;
-    }
-
     for (auto& Texture : m_Texture_List) {
         glGenTextures(1, &Texture.ID);
     }
-
-    this;
 }
 
 
@@ -84,13 +83,25 @@ int GWindow::Dispatcher_Func(const GEvent& Event) {
 
         case GEType::Mouse:
         {
-            if (Event.Mouse_Message == GEMouse_Message::Move) {
-                if (m_Mouse_Focus) {
-                    return GCall(m_Mouse_Focus, m_Callback_Ptr, Event);
-                }
+            if (m_Mouse_Focus) {
+                if (Event.Mouse_Message == GEMouse_Message::Down)
+                    m_Main_Window->m_Mouse_Buttons_Pressed++;
+
+                if (Event.Mouse_Message == GEMouse_Message::Up)
+                    m_Mouse_Buttons_Pressed--;
+
+                // Last button 'Up' - no mouse buttons are pressed
+                if (m_Mouse_Buttons_Pressed == 0)
+                    m_Mouse_Focus = nullptr;
+                
+                // At least one mouse button is pressed -- send all events to focused window
+                if (m_Mouse_Buttons_Pressed != 0)
+                    return GCall(m_Mouse_Focus, m_Callback_Ptr, Event);;
             }
 
-            else if (Event.Mouse_Message == GEMouse_Message::Leave) {
+
+            //Exit the Main window
+            if (Event.Mouse_Message == GEMouse_Message::Leave) {
                 if (m_Wind_Under_Cursor) GCall(m_Wind_Under_Cursor, m_Callback_Ptr, Event);
                 m_Wind_Under_Cursor = nullptr;
                 return 1;
@@ -129,8 +140,16 @@ int GWindow::Callback_Func(const GEvent& Event) {
 
             case GEWind_Message::Move:
             {
-                m_Screen_X = Event.WP.X;
-                m_Screen_Y = Event.WP.Y;
+                m_Screen = Event.WP;
+                return 0;
+            }
+
+            case GEWind_Message::Restore:
+            {
+                GEvent Event;
+                Event.Core_Message = GECore_Message::Render;
+                Event.Data_Ptr = this;
+                GApp()->Post_Event(Event);
                 return 0;
             }
 
@@ -154,7 +173,7 @@ int GWindow::Callback_Func(const GEvent& Event) {
 void GWindow::Run() {
     glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
     glfwWindowHint(GLFW_SAMPLES, 32);
-    m_Window_Hndl = glfwCreateWindow(m_Window_X, m_Window_Y, m_Name.c_str(), NULL, NULL);
+    m_Window_Hndl = glfwCreateWindow(m_Window.X, m_Window.Y, m_Name.c_str(), NULL, NULL);
     if (!m_Window_Hndl) {
         const char* Error_Msg;
         glfwGetError(&Error_Msg);
@@ -177,7 +196,7 @@ void GWindow::Run() {
     GApp()->Attach_Callbacks(this);
 
     m_Renderer = new GRenderer(this);
-    m_Renderer->Set_Window_Space(0, 0, m_Window_X, m_Window_Y);
+    m_Renderer->Set_Window_Space({ 0, 0 }, m_Window);
 
     glClearColor((25.0f / 255.0f), (40.0f / 255.0f), (90.0f / 255.0f), 1.0f);
     m_Renderer->Clear();
@@ -222,38 +241,71 @@ void GWindow::Terminate() {
 
 
 
+static void Store_Texture(unsigned char* Data, GTexture& Texture);
 GTexture GWindow::Load_Texture(const GString& Path) {
     GTexture Texture;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* Data = stbi_load(Path.c_str(), &Texture.Width, &Texture.Height, &Texture.Channels, 0);
+    if (Data) Store_Texture(Data, Texture);
+    else      GError() << "Failed to load texture: " << Path;
+
+    m_Texture_List.push_back(Texture);
+    stbi_image_free(Data);
+    return Texture;
+}
+
+GTexture GWindow::Load_Texture_No_Flip(const GString& Path) {
+    GTexture Texture;
+    stbi_set_flip_vertically_on_load(false);
+    unsigned char* Data = stbi_load(Path.c_str(), &Texture.Width, &Texture.Height, &Texture.Channels, 0);
+    if (Data) Store_Texture(Data, Texture);
+    else      GError() << "Failed to load texture: " << Path;
+
+    m_Texture_List.push_back(Texture);
+    stbi_image_free(Data);
+    return Texture;
+}
+
+GTexture GWindow::Load_Texture_From_Memory(const char* Mem_Data, unsigned int Size) {
+    GTexture Texture;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* Data = stbi_load_from_memory((unsigned char*)Mem_Data, Size, &Texture.Width, &Texture.Height, &Texture.Channels, 0);
+    if (Data) Store_Texture(Data, Texture);
+    else      GError() << "Failed to load texture from memory.";
+
+    m_Texture_List.push_back(Texture);
+    stbi_image_free(Data);
+    return Texture;
+}
+
+GTexture GWindow::Load_Texture_From_Memory_No_Flip(const char* Mem_Data, unsigned int Size) {
+    GTexture Texture;
+    stbi_set_flip_vertically_on_load(false);
+    unsigned char* Data = stbi_load_from_memory((unsigned char*)Mem_Data, Size, &Texture.Width, &Texture.Height, &Texture.Channels, 0);
+    if (Data) Store_Texture(Data, Texture);
+    else      GError() << "Failed to load texture from memory.";
+
+    m_Texture_List.push_back(Texture);
+    stbi_image_free(Data);
+    return Texture;
+}
+
+
+void Store_Texture(unsigned char* Data, GTexture& Texture) {
     glGenTextures(1, &Texture.ID);
     glBindTexture(GL_TEXTURE_2D, Texture.ID);
 
-    // set the texture wrapping/filtering options (on the currently bound texture object)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    // load and generate the texture
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char* Data = stbi_load(Path.c_str(), &Texture.Width, &Texture.Height, &Texture.Channels, 0);
-    if (Data) {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        if (Texture.Channels == 4)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Texture.Width, Texture.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, Data);
-        else
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Texture.Width, Texture.Height, 0, GL_RGB, GL_UNSIGNED_BYTE, Data);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    if (Texture.Channels == 4) glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Texture.Width, Texture.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, Data);
+    else                       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,  Texture.Width, Texture.Height, 0, GL_RGB,  GL_UNSIGNED_BYTE, Data);
 
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else {
-        GError() << "Failed to load texture: " << Path;
-    }
-
+    glGenerateMipmap(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
-    stbi_image_free(Data);
-
-    m_Texture_List.push_back(Texture);
-    return Texture;
 }
 
 
@@ -338,7 +390,7 @@ GFont* GWindow::Get_Default_Font() {
 
 void GWindow::Set_Text_Height(int Height) {
     if (!m_Default_Font) {
-        GError() << "Set_Text_Height(d:" << Height << ") called on no default font";
+        GError() << "Set_Text_Height(" << Height << ") called on no default font";
         return;
     }
 

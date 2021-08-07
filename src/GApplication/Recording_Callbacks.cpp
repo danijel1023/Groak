@@ -48,7 +48,7 @@ void GApplication::GLFW_Recording_Cursor_Pos_Callback(GLFWwindow* Window_Hndl, d
     GEvent Event;
     Event.Type = GEType::Mouse;
     Event.Mouse_Message = GEMouse_Message::Move;
-    Event.MP = { (int)X_Pos, _This->m_Window_Y - (int)Y_Pos };
+    Event.MP = { (int)X_Pos, _This->m_Window.Y - (int)Y_Pos };
 
     GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
     GApp()->m_Simulator_File.flush();
@@ -65,7 +65,7 @@ void GApplication::GLFW_Recording_Cursor_Enter_Callback(GLFWwindow* Window_Hndl,
 
         double X, Y;
         glfwGetCursorPos(Window_Hndl, &X, &Y);
-        Event.MP = { (int)X, _This->m_Window_Y - (int)Y };
+        Event.MP = { (int)X, _This->m_Window.Y - (int)Y };
 
         GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
         GApp()->m_Simulator_File.flush();
@@ -96,7 +96,7 @@ void GApplication::GLFW_Recording_Mouse_Button_Callback(GLFWwindow* Window_Hndl,
 
     double X, Y;
     glfwGetCursorPos(Window_Hndl, &X, &Y);
-    Event.MP = { (int)X, _This->m_Window_Y - (int)Y };
+    Event.MP = { (int)X, _This->m_Window.Y - (int)Y };
 
     GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
     GApp()->m_Simulator_File.flush();
@@ -117,7 +117,7 @@ void GApplication::GLFW_Recording_Scroll_Callback(GLFWwindow* Window_Hndl, doubl
 
     double X, Y;
     glfwGetCursorPos(Window_Hndl, &X, &Y);
-    Event.MP = { (int)X, _This->m_Window_Y - (int)Y };
+    Event.MP = { (int)X, _This->m_Window.Y - (int)Y };
 
     GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
     GApp()->m_Simulator_File.flush();
@@ -158,8 +158,8 @@ void GApplication::GLFW_Recording_Window_Focus_Callback(GLFWwindow* Window_Hndl,
     GEvent Event;
     Event.Type = GEType::Window;
 
-    if (Focused) Event.Wind_Message = GEWind_Message::Lose_Focus;
-    else Event.Wind_Message = GEWind_Message::Gain_Focus;
+    if (Focused) Event.Wind_Message = GEWind_Message::Gain_Focus;
+    else Event.Wind_Message = GEWind_Message::Lose_Focus;
 
     GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
     GApp()->m_Simulator_File.flush();

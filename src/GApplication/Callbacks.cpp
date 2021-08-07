@@ -43,7 +43,7 @@ void GApplication::GLFW_Cursor_Pos_Callback(GLFWwindow* Window_Hndl, double X_Po
     GEvent Event;
     Event.Type = GEType::Mouse;
     Event.Mouse_Message = GEMouse_Message::Move;
-    Event.MP = { (int)X_Pos, _This->m_Window_Y - (int)Y_Pos};
+    Event.MP = { (int)X_Pos, _This->m_Window.Y - (int)Y_Pos};
 
     _This->Post_Event(Event);
 }
@@ -58,7 +58,7 @@ void GApplication::GLFW_Cursor_Enter_Callback(GLFWwindow* Window_Hndl, int Enter
         
         double X, Y;
         glfwGetCursorPos(Window_Hndl, &X, &Y);
-        Event.MP = { (int)X, _This->m_Window_Y - (int)Y };
+        Event.MP = { (int)X, _This->m_Window.Y - (int)Y };
         _This->Post_Event(Event);
     }
 }
@@ -86,7 +86,7 @@ void GApplication::GLFW_Mouse_Button_Callback(GLFWwindow* Window_Hndl, int Butto
 
     double X, Y;
     glfwGetCursorPos(Window_Hndl, &X, &Y);
-    Event.MP = { (int)X, _This->m_Window_Y - (int)Y };
+    Event.MP = { (int)X, _This->m_Window.Y - (int)Y };
     _This->Post_Event(Event);
 }
 
@@ -104,7 +104,7 @@ void GApplication::GLFW_Scroll_Callback(GLFWwindow* Window_Hndl, double X_Offset
 
     double X, Y;
     glfwGetCursorPos(Window_Hndl, &X, &Y);
-    Event.MP = { (int)X, _This->m_Window_Y - (int)Y };
+    Event.MP = { (int)X, _This->m_Window.Y - (int)Y };
     _This->Post_Event(Event);
 }
 
@@ -138,8 +138,8 @@ void GApplication::GLFW_Window_Focus_Callback(GLFWwindow* Window_Hndl, int Focus
     GEvent Event;
     Event.Type = GEType::Window;
 
-    if (Focused) Event.Wind_Message = GEWind_Message::Lose_Focus;
-    else Event.Wind_Message = GEWind_Message::Gain_Focus;
+    if (Focused) Event.Wind_Message = GEWind_Message::Gain_Focus;
+    else Event.Wind_Message = GEWind_Message::Lose_Focus;
 
     _This->Post_Event(Event);
 }

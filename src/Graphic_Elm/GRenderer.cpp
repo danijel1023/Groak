@@ -89,13 +89,13 @@ unsigned int GRenderer::Get_Shader() {
 
 
 
-void GRenderer::Set_Scale(int X, int Y) {
-    glUniform2f(m_Scale, (float)X, (float)Y);
+void GRenderer::Set_Scale(const GSize& Window) {
+    glUniform2f(m_Scale, (float)Window.X, (float)Window.Y);
 }
 
-void GRenderer::Set_Window_Space(int Screen_X, int Screen_Y, int Window_X, int Window_Y) {
-    glViewport(Screen_X, Screen_Y, Window_X, Window_Y);
-    Set_Scale(Window_X, Window_Y);
+void GRenderer::Set_Window_Space(const GPos& Screen, const GSize& Window) {
+    glViewport(Screen.X, Screen.Y, Window.X, Window.Y);
+    Set_Scale(Window);
 }
 
 
@@ -201,7 +201,7 @@ GAtlas& GRenderer::Get_Atlas(GFont* Font, unsigned int Code_Point) {
 
 
 void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
-    Set_Window_Space(0, 0, Atlas_Size_X, Atlas_Size_Y);
+    Set_Window_Space({ 0, 0 }, { Atlas_Size_X, Atlas_Size_Y });
     GBasic_Framebuffer* FB = new GBasic_Framebuffer(Atlas_Size_X, Atlas_Size_Y);
     Atlas.FB = FB;
     FB->Bind();

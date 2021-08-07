@@ -11,6 +11,7 @@
 class GWindow : public GBasic_Window {
 public:
     GWindow(const GString& Name, int Window_X, int Window_Y);
+    GWindow(const GString& Name, const GSize& Window);
     virtual ~GWindow();
 
     int Send_Event(const GEvent& Event);
@@ -26,6 +27,9 @@ public:
     }
 
     GTexture Load_Texture(const GString& Path);
+    GTexture Load_Texture_No_Flip(const GString& Path);
+    GTexture Load_Texture_From_Memory(const char* Mem_Data, unsigned int Size);
+    GTexture Load_Texture_From_Memory_No_Flip(const char* Mem_Data, unsigned int Size);
 
     GFont* Load_Font(const GString& Font_File);
     GFont* Set_Default_Font(GFont* Font);
@@ -46,6 +50,7 @@ private:
     bool m_Running = true;
     GBasic_Window* m_Wind_Under_Cursor = nullptr;
     GBasic_Window* m_Mouse_Focus = nullptr;
+    int m_Mouse_Buttons_Pressed = 0;
 
     GTEQueue m_Queue;
     std::recursive_mutex m_Dispatcher_Mutex;

@@ -47,12 +47,10 @@ void App::On_Startup() {
 
     Main_Wind = new Window("Main_Wind", 300 * Scale, 400 * Scale);
     Register_Window(Main_Wind);
-    
+
     GEvent Render_Event;
     Render_Event.Core_Message = GECore_Message::Render;
     Render_Event.Data_Ptr = Main_Wind;
-    
-    GApp()->Post_Event(Render_Event);
     GApp()->Post_Event(Render_Event);
 }
 void App::On_Close() {}
@@ -61,7 +59,7 @@ void App::On_Close() {}
 GPos MP;
 bool Track = false;
 GText Text;
-GQuad* Quad;
+size_t Quad_i = 0;
 int Window::Callback_Func(const GEvent& Event) {
     switch (Event.Type) {
         case GEType::Window:
@@ -74,9 +72,9 @@ int Window::Callback_Func(const GEvent& Event) {
                 Text.push_back({ '!', {1.0, 0.0, 1.0}});
 
                 GTexture Tex = Load_Texture("C:/test.bmp");
-                Quad = new GQuad(Tex.Width * (5.2 / 100.0), Tex.Height * (5.2 / 100.0), 0, 75);
-                Quad->Repeat_Texture(Tex, 1, 1);
-                Add_Quad(Quad);
+                GQuad Quad(Tex.Width * (5.2 / 100.0), Tex.Height * (5.2 / 100.0), 0, 75);
+                Quad.Repeat_Texture(Tex, 1, 1);
+                Quad_i = Add_Quad(Quad);
 
                 //Bkg color: 30, 30, 30, 255
             }
@@ -113,20 +111,22 @@ int Window::Callback_Func(const GEvent& Event) {
                     static int Scale = 25;
 
                     if (265 >= Event.Key && Event.Key >= 262) {
+                        auto& Quad = Get_Quad(Quad_i);
+
                         if (Event.Key == 265) {
-                            Quad->m_Window.X += int((double)Quad->m_Window.X * 0.02);
-                            Quad->m_Window.Y += int((double)Quad->m_Window.Y * 0.02);
+                            Quad.m_Window.X += int((double)Quad.m_Window.X * 0.02);
+                            Quad.m_Window.Y += int((double)Quad.m_Window.Y * 0.02);
                             Set_Text_Height(++Scale);
                         } else if (Event.Key == 264) {
-                            Quad->m_Window.X -= int((double)Quad->m_Window.X * 0.02);
-                            Quad->m_Window.Y -= int((double)Quad->m_Window.Y * 0.02);
+                            Quad.m_Window.X -= int((double)Quad.m_Window.X * 0.02);
+                            Quad.m_Window.Y -= int((double)Quad.m_Window.Y * 0.02);
                             Set_Text_Height(--Scale);
                         }
                         
                         else if (Event.Key == 263) {
-                            Quad->m_Rotation -= 0.5;
+                            Quad.m_Rotation -= 0.5;
                         } else if (Event.Key == 262) {
-                            Quad->m_Rotation += 0.5;
+                            Quad.m_Rotation += 0.5;
                         }
 
 
@@ -164,14 +164,14 @@ int Window::Callback_Func(const GEvent& Event) {
         case GEType::Mouse:
         {
             if (Event.Mouse_Message == GEMouse_Message::Move) {
-                GInfo() << "Mouse move (" << Get_Name() << ") (x, y): [" << Event.MP.X << ", " << Event.MP.Y << "]";
+                //GInfo() << "Mouse move (" << Get_Name() << ") (x, y): [" << Event.MP.X << ", " << Event.MP.Y << "]";
 
                 if (Track) {
                     GEvent Move_E;
-                    Move_E.Data_Ptr = this;
+                    Move_E.Data_Ptr = m_Main_Window;
                     Move_E.Core_Message = GECore_Message::Move;
 
-                    Move_E.WP = { m_Screen_X, m_Screen_Y };
+                    Move_E.WP = m_Screen;
                     Move_E.WP.X += Event.MP.X - MP.X;
                     Move_E.WP.Y -= Event.MP.Y - MP.Y;
                     GApp()->Send_Event(Move_E);

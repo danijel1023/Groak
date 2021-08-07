@@ -7,6 +7,7 @@ class GBasic_Window;
 class GFramebuffer {
 public:
     GFramebuffer(int Window_X, int Window_Y, GBasic_Window* Current_Window);
+    GFramebuffer(const GSize& Window, GBasic_Window* Current_Window);
     ~GFramebuffer();
 
     void Use();

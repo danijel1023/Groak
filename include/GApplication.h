@@ -26,6 +26,8 @@ public:
     void Attach_Simulator(GWindow* Window, bool Recording);
     void Attach_Callbacks(GWindow* Window);
 
+    void Resolve_Event(const GEvent& Event, std::ostream* Stream, const GString& Prefix = "", bool New_Line = true, bool Print_Active = false);
+
     FT_Library& Get_FT_Lib();
 
 private:
