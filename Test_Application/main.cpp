@@ -17,96 +17,69 @@ int main() {
     return Application.Run();
 }
 
-GTexture Load_Texture(const GString& Str) {
-    GTexture Texture;
-    glGenTextures(1, &Texture.ID);
-    glBindTexture(GL_TEXTURE_2D, Texture.ID);
-
-    // set the texture wrapping/filtering options (on the currently bound texture object)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    // load and generate the texture
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char* Data = stbi_load(Str.c_str(), &Texture.Width, &Texture.Height, &Texture.Channels, 0);
-    if (Data) {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        if (Texture.Channels == 4)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Texture.Width, Texture.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, Data);
-        else
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Texture.Width, Texture.Height, 0, GL_RGB, GL_UNSIGNED_BYTE, Data);
-
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else {
-        GError() << "Failed to load texture";
-    }
-    glBindTexture(GL_TEXTURE_2D, 0);
-    stbi_image_free(Data);
-
-    return Texture;
-}
-
 
 class Window : public GWindow {
 public:
-    Window(const std::string& Name, int Window_X, int Window_Y, int Screen_X = 0, int Screen_Y = 0)
-        : GWindow(Name, Window_X, Window_Y, Screen_X, Screen_Y) {
+    Window(const std::string& Name, int Window_X, int Window_Y)
+        : GWindow(Name, Window_X, Window_Y) {
         m_Callback_Ptr = &Window::Callback_Func;
     }
 
 
 protected:
-    int Callback_Func(const GEvent* Event);
+    int Callback_Func(const GEvent& Event);
 
 private:
-    static int Callback_Func(void* _This, const GEvent* Event) {
+    static int Callback_Func(void* _This, const GEvent& Event) {
         auto This = static_cast<Window*>(_This);
         return This->Callback_Func(Event);
     }
 };
+
 Window* Main_Wind;
 void App::On_Startup() {
-    GLog_Manager::Set_Device(GLog_Device::Std_Console);
+    GLog_Manager::Set_Device(GLog_Device::GConsole, "log.txt");
     GLog_Manager::Set_Log_Level(GLog_Level::Trace);
     GInfo() << "Helu from Application :*)";
 
     double Scale = 70;
     Scale /= 100;
 
-    Main_Wind = new Window("Main_Wind", 300 * Scale, 400 * Scale, 1100, 500);
+    Main_Wind = new Window("Main_Wind", 300 * Scale, 400 * Scale);
     Register_Window(Main_Wind);
-    
+
     GEvent Render_Event;
     Render_Event.Core_Message = GECore_Message::Render;
     Render_Event.Data_Ptr = Main_Wind;
-    
-    GApp()->Post_Event(Render_Event);
     GApp()->Post_Event(Render_Event);
 }
 void App::On_Close() {}
 
 
-GTexture Textures[32];
+GPos MP;
+bool Track = false;
 GText Text;
-int Window::Callback_Func(const GEvent* Event) {
-    switch (Event->Type) {
+size_t Quad_i = 0;
+int Window::Callback_Func(const GEvent& Event) {
+    switch (Event.Type) {
         case GEType::Window:
         {
-            if (Event->Wind_Message == GEWind_Message::Run) {
-                Set_Default_Font(Load_Font("C:/Windows/Fonts/segoeui.ttf"));
-
-                //Set_Default_Font(Load_Font("C:/Windows/Fonts/consola.ttf"));
+            if (Event.Wind_Message == GEWind_Message::Run) {
+                //Set_Default_Font(Load_Font("C:/Windows/Fonts/segoeui.ttf"));
+                Set_Default_Font(Load_Font("C:/Windows/Fonts/consola.ttf"));
 
                 Set_Text_Height(20);
-                //Set text height -> store the height in 'default' GFont struct; later for scaling
-
                 Text.push_back({ '!', {1.0, 0.0, 1.0}});
+
+                GTexture Tex = Load_Texture("C:/test.bmp");
+                GQuad Quad(Tex.Width * (5.2 / 100.0), Tex.Height * (5.2 / 100.0), 0, 75);
+                Quad.Repeat_Texture(Tex, 1, 1);
+                Quad_i = Add_Quad(Quad);
+
+                //Bkg color: 30, 30, 30, 255
             }
 
-            else if (Event->Wind_Message == GEWind_Message::Render) {
+            else if (Event.Wind_Message == GEWind_Message::Render) {
                 GRenderer& Renderer = *Get_Renderer();
                 Renderer.Clear();
                 
@@ -119,8 +92,8 @@ int Window::Callback_Func(const GEvent* Event) {
                 return 0;
             }
 
-            else if (Event->Wind_Message == GEWind_Message::Close) {
-                std::cout << "On_Close: Terminate application" << std::endl;
+            else if (Event.Wind_Message == GEWind_Message::Close) {
+                GInfo() << "Close event: Application termination";
                 GEvent Event;
                 Event.Core_Message = GECore_Message::Terminate;
                 GApp()->Post_Event(Event);
@@ -133,29 +106,91 @@ int Window::Callback_Func(const GEvent* Event) {
 
         case GEType::Keyboard:
         {
-            if (Event->Keyboard_Message == GEKeyboard_Message::Key) {
-                if (Event->Key_Action == GEKey_Action::Up) {
+            if (Event.Keyboard_Message == GEKeyboard_Message::Key) {
+                if (Event.Key_Action == GEKey_Action::Down || Event.Key_Action == GEKey_Action::Repeat) {
                     static int Scale = 25;
-                    Set_Text_Height(Scale++);
 
-                    Text.clear();
-                    std::stringstream SS;
-                    SS << Scale;
-                    std::string Str = SS.str();
+                    if (265 >= Event.Key && Event.Key >= 262) {
+                        auto& Quad = Get_Quad(Quad_i);
 
-                    for (auto& Ch : Str) {
-                        Text.push_back({ Ch, {1.0, 0.0, 1.0} });
+                        if (Event.Key == 265) {
+                            Quad.m_Window.X += int((double)Quad.m_Window.X * 0.02);
+                            Quad.m_Window.Y += int((double)Quad.m_Window.Y * 0.02);
+                            Set_Text_Height(++Scale);
+                        } else if (Event.Key == 264) {
+                            Quad.m_Window.X -= int((double)Quad.m_Window.X * 0.02);
+                            Quad.m_Window.Y -= int((double)Quad.m_Window.Y * 0.02);
+                            Set_Text_Height(--Scale);
+                        }
+                        
+                        else if (Event.Key == 263) {
+                            Quad.m_Rotation -= 0.5;
+                        } else if (Event.Key == 262) {
+                            Quad.m_Rotation += 0.5;
+                        }
+
+
+                        GEvent Render;
+                        Render.Core_Message = GECore_Message::Render;
+                        Render.Data_Ptr = this;
+                        GApp()->Post_Event(Render);
+
+                        Text.clear();
+                        std::stringstream SS;
+                        SS << Scale;
+                        std::string Str = SS.str();
+
+                        for (auto& Ch : Str) {
+                            Text.push_back({ Ch, {1.0, 0.0, 1.0} });
+                        }
+                        GInfo() << "Scale: " << Scale;
+
+                        return 0;
                     }
-                    GInfo() << "Scale: " << Scale;
-                    Text.push_back({ 'b', {0.0, 1.0, 0.7} });
 
-                    GEvent Event;
-                    Event.Core_Message = GECore_Message::Render;
-                    Event.Data_Ptr = this;
-                    GApp()->Post_Event(Event);
-                    return 0;
+                    else if (Event.Key == 71) {
+                        GLog_Manager::Set_Device(GLog_Device::GConsole);
+                    }
+
+                    else if (Event.Key == 83) {
+                        GLog_Manager::Set_Device(GLog_Device::Std_Console);
+                    }
                 }
             }
+
+            break;
+        }
+
+        case GEType::Mouse:
+        {
+            if (Event.Mouse_Message == GEMouse_Message::Move) {
+                //GInfo() << "Mouse move (" << Get_Name() << ") (x, y): [" << Event.MP.X << ", " << Event.MP.Y << "]";
+
+                if (Track) {
+                    GEvent Move_E;
+                    Move_E.Data_Ptr = m_Main_Window;
+                    Move_E.Core_Message = GECore_Message::Move;
+
+                    Move_E.WP = m_Screen;
+                    Move_E.WP.X += Event.MP.X - MP.X;
+                    Move_E.WP.Y -= Event.MP.Y - MP.Y;
+                    GApp()->Send_Event(Move_E);
+                }
+                else MP = Event.MP;
+            }
+
+            else if (Event.Mouse_Button == GEMouse_Button::LMB) {
+                if (Event.Mouse_Message == GEMouse_Message::Down) {
+                    Track = true;
+                    Set_Focus(this);
+                }
+
+                else if (Event.Mouse_Message == GEMouse_Message::Up) {
+                    Track = false;
+                }
+            }
+
+            return 1;
         }
     }
 

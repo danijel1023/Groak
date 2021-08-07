@@ -27,8 +27,8 @@ public:
     void Clear();
 
 
-    void Set_Window_Space(int Screen_X, int Screen_Y, int Window_X, int Window_Y);
-    void Set_Scale(int X, int Y);
+    void Set_Window_Space(const GPos& Screen, const GSize& Window);
+    void Set_Scale(const GSize& Window);
 
     unsigned int Get_Shader();
 

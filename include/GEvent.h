@@ -34,7 +34,7 @@ enum class GEMouse_Message {
     Scroll_Up, Scroll_Down,
     Scroll_Left, Scroll_Right,
 
-    Move, Enter, Leave
+    Move, Enter, Leave, Active
 };
 
 
