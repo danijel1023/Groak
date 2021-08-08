@@ -42,16 +42,16 @@ void App::On_Startup() {
     GLog_Manager::Set_Log_Level(GLog_Level::Trace);
     GInfo() << "Helu from Application :*)";
 
-    double Scale = 70;
-    Scale /= 100;
-
-    Main_Wind = new Window("Main_Wind", 300 * Scale, 400 * Scale);
-    Register_Window(Main_Wind);
-
-    GEvent Render_Event;
-    Render_Event.Core_Message = GECore_Message::Render;
-    Render_Event.Data_Ptr = Main_Wind;
-    GApp()->Post_Event(Render_Event);
+    //double Scale = 70;
+    //Scale /= 100;
+    //
+    //Main_Wind = new Window("Main_Wind", 300 * Scale, 400 * Scale);
+    //Register_Window(Main_Wind);
+    //
+    //GEvent Render_Event;
+    //Render_Event.Core_Message = GECore_Message::Render;
+    //Render_Event.Data_Ptr = Main_Wind;
+    //GApp()->Post_Event(Render_Event);
 }
 void App::On_Close() {}
 

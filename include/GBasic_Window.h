@@ -16,6 +16,7 @@ public:
     size_t Add_Quad(GQuad& Quad);
     GQuad& Get_Quad(size_t Quad_i);
     void Set_Viewport();
+    void Render();
 
 protected:
     GPos  m_Screen, m_Absolute_Screen;

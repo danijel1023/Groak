@@ -69,11 +69,13 @@ int GWindow::Dispatcher_Func(void* _This, const GEvent& Event) {
 }
 
 int GWindow::Dispatcher_Func(const GEvent& Event) {
+    //GApp()->Resolve_Event(Event, &std::cout);
+
     switch (Event.Type) {
         case GEType::Custom:
         {
-            auto Direct_This = static_cast<GBasic_Window*>(Event.Data_Ptr);
-            return GCall(Direct_This, m_Callback_Ptr, Event);
+            auto Wind = static_cast<GBasic_Window*>(Event.Data_Ptr);
+            return GCall(Wind, m_Callback_Ptr, Event);
         }
 
         case GEType::Keyboard:
@@ -84,10 +86,14 @@ int GWindow::Dispatcher_Func(const GEvent& Event) {
         case GEType::Mouse:
         {
             if (m_Mouse_Focus) {
-                if (Event.Mouse_Message == GEMouse_Message::Down)
+                //Not Const
+                GEvent ncEvent = Event;
+                ncEvent.MP -= m_Mouse_Focus->m_Absolute_Screen;
+
+                if (ncEvent.Mouse_Message == GEMouse_Message::Down)
                     m_Main_Window->m_Mouse_Buttons_Pressed++;
 
-                if (Event.Mouse_Message == GEMouse_Message::Up)
+                if (ncEvent.Mouse_Message == GEMouse_Message::Up)
                     m_Mouse_Buttons_Pressed--;
 
                 // Last button 'Up' - no mouse buttons are pressed
@@ -96,24 +102,14 @@ int GWindow::Dispatcher_Func(const GEvent& Event) {
                 
                 // At least one mouse button is pressed -- send all events to focused window
                 if (m_Mouse_Buttons_Pressed != 0)
-                    return GCall(m_Mouse_Focus, m_Callback_Ptr, Event);;
+                    return GCall(m_Mouse_Focus, m_Callback_Ptr, ncEvent);
             }
-
 
             //Exit the Main window
             if (Event.Mouse_Message == GEMouse_Message::Leave) {
                 if (m_Wind_Under_Cursor) GCall(m_Wind_Under_Cursor, m_Callback_Ptr, Event);
                 m_Wind_Under_Cursor = nullptr;
                 return 1;
-            }
-
-            break;
-        }
-
-        case GEType::Window:
-        {
-            if (Event.Wind_Message == GEWind_Message::Move) {
-                return GCall(this, m_Callback_Ptr, Event);
             }
 
             break;
@@ -144,15 +140,6 @@ int GWindow::Callback_Func(const GEvent& Event) {
                 return 0;
             }
 
-            case GEWind_Message::Restore:
-            {
-                GEvent Event;
-                Event.Core_Message = GECore_Message::Render;
-                Event.Data_Ptr = this;
-                GApp()->Post_Event(Event);
-                return 0;
-            }
-
             case GEWind_Message::Close:
             {
                 GEvent Event;
@@ -160,7 +147,44 @@ int GWindow::Callback_Func(const GEvent& Event) {
                 Event.Data_Ptr = this;
                 GApp()->Post_Event(Event);
 
+                return 1;
+            }
+
+            case GEWind_Message::Should_Iconify:
+            {
+                GEvent Event;
+                Event.Core_Message = GECore_Message::Iconify;
+                Event.Data_Ptr = this;
+                GApp()->Post_Event(Event);
+
+                return 1;
+            }
+
+            case GEWind_Message::Should_Maximise:
+            {
+                GEvent Event;
+                Event.Core_Message = GECore_Message::Maximise;
+                Event.Data_Ptr = this;
+                GApp()->Post_Event(Event);
+
+                return 1;
+            }
+
+            case GEWind_Message::Should_Restore:
+            {
+                GEvent Event;
+                Event.Core_Message = GECore_Message::Restore;
+                Event.Data_Ptr = this;
+                GApp()->Post_Event(Event);
                 return 0;
+            }
+
+            case GEWind_Message::Restore:
+            {
+                GEvent Event;
+                Event.Core_Message = GECore_Message::Render;
+                Event.Data_Ptr = this;
+                GApp()->Post_Event(Event);
             }
         }
     }

@@ -22,6 +22,7 @@ public:
     void Enable_Log(bool Enable_Log);
     void Set_Device(GLog_Device Out, const GString& File);
     void Set_Line_Ending(GString Line_Ending);
+    std::ostream* Get_Stream();
 
     void New_Line();
     GLog_Stream& operator<<(GString Right);

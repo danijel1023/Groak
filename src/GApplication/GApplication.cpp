@@ -212,7 +212,6 @@ void GApplication::Worker(const GEvent& Event) {
         {
             GWindow* Window = static_cast<GWindow*>(Event.Data_Ptr);
             glfwSetWindowPos(Window->m_Window_Hndl, Event.WP.X, Event.WP.Y);
-
             break;
         }
 
@@ -230,9 +229,24 @@ void GApplication::Worker(const GEvent& Event) {
             break;
         }
 
-        case GECore_Message::Run_Lambda:
+        case GECore_Message::Iconify:
         {
+            GWindow* Window = static_cast<GWindow*>(Event.Data_Ptr);
+            glfwIconifyWindow(Window->m_Window_Hndl);
+            break;
+        }
 
+        case GECore_Message::Maximise:
+        {
+            GWindow* Window = static_cast<GWindow*>(Event.Data_Ptr);
+            glfwMaximizeWindow(Window->m_Window_Hndl);
+            break;
+        }
+
+        case GECore_Message::Restore:
+        {
+            GWindow* Window = static_cast<GWindow*>(Event.Data_Ptr);
+            glfwRestoreWindow(Window->m_Window_Hndl);
             break;
         }
     }
@@ -324,18 +338,6 @@ void GApplication::Resolve_Event(const GEvent& Event, std::ostream* i_Stream, co
                     Stream << "Move(" << Event.WP << ")";
                     break;
 
-                case GEWind_Message::Iconify:
-                    Stream << "Iconify";
-                    break;
-
-                case GEWind_Message::Maximise:
-                    Stream << "Maximise";
-                    break;
-
-                case GEWind_Message::Restore:
-                    Stream << "Restore";
-                    break;
-
                 case GEWind_Message::Render:
                     Stream << "Render";
                     break;
@@ -350,6 +352,30 @@ void GApplication::Resolve_Event(const GEvent& Event, std::ostream* i_Stream, co
 
                 case GEWind_Message::Close:
                     Stream << "Close";
+                    break;
+
+                case GEWind_Message::Iconify:
+                    Stream << "Iconify";
+                    break;
+
+                case GEWind_Message::Should_Iconify:
+                    Stream << "Should_Iconify";
+                    break;
+
+                case GEWind_Message::Maximise:
+                    Stream << "Maximise";
+                    break;
+
+                case GEWind_Message::Should_Maximise:
+                    Stream << "Should_Maximise";
+                    break;
+
+                case GEWind_Message::Restore:
+                    Stream << "Restore";
+                    break;
+
+                case GEWind_Message::Should_Restore:
+                    Stream << "Should_Restore";
                     break;
 
                 case GEWind_Message::Terminate_Thread:

@@ -5,8 +5,8 @@ GLog_Stream* GLog_Manager::m_Stream_Ptr = nullptr;
 GLog_Level GLog_Manager::m_Log_Lvl = GLog_Level::Trace;
 
 
-void GLog_Manager::Init()   { m_Stream_Ptr = new GLog_Stream; }
-void GLog_Manager::End()    { delete m_Stream_Ptr; }
+void GLog_Manager::Init() { m_Stream_Ptr = new GLog_Stream; }
+void GLog_Manager::End()  { delete m_Stream_Ptr; m_Stream_Ptr = nullptr; }
 
 
 void GLog_Manager::Set_Log_Level(GLog_Level Log_Lvl) {
@@ -22,6 +22,10 @@ void GLog_Manager::Set_Device(GLog_Device Out, const GString& File) {
 }
 
 void GLog_Manager::Close_GConsole() { m_Stream_Ptr->Close_GConsole(); }
+
+std::ostream* GLog_Manager::Get_Stream() {
+    return m_Stream_Ptr->Get_Stream();
+}
 
 GLog_Manager::GLog_Manager() {}
 GLog_Manager::~GLog_Manager() {

@@ -1,9 +1,8 @@
 #include "GLog_Stream.h"
-#include "GConsole.h"
 #include "GApplication.h"
+#include "GConsole/GConsole.h"
 
 #include <fstream>
-#include <assert.h>
 
 
 static GConsole* Console = nullptr;
@@ -75,6 +74,10 @@ void GLog_Stream::Set_Device(GLog_Device Out, const GString& File) {
 
 void GLog_Stream::Set_Line_Ending(GString Line_Ending) {
     m_Line_Ending = Line_Ending;
+}
+
+std::ostream* GLog_Stream::Get_Stream() {
+    return m_Stream_Ptr;
 }
 
 

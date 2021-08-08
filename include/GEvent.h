@@ -10,7 +10,7 @@ enum class GEType { Window, Mouse, Keyboard, Custom };
 enum class GECore_Message {
     Register, Run_Lambda,
 
-    Move, Minimise, Maximise, Restore,
+    Move, Iconify, Maximise, Restore,
     Render, Show, Hide,
     Close,
 
@@ -22,6 +22,7 @@ enum class GEWind_Message {
 
     Run,
     Move, Iconify, Maximise, Restore,
+    Should_Iconify, Should_Maximise, Should_Restore,
     Render, Show, Hide,
     Close, Terminate_Thread
 };
@@ -55,8 +56,10 @@ struct GEvent {
     void* Data_Ptr = 0;
 
     GSize WS;   //Window size
-    GSize FS;   //Framebuffer size
     GPos  WP;   //Window position
+    GPos MP;    //Mouse position
+
+    GEMouse_Button Mouse_Button = {};
 
     std::function<int()> Lambda;
 
@@ -66,8 +69,6 @@ struct GEvent {
         bool Modifier_Ctrl = false;
     };
 
-    GPos MP;    //Mouse position
-    GEMouse_Button Mouse_Button = {};
 
     int Key = 0;
     int Scancode = 0;

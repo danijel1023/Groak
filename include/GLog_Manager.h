@@ -15,6 +15,7 @@ public:
     static void Set_Device(GLog_Device Out, const GString& File = "");
     static void Set_Log_Level(GLog_Level Log_Lvl);
     static void Close_GConsole();
+    static std::ostream* Get_Stream();
 
     //No Line Ending
     GLog_Manager& NLE();

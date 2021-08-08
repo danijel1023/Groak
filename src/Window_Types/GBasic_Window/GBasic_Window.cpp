@@ -1,5 +1,6 @@
 #include "GBasic_Window.h"
 #include "GWindow.h"
+#include "GApplication.h"
 
 GBasic_Window::GBasic_Window(GBasic_Window* Parent, int Window_X, int Window_Y, int Screen_X, int Screen_Y)
     :GBasic_Window(Parent, { Window_X, Window_Y }, { Screen_X, Screen_Y }) {}
@@ -45,6 +46,14 @@ GQuad& GBasic_Window::Get_Quad(size_t Quad_i) {
 void GBasic_Window::Set_Viewport() {
     auto& Renderer = *(m_Main_Window->m_Renderer);
     Renderer.Set_Window_Space(m_Absolute_Screen - m_Main_Window->m_FB_Ancor, m_Window);
+}
+
+
+void GBasic_Window::Render() {
+    GEvent Event;
+    Event.Core_Message = GECore_Message::Render;
+    Event.Data_Ptr = m_Main_Window;
+    GApp()->Post_Event(Event);
 }
 
 
@@ -120,14 +129,15 @@ int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
                         GCall(Wind_Under_Cursor, m_Callback_Ptr, Leave);
                     }
 
-                    Wind_Under_Cursor = this;
-
                     GEvent Enter;
                     Enter.Type = GEType::Mouse;
                     Enter.Mouse_Message = GEMouse_Message::Enter;
                     Enter.MP = Event.MP;
 
-                    return GCall(this, m_Callback_Ptr, Enter);
+                    GCall(this, m_Callback_Ptr, Enter);
+
+                    if (!Wind_Under_Cursor) GCall(this, m_Callback_Ptr, Event);
+                    Wind_Under_Cursor = this;
                 }
             }
 
@@ -139,7 +149,7 @@ int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
 
         case GEType::Window:
         {
-            if (Event.Wind_Message == GEWind_Message::Close) {
+            if (Event.Wind_Message == GEWind_Message::Close || Event.Wind_Message == GEWind_Message::Terminate_Thread) {
                 for (auto& Ch_Wnd : m_Child_Windows) {
                     GCall(Ch_Wnd, m_Dispatcher_Ptr, Event);
                 }
@@ -147,12 +157,17 @@ int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
                 GCall(this, m_Callback_Ptr, Event);
             }
 
-            else {
+            else if (Event.Wind_Message == GEWind_Message::Run || Event.Wind_Message == GEWind_Message::Render) {
                 GCall(this, m_Callback_Ptr, Event);
 
                 for (auto Ch_Wnd : m_Child_Windows) {
                     GCall(Ch_Wnd, m_Dispatcher_Ptr, Event);
                 }
+            }
+
+            else {
+                auto Wind = static_cast<GBasic_Window*>(Event.Data_Ptr);
+                GCall(Wind, m_Callback_Ptr, Event);
             }
         }
     }

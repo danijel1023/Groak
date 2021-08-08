@@ -1,16 +1,9 @@
 #pragma once
+#include "GConsole/GSBuff.h"
+#include "GConsole/Content_Area.h"
+
+#include "GTitle_Bar.h"
 #include "GWindow.h"
-#include <sstream>
-
-class GConsole;
-class GSBuff : public std::stringbuf {
-public:
-    GSBuff(GConsole* Console);
-    int sync() override;
-
-private:
-    GConsole* m_Console;
-};
 
 
 /*
@@ -37,6 +30,8 @@ private:
     std::atomic_bool m_Read = false;
     std::vector<GString> m_Buffer;
 
+    GTitle_Bar* m_Title_Bar = nullptr;
+    Content_Area* m_Content_Area = nullptr;
 
 protected:
     int Callback_Func(const GEvent& Event);
@@ -46,5 +41,4 @@ private:
         auto This = static_cast<GConsole*>(_This);
         return This->Callback_Func(Event);
     }
-
 };
