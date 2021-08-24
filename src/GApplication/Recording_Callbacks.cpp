@@ -132,6 +132,7 @@ void GApplication::GLFW_Recording_Window_Size_Callback(GLFWwindow* Window_Hndl, 
     GEvent Event;
     Event.Type = GEType::Window;
     Event.Wind_Message = GEWind_Message::Resize;
+    Event.Data_Ptr = _This;
     Event.WS = { Width, Height };
 
     GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
@@ -145,6 +146,7 @@ void GApplication::GLFW_Recording_Window_Pos_Callback(GLFWwindow* Window_Hndl, i
     GEvent Event;
     Event.Type = GEType::Window;
     Event.Wind_Message = GEWind_Message::Move;
+    Event.Data_Ptr = _This;
     Event.WP = { X_Pos, Y_Pos};
 
     GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
@@ -157,6 +159,7 @@ void GApplication::GLFW_Recording_Window_Focus_Callback(GLFWwindow* Window_Hndl,
 
     GEvent Event;
     Event.Type = GEType::Window;
+    Event.Data_Ptr = _This;
 
     if (Focused) Event.Wind_Message = GEWind_Message::Gain_Focus;
     else Event.Wind_Message = GEWind_Message::Lose_Focus;
@@ -183,6 +186,7 @@ void GApplication::GLFW_Recording_Window_Maximize_Callback(GLFWwindow* Window_Hn
 
     GEvent Event;
     Event.Type = GEType::Window;
+    Event.Data_Ptr = _This;
     if (Maximized) Event.Wind_Message = GEWind_Message::Maximise;
     else           Event.Wind_Message = GEWind_Message::Restore;
 
@@ -196,6 +200,7 @@ void GApplication::GLFW_Recording_Window_Iconify_Callback(GLFWwindow* Window_Hnd
 
     GEvent Event;
     Event.Type = GEType::Window;
+    Event.Data_Ptr = _This;
     if (Iconified) Event.Wind_Message = GEWind_Message::Iconify;
     else           Event.Wind_Message = GEWind_Message::Restore;
 

@@ -5,8 +5,11 @@
 
 class GTitle_Bar : public GBasic_Window {
 public:
+    GTitle_Bar(GBasic_Window* Parent, int Window_X, int Window_Y, int Screen_X, int Screen_Y);
     GTitle_Bar(GBasic_Window* Parent, const GSize& Window, const GPos& Screen);
     ~GTitle_Bar();
+
+    bool Iconified() { return m_Iconified; }
 
 private:
     GButton *m_Close = nullptr, *m_Iconify = nullptr, *m_Maximise = nullptr;

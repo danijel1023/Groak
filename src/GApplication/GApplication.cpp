@@ -114,6 +114,9 @@ void GApplication::Register_Window(GWindow* Window) {
 
 
 void GApplication::Post_Event(const GEvent& Event) {
+    std::cout << "Post_Event ";
+    GApp()->Resolve_Event(Event, &std::cout, "", true, false, true);
+
     auto Node = m_Queue.Get_Node();
     Node->Data = Event;
     m_Queue.Insert(Node);
@@ -122,6 +125,9 @@ void GApplication::Post_Event(const GEvent& Event) {
 }
 
 void GApplication::Send_Event(const GEvent& Event) {
+    std::cout << "Send_Event ";
+    GApp()->Resolve_Event(Event, &std::cout, "", true, false, true);
+
     {
         std::unique_lock<std::recursive_mutex> Lck(m_QRM);
 
@@ -152,23 +158,6 @@ void GApplication::Worker(const GEvent& Event) {
             GWindow* Window = static_cast<GWindow*>(Event.Data_Ptr);
             m_Window_List.push_back(Window);
             Window->Run();
-
-            break;
-        }
-
-        case GECore_Message::Render:
-        {
-            GWindow* Window = static_cast<GWindow*>(Event.Data_Ptr);
-            Set_Context(Window);
-
-            Window->m_Renderer->Clear();
-
-            GEvent Event;
-            Event.Type = GEType::Window;
-            Event.Wind_Message = GEWind_Message::Render;
-            Window->Send_Event(Event);
-
-            glfwSwapBuffers(Window->m_Window_Hndl);
 
             break;
         }
@@ -212,6 +201,13 @@ void GApplication::Worker(const GEvent& Event) {
         {
             GWindow* Window = static_cast<GWindow*>(Event.Data_Ptr);
             glfwSetWindowPos(Window->m_Window_Hndl, Event.WP.X, Event.WP.Y);
+            break;
+        }
+
+        case GECore_Message::Resize:
+        {
+            GWindow* Window = static_cast<GWindow*>(Event.Data_Ptr);
+            glfwSetWindowSize(Window->m_Window_Hndl, Event.WS.X, Event.WS.Y);
             break;
         }
 
@@ -296,7 +292,16 @@ void GApplication::Simulator_Thread() {
     File.read((char*)Event, Count * sizeof(GEvent));
 
     for (std::streamsize i = 0; i < Count; i++) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        std::this_thread::sleep_for(std::chrono::milliseconds(70));
+
+        if (Event[i].Type == GEType::Window) {
+            if (Event[i].Wind_Message != GEWind_Message::Close &&
+                Event[i].Wind_Message != GEWind_Message::Terminate_Thread &&
+                Event[i].Wind_Message != GEWind_Message::Run &&
+                Event[i].Wind_Message != GEWind_Message::Render) {
+                Event[i].Data_Ptr = m_Simulator_Window;
+            }
+        }
 
         m_Simulator_Window->Post_Event(Event[i]);
     }
@@ -305,17 +310,58 @@ void GApplication::Simulator_Thread() {
 }
 
 
-// 'i' for Input
-void GApplication::Resolve_Event(const GEvent& Event, std::ostream* i_Stream, const GString& Prefix, bool New_Line, bool Print_Active) {
+void GApplication::Resolve_Event(const GEvent& Event, std::ostream* Stream_Ptr, const GString& Prefix, bool New_Line, bool Print_Active, bool Is_Core) {
     if (!Print_Active && Event.Type == GEType::Mouse && Event.Mouse_Message == GEMouse_Message::Active) return;
 
-    std::ostream& Stream = *i_Stream;
+    std::ostream& Stream = *Stream_Ptr;
     Stream << Prefix;
+
+    if (Is_Core) {
+        switch (Event.Core_Message) {
+            case GECore_Message::Register:
+                Stream << "Register(" << Event.Data_Ptr << ")";
+                break;
+            case GECore_Message::Run_Lambda:
+                Stream << "Run_Lambda";
+                break;
+            case GECore_Message::Move:
+                Stream << "Move(" << Event.WP << ")";
+                break;
+            case GECore_Message::Resize:
+                Stream << "Resize(" << Event.WS << ")";
+                break;
+            case GECore_Message::Iconify:
+                Stream << "Iconify(" << Event.Data_Ptr << ")";
+                break;
+            case GECore_Message::Maximise:
+                Stream << "Maximise(" << Event.Data_Ptr << ")";
+                break;
+            case GECore_Message::Restore:
+                Stream << "Restore(" << Event.Data_Ptr << ")";
+                break;
+            case GECore_Message::Show:
+                Stream << "Show(" << Event.Data_Ptr << ")";
+                break;
+            case GECore_Message::Hide:
+                Stream << "Hide(" << Event.Data_Ptr << ")";
+                break;
+            case GECore_Message::Close:
+                Stream << "Close(" << Event.Data_Ptr << ")";
+                break;
+            case GECore_Message::Terminate:
+                Stream << "Terminate";
+                break;
+        }
+
+        if (New_Line) Stream << std::endl;
+        return;
+    }
+
 
     switch (Event.Type) {
         case GEType::Window:
         {
-            Stream<< "Window: ";
+            Stream << "Window: ";
 
             switch (Event.Wind_Message) {
                 case GEWind_Message::Resize:

@@ -4,7 +4,7 @@
 
 
 GConsole::GConsole()
-    : GWindow("Groak Console", 640, 360), m_Stream_Buff(this), m_Stream(&m_Stream_Buff) {
+    : GDecorated_Window("Groak Console", 640, 360), m_Stream_Buff(this), m_Stream(&m_Stream_Buff) {
     m_Callback_Ptr = &GConsole::Callback_Func;
 }
 
@@ -40,63 +40,67 @@ int GConsole::Callback_Func(const GEvent& Event) {
             switch (Event.Wind_Message) {
                 case GEWind_Message::Run:
                 {
-                    m_Title_Bar = new GTitle_Bar(this, { m_Window.X, 32 }, { 0, m_Window.Y - 32 });
+                    //m_Title_Bar = new GTitle_Bar(this, { m_Window.X, 32 }, { 0, m_Window.Y - 32 });
+
+                    GQuad Quad({ 2, 100 }, { 20, 0 });
+                    Quad.m_Color = {1.0f, 0.0f, 0.0f, 1.0f};
+                    Add_Quad(Quad);
 
                     GEvent Render;
-                    Render.Core_Message = GECore_Message::Render;
+                    //Render.Core_Message = GECore_Message::Render;
                     Render.Data_Ptr = m_Main_Window;
                     GApp()->Post_Event(Render);
                     break;
                 }
 
-                case GEWind_Message::Resize:
-                {
-                    GWindow::Callback_Func(Event);
-
-                    GEvent Event;
-                    Event.Type = GEType::Window;
-                    Event.Data_Ptr = m_Title_Bar;
-
-                    Event.Wind_Message = GEWind_Message::Move;
-                    Event.WP = { 0, m_Window.Y - 32 };
-                    Post_Event(Event);
-
-                    Event.Wind_Message = GEWind_Message::Resize;
-                    Event.WS = { m_Window.X, 32 };
-                    Post_Event(Event);
-
-                    return 1;
-                }
-
-                case GEWind_Message::Iconify:
-                case GEWind_Message::Maximise:
-                case GEWind_Message::Restore:
-                {
-                    GEvent TBEvent;
-                    TBEvent.Type = GEType::Window;
-                    TBEvent.Data_Ptr = m_Title_Bar;
-                    TBEvent.Wind_Message = Event.Wind_Message;
-                    Post_Event(TBEvent);
-
-                    break;
-                }
-
-                case GEWind_Message::Close:
-                {
-                    std::cout << "Closing GConsole!" << std::endl;
-                    break;
-                }
-
-                case GEWind_Message::Terminate_Thread:
-                {
-                    std::cout << "GConsole: Goodbye world :<" << std::endl;
-                    break;
-                }
+                //case GEWind_Message::Resize:
+                //{
+                //    GDecorated_Window::Callback_Func(Event);
+                //
+                //    GEvent Event;
+                //    Event.Type = GEType::Window;
+                //    Event.Data_Ptr = m_Title_Bar;
+                //
+                //    Event.Wind_Message = GEWind_Message::Move;
+                //    Event.WP = { 0, m_Window.Y - 32 };
+                //    Post_Event(Event);
+                //
+                //    Event.Wind_Message = GEWind_Message::Resize;
+                //    Event.WS = { m_Window.X, 32 };
+                //    Post_Event(Event);
+                //
+                //    return 1;
+                //}
+                //
+                //case GEWind_Message::Iconify:
+                //case GEWind_Message::Maximise:
+                //case GEWind_Message::Restore:
+                //{
+                //    GEvent TBEvent;
+                //    TBEvent.Type = GEType::Window;
+                //    TBEvent.Data_Ptr = m_Title_Bar;
+                //    TBEvent.Wind_Message = Event.Wind_Message;
+                //    Post_Event(TBEvent);
+                //
+                //    break;
+                //}
+                //
+                //case GEWind_Message::Close:
+                //{
+                //    std::cout << "Closing GConsole!" << std::endl;
+                //    break;
+                //}
+                //
+                //case GEWind_Message::Terminate_Thread:
+                //{
+                //    std::cout << "GConsole: Goodbye world :<" << std::endl;
+                //    break;
+                //}
             }
 
             break;
         }
     }
 
-    return GWindow::Callback_Func(Event);
+    return GDecorated_Window::Callback_Func(Event);
 }

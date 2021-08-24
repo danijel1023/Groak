@@ -10,8 +10,9 @@ enum class GEType { Window, Mouse, Keyboard, Custom };
 enum class GECore_Message {
     Register, Run_Lambda,
 
-    Move, Iconify, Maximise, Restore,
-    Render, Show, Hide,
+    Move, Resize,
+    Iconify, Maximise, Restore,
+    Show, Hide,
     Close,
 
     Terminate
@@ -35,7 +36,8 @@ enum class GEMouse_Message {
     Scroll_Up, Scroll_Down,
     Scroll_Left, Scroll_Right,
 
-    Move, Enter, Leave, Active
+    Move, Enter, Leave, Active,
+    Gain_Focus, Lose_Focus
 };
 
 

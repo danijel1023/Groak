@@ -51,9 +51,28 @@ void GBasic_Window::Set_Viewport() {
 
 void GBasic_Window::Render() {
     GEvent Event;
-    Event.Core_Message = GECore_Message::Render;
+    //Event.Core_Message = GECore_Message::Render;
     Event.Data_Ptr = m_Main_Window;
     GApp()->Post_Event(Event);
+}
+
+
+void GBasic_Window::Set_Screen(const GPos& Pos) {
+    GEvent Event;
+    Event.Type = GEType::Window;
+    Event.Data_Ptr = this;
+    Event.Wind_Message = GEWind_Message::Move;
+    Event.WP = Pos;
+    m_Main_Window->Post_Event(Event);
+}
+
+void GBasic_Window::Set_Window(const GSize& Size) {
+    GEvent Event;
+    Event.Type = GEType::Window;
+    Event.Data_Ptr = this;
+    Event.Wind_Message = GEWind_Message::Resize;
+    Event.WS = Size;
+    m_Main_Window->Post_Event(Event);
 }
 
 
@@ -68,7 +87,10 @@ int GBasic_Window::Callback_Func(void* _This, const GEvent& Event) {
     return This->Callback_Func(Event);
 }
 
+
 int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
+    if (!m_Enabled) return 0;
+
     switch (Event.Type) {
         case GEType::Mouse:
         {
@@ -110,6 +132,12 @@ int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
 
             if (Event.Mouse_Message == GEMouse_Message::Down) {
                 m_Main_Window->m_Mouse_Buttons_Pressed++;
+
+                GEvent Gain_Focus;
+                Gain_Focus.Type = GEType::Mouse;
+                Gain_Focus.Mouse_Message = GEMouse_Message::Gain_Focus;
+                GCall(this, m_Callback_Ptr, Gain_Focus);
+
                 m_Main_Window->m_Mouse_Focus = this;
             }
 

@@ -2,6 +2,7 @@
 #include <sstream>
 #include "Groak.h"
 #include "GCharacter.h"
+#include "GDecorated_Window.h"
 
 
 class App : public GApplication {
@@ -18,10 +19,10 @@ int main() {
 }
 
 
-class Window : public GWindow {
+class Window : public GDecorated_Window {
 public:
     Window(const std::string& Name, int Window_X, int Window_Y)
-        : GWindow(Name, Window_X, Window_Y) {
+        : GDecorated_Window(Name, Window_X, Window_Y) {
         m_Callback_Ptr = &Window::Callback_Func;
     }
 
@@ -38,7 +39,7 @@ private:
 
 Window* Main_Wind;
 void App::On_Startup() {
-    GLog_Manager::Set_Device(GLog_Device::GConsole, "log.txt");
+    GLog_Manager::Set_Device(GLog_Device::GConsole);
     GLog_Manager::Set_Log_Level(GLog_Level::Trace);
     GInfo() << "Helu from Application :*)";
 
@@ -131,7 +132,7 @@ int Window::Callback_Func(const GEvent& Event) {
 
 
                         GEvent Render;
-                        Render.Core_Message = GECore_Message::Render;
+                        //Render.Core_Message = GECore_Message::Render;
                         Render.Data_Ptr = this;
                         GApp()->Post_Event(Render);
 

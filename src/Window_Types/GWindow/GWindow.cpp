@@ -42,6 +42,7 @@ void GWindow::Post_Event(const GEvent& Event) {
 
 
 void GWindow::Set_Focus(GBasic_Window* Window) {
+    if (!Window) { GError() << "Invalid action: Set_Focus cannot be NULL!"; return; }
     if (m_Focus == Window) return;
 
     GEvent Event;
@@ -69,8 +70,6 @@ int GWindow::Dispatcher_Func(void* _This, const GEvent& Event) {
 }
 
 int GWindow::Dispatcher_Func(const GEvent& Event) {
-    //GApp()->Resolve_Event(Event, &std::cout);
-
     switch (Event.Type) {
         case GEType::Custom:
         {
@@ -97,8 +96,14 @@ int GWindow::Dispatcher_Func(const GEvent& Event) {
                     m_Mouse_Buttons_Pressed--;
 
                 // Last button 'Up' - no mouse buttons are pressed
-                if (m_Mouse_Buttons_Pressed == 0)
+                if (m_Mouse_Buttons_Pressed == 0) {
+                    GEvent Lose_Focus;
+                    Lose_Focus.Type = GEType::Mouse;
+                    Lose_Focus.Mouse_Message = GEMouse_Message::Lose_Focus;
+                    GCall(m_Mouse_Focus, m_Callback_Ptr, Lose_Focus);
+
                     m_Mouse_Focus = nullptr;
+                }
                 
                 // At least one mouse button is pressed -- send all events to focused window
                 if (m_Mouse_Buttons_Pressed != 0)
@@ -120,6 +125,8 @@ int GWindow::Dispatcher_Func(const GEvent& Event) {
 }
 
 int GWindow::Callback_Func(const GEvent& Event) {
+    GApp()->Resolve_Event(Event, &std::cout);
+
     if (Event.Type == GEType::Window) {
         switch (Event.Wind_Message) {
             case GEWind_Message::Gain_Focus:
@@ -181,10 +188,14 @@ int GWindow::Callback_Func(const GEvent& Event) {
 
             case GEWind_Message::Restore:
             {
-                GEvent Event;
-                Event.Core_Message = GECore_Message::Render;
-                Event.Data_Ptr = this;
-                GApp()->Post_Event(Event);
+                Render();
+                break;
+            }
+
+            case GEWind_Message::Resize:
+            {
+                Render();
+                break;
             }
         }
     }
@@ -237,6 +248,8 @@ void GWindow::Run() {
 }
 
 void GWindow::Worker() {
+    m_OpenGL_Th = std::thread(&GWindow::OpenGL_Func, this);
+
     while (m_Running) {
         std::unique_lock<std::recursive_mutex> Lck(m_Dispatcher_Mutex);
         m_DCV.wait(Lck, [=] { return !m_Queue.Empty(); });
@@ -251,8 +264,39 @@ void GWindow::Worker() {
             m_Queue.Pop();
         }
     }
+
+
+    m_Render_Request++;
+    m_OpenGL_Th.join();
 }
 
+
+void GWindow::OpenGL_Func() {
+    glfwMakeContextCurrent(m_Window_Hndl);
+
+    while (m_Running) {
+        std::unique_lock<std::recursive_mutex> Lck(m_Render_Dispatcher_Mutex);
+        m_Render_DCV.wait(Lck, [=] { return m_Render_Request; });
+
+        while (m_Running && m_Render_Request) {
+            m_Renderer->Clear();
+
+            GEvent Event;
+            Event.Type = GEType::Window;
+            Event.Wind_Message = GEWind_Message::Render;
+            Send_Event(Event);
+
+            glfwSwapBuffers(m_Window_Hndl);
+
+            m_Render_Request--;
+        }
+    }
+
+    glfwMakeContextCurrent(0);
+}
+
+
+void GWindow::Render() {}
 
 void GWindow::Terminate() {
     GEvent Event;

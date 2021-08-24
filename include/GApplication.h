@@ -26,7 +26,7 @@ public:
     void Attach_Simulator(GWindow* Window, bool Recording);
     void Attach_Callbacks(GWindow* Window);
 
-    void Resolve_Event(const GEvent& Event, std::ostream* Stream, const GString& Prefix = "", bool New_Line = true, bool Print_Active = false);
+    void Resolve_Event(const GEvent& Event, std::ostream* Stream_Ptr, const GString& Prefix = "", bool New_Line = true, bool Print_Active = false, bool Is_Core = false);
 
     FT_Library& Get_FT_Lib();
 
@@ -35,6 +35,7 @@ private:
     void Worker(const GEvent& Event);
     GWindow* Current_Context = nullptr;
 
+    //SE: Send Event
     std::recursive_mutex m_SERM;
     std::condition_variable_any m_SECV;
     bool m_SE = false;

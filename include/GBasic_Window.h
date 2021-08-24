@@ -18,6 +18,10 @@ public:
     void Set_Viewport();
     void Render();
 
+
+
+    bool m_Enabled = true;
+
 protected:
     GPos  m_Screen, m_Absolute_Screen;
     GSize m_Window;
@@ -42,8 +46,8 @@ public:
     inline const GPos  Get_Absolute_Screen_X() { return m_Absolute_Screen; }
     inline const GPos  Get_Screen() { return m_Screen; }
     inline const GSize Get_Window() { return m_Window; }
-    virtual void Set_Screen(const GPos& Pos)   { m_Screen = Pos; }
-    virtual void Set_Window(const GSize& Size) { m_Window = Size; }
+    void Set_Screen(const GPos& Pos);
+    void Set_Window(const GSize& Size);
 
     inline GWindow* Main_Window() { return m_Main_Window; }
 

@@ -3,7 +3,7 @@
 #include "GConsole/Content_Area.h"
 
 #include "GTitle_Bar.h"
-#include "GWindow.h"
+#include "GDecorated_Window.h"
 
 
 /*
@@ -12,7 +12,7 @@
 * -- It's not a but, it's a feature
 */
 
-class GConsole : public GWindow {
+class GConsole : public GDecorated_Window {
 public:
     GConsole();
     ~GConsole();

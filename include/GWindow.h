@@ -53,14 +53,17 @@ private:
     int m_Mouse_Buttons_Pressed = 0;
 
     GTEQueue m_Queue;
-    std::recursive_mutex m_Dispatcher_Mutex;
-    std::condition_variable_any m_DCV;
+    int m_Render_Request = 0;
+    std::recursive_mutex m_Dispatcher_Mutex, m_Render_Dispatcher_Mutex;
+    std::condition_variable_any m_DCV, m_Render_DCV;
 
+    void Render();
     void Terminate();
 
     void Run();
-    std::thread m_Worker;
+    std::thread m_Worker, m_OpenGL_Th;
     void Worker();
+    void OpenGL_Func();
 
     GRenderer* m_Renderer = nullptr;
     std::stack<GFramebuffer*> m_Last_Framebuffer = std::stack<GFramebuffer*>({ nullptr });

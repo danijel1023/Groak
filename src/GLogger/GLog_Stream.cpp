@@ -16,6 +16,9 @@ GLog_Stream::~GLog_Stream() {
 
 
 void GLog_Stream::Close_GConsole() {
+    GEvent Event;
+    Event.Core_Message = GECore_Message::Close;
+    Event.Data_Ptr = Console;
     Console = nullptr;
 }
 
@@ -34,6 +37,7 @@ void GLog_Stream::Set_Device(GLog_Device Out, const GString& File) {
             if (!Console) {
                 Console = new GConsole;
                 GApp()->Register_Window(Console);
+                GApp()->Attach_Simulator(Console, true);
             }
 
             Console->Show();

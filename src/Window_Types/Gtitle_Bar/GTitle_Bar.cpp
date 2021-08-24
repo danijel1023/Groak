@@ -6,6 +6,9 @@
 #include "res.inl"
 
 
+GTitle_Bar::GTitle_Bar(GBasic_Window* Parent, int Window_X, int Window_Y, int Screen_X, int Screen_Y)
+    :GTitle_Bar(Parent, { Window_X, Window_Y }, { Screen_X, Screen_Y }) {}
+
 GTitle_Bar::GTitle_Bar(GBasic_Window* Parent, const GSize& Window, const GPos& Screen)
     : GBasic_Window(Parent, Window, Screen) {
     m_Callback_Ptr = &GTitle_Bar::Callback_Func;
