@@ -17,7 +17,8 @@
 #ifdef _WIN64
 #  define GROAK_FONT_FILE "C:/Windows/Fonts/consola.ttf"
 #else
-#  error supply font file for specific platform
+#  define GROAK_FONT_FILE "/home/danijel/Desktop/consola.ttf"
+//#  error supply font file for specific platform
 #endif
 
 #include "GEvent.h"

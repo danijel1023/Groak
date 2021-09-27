@@ -1,8 +1,7 @@
 #pragma once
 #include "GWindow.h"
 #include "GTitle_Bar.h"
-#include "GResize_Area/GResize_Horizontal.h"
-#include "GResize_Area/GResize_Vertical.h"
+#include "GResize_Area.h"
 
 
 class GDecorated_Window : public GWindow {
@@ -14,8 +13,8 @@ public:
 
 private:
     GTitle_Bar* m_Title_Bar = nullptr;
-    GResize_Vertical* m_Left_Resize = nullptr, * m_Right_Resize = nullptr;
-    GResize_Horizontal* m_Up_Resize = nullptr, * m_Down_Resize = nullptr;
+    GResize_Area* m_Left_Resize = nullptr, * m_Right_Resize = nullptr;
+    GResize_Area* m_Up_Resize = nullptr, * m_Down_Resize = nullptr;
 
 protected:
     int Callback_Func(const GEvent& Event);

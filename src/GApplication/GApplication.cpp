@@ -114,9 +114,6 @@ void GApplication::Register_Window(GWindow* Window) {
 
 
 void GApplication::Post_Event(const GEvent& Event) {
-    std::cout << "Post_Event ";
-    GApp()->Resolve_Event(Event, &std::cout, "", true, false, true);
-
     auto Node = m_Queue.Get_Node();
     Node->Data = Event;
     m_Queue.Insert(Node);
@@ -125,9 +122,6 @@ void GApplication::Post_Event(const GEvent& Event) {
 }
 
 void GApplication::Send_Event(const GEvent& Event) {
-    std::cout << "Send_Event ";
-    GApp()->Resolve_Event(Event, &std::cout, "", true, false, true);
-
     {
         std::unique_lock<std::recursive_mutex> Lck(m_QRM);
 
@@ -179,6 +173,17 @@ void GApplication::Worker(const GEvent& Event) {
                     break;
                 }
             }
+
+            break;
+        }
+
+        case GECore_Message::Clear:
+        {
+            GWindow* Window = static_cast<GWindow*>(Event.Data_Ptr);
+
+            Set_Context(Window);
+            Window->m_Renderer->Clear();
+            glfwSwapBuffers(Window->m_Window_Hndl);
 
             break;
         }
@@ -303,6 +308,7 @@ void GApplication::Simulator_Thread() {
             }
         }
 
+        GApp()->Resolve_Event(Event[i], &std::cout);
         m_Simulator_Window->Post_Event(Event[i]);
     }
 
@@ -317,6 +323,8 @@ void GApplication::Resolve_Event(const GEvent& Event, std::ostream* Stream_Ptr, 
     Stream << Prefix;
 
     if (Is_Core) {
+        Stream << "Core: ";
+
         switch (Event.Core_Message) {
             case GECore_Message::Register:
                 Stream << "Register(" << Event.Data_Ptr << ")";
@@ -351,6 +359,9 @@ void GApplication::Resolve_Event(const GEvent& Event, std::ostream* Stream_Ptr, 
             case GECore_Message::Terminate:
                 Stream << "Terminate";
                 break;
+
+            default:
+                Stream << "Core -- Unknown";
         }
 
         if (New_Line) Stream << std::endl;
@@ -429,7 +440,7 @@ void GApplication::Resolve_Event(const GEvent& Event, std::ostream* Stream_Ptr, 
                     break;
 
                 default:
-                    Stream << "--Unknown";
+                    Stream << "Window -- Unknown";
             }
 
             break;
@@ -500,8 +511,16 @@ void GApplication::Resolve_Event(const GEvent& Event, std::ostream* Stream_Ptr, 
                     Stream << "Is active?";
                     break;
 
+                case GEMouse_Message::Gain_Focus:
+                    Stream << "Gain mouse focus (send mouse msgs to that window)";
+                    break;
+
+                case GEMouse_Message::Lose_Focus:
+                    Stream << "Lose mouse focus";
+                    break;
+
                 default:
-                    Stream << "--Unknown";
+                    Stream << "Mouse -- Unknown";
             }
 
             break;
@@ -531,7 +550,7 @@ void GApplication::Resolve_Event(const GEvent& Event, std::ostream* Stream_Ptr, 
                     break;
 
                 default:
-                    Stream << "--Unknown";
+                    Stream << "Keyboard -- Unknown";
             }
 
             break;

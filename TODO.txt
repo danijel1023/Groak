@@ -1,0 +1,3 @@
+Transfer window rendering (and clearing the screen) to the "rendering thread" of each window
+    - Manage window context - currently unhandaled!
+    

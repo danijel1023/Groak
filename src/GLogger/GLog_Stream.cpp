@@ -37,7 +37,7 @@ void GLog_Stream::Set_Device(GLog_Device Out, const GString& File) {
             if (!Console) {
                 Console = new GConsole;
                 GApp()->Register_Window(Console);
-                GApp()->Attach_Simulator(Console, true);
+                //GApp()->Attach_Simulator(Console, true);
             }
 
             Console->Show();

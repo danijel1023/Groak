@@ -4,7 +4,7 @@
 
 #include "GTitle_Bar.h"
 #include "GDecorated_Window.h"
-
+#include <atomic>
 
 /*
 * If you close GConsole with close signal, then the actuall GConsole object will get destroied.
@@ -27,6 +27,7 @@ private:
     GSBuff m_Stream_Buff;
     std::ostream m_Stream;
 
+    //std::atomic<bool> m_Read = std::atomic<bool>(false);
     std::atomic_bool m_Read = false;
     std::vector<GString> m_Buffer;
 

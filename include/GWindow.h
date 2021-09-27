@@ -28,8 +28,8 @@ public:
 
     GTexture Load_Texture(const GString& Path);
     GTexture Load_Texture_No_Flip(const GString& Path);
-    GTexture Load_Texture_From_Memory(const char* Mem_Data, unsigned int Size);
-    GTexture Load_Texture_From_Memory_No_Flip(const char* Mem_Data, unsigned int Size);
+    GTexture Load_Texture_From_Memory(const unsigned char* Mem_Data, unsigned int Size);
+    GTexture Load_Texture_From_Memory_No_Flip(const unsigned char* Mem_Data, unsigned int Size);
 
     GFont* Load_Font(const GString& Font_File);
     GFont* Set_Default_Font(GFont* Font);

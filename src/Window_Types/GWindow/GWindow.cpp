@@ -125,7 +125,7 @@ int GWindow::Dispatcher_Func(const GEvent& Event) {
 }
 
 int GWindow::Callback_Func(const GEvent& Event) {
-    GApp()->Resolve_Event(Event, &std::cout);
+    //GApp()->Resolve_Event(Event, &std::cout);
 
     if (Event.Type == GEType::Window) {
         switch (Event.Wind_Message) {
@@ -248,7 +248,7 @@ void GWindow::Run() {
 }
 
 void GWindow::Worker() {
-    m_OpenGL_Th = std::thread(&GWindow::OpenGL_Func, this);
+    //m_OpenGL_Th = std::thread(&GWindow::OpenGL_Func, this);
 
     while (m_Running) {
         std::unique_lock<std::recursive_mutex> Lck(m_Dispatcher_Mutex);
@@ -267,7 +267,7 @@ void GWindow::Worker() {
 
 
     m_Render_Request++;
-    m_OpenGL_Th.join();
+    //m_OpenGL_Th.join();
 }
 
 
@@ -334,10 +334,10 @@ GTexture GWindow::Load_Texture_No_Flip(const GString& Path) {
     return Texture;
 }
 
-GTexture GWindow::Load_Texture_From_Memory(const char* Mem_Data, unsigned int Size) {
+GTexture GWindow::Load_Texture_From_Memory(const unsigned char* Mem_Data, unsigned int Size) {
     GTexture Texture;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char* Data = stbi_load_from_memory((unsigned char*)Mem_Data, Size, &Texture.Width, &Texture.Height, &Texture.Channels, 0);
+    unsigned char* Data = stbi_load_from_memory(Mem_Data, Size, &Texture.Width, &Texture.Height, &Texture.Channels, 0);
     if (Data) Store_Texture(Data, Texture);
     else      GError() << "Failed to load texture from memory.";
 
@@ -346,10 +346,10 @@ GTexture GWindow::Load_Texture_From_Memory(const char* Mem_Data, unsigned int Si
     return Texture;
 }
 
-GTexture GWindow::Load_Texture_From_Memory_No_Flip(const char* Mem_Data, unsigned int Size) {
+GTexture GWindow::Load_Texture_From_Memory_No_Flip(const unsigned char* Mem_Data, unsigned int Size) {
     GTexture Texture;
     stbi_set_flip_vertically_on_load(false);
-    unsigned char* Data = stbi_load_from_memory((unsigned char*)Mem_Data, Size, &Texture.Width, &Texture.Height, &Texture.Channels, 0);
+    unsigned char* Data = stbi_load_from_memory(Mem_Data, Size, &Texture.Width, &Texture.Height, &Texture.Channels, 0);
     if (Data) Store_Texture(Data, Texture);
     else      GError() << "Failed to load texture from memory.";
 

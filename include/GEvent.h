@@ -15,7 +15,8 @@ enum class GECore_Message {
     Show, Hide,
     Close,
 
-    Terminate
+    Terminate,
+    Clear
 };
 
 enum class GEWind_Message {
