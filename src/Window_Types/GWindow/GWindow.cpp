@@ -77,6 +77,12 @@ int GWindow::Dispatcher_Func(const GEvent& Event) {
             return GCall(Wind, m_Callback_Ptr, Event);
         }
 
+        case GEType::Renderer:
+        {
+            m_Renderer->Post_Event(Event);
+            break;
+        }
+
         case GEType::Keyboard:
         {
             return GCall(m_Focus, m_Callback_Ptr, Event);
@@ -85,7 +91,6 @@ int GWindow::Dispatcher_Func(const GEvent& Event) {
         case GEType::Mouse:
         {
             if (m_Mouse_Focus) {
-                //Not Const
                 GEvent ncEvent = Event;
                 ncEvent.MP -= m_Mouse_Focus->m_Absolute_Screen;
 
@@ -95,24 +100,28 @@ int GWindow::Dispatcher_Func(const GEvent& Event) {
                 if (ncEvent.Mouse_Message == GEMouse_Message::Up)
                     m_Mouse_Buttons_Pressed--;
 
-                // Last button 'Up' - no mouse buttons are pressed
-                if (m_Mouse_Buttons_Pressed == 0) {
+
+                if (m_Mouse_Buttons_Pressed != 0)
+                    return GCall(m_Mouse_Focus, m_Callback_Ptr, ncEvent);
+                else {
                     GEvent Lose_Focus;
                     Lose_Focus.Type = GEType::Mouse;
                     Lose_Focus.Mouse_Message = GEMouse_Message::Lose_Focus;
                     GCall(m_Mouse_Focus, m_Callback_Ptr, Lose_Focus);
-
-                    m_Mouse_Focus = nullptr;
                 }
-                
-                // At least one mouse button is pressed -- send all events to focused window
-                if (m_Mouse_Buttons_Pressed != 0)
-                    return GCall(m_Mouse_Focus, m_Callback_Ptr, ncEvent);
             }
 
-            //Exit the Main window
+            // Its only possible to recieve here the "Leave" event because
+            // that event gets generated in glfw callback.
+            // It gets generated only when the cursor is outside of the OS window.
             if (Event.Mouse_Message == GEMouse_Message::Leave) {
-                if (m_Wind_Under_Cursor) GCall(m_Wind_Under_Cursor, m_Callback_Ptr, Event);
+                if (m_Wind_Under_Cursor) {
+                    GEvent Leave;
+                    Leave = Event;
+                    Leave.MP -= m_Wind_Under_Cursor->m_Absolute_Screen;
+                    GCall(m_Wind_Under_Cursor, m_Callback_Ptr, Leave);
+                }
+
                 m_Wind_Under_Cursor = nullptr;
                 return 1;
             }
@@ -127,76 +136,69 @@ int GWindow::Dispatcher_Func(const GEvent& Event) {
 int GWindow::Callback_Func(const GEvent& Event) {
     //GApp()->Resolve_Event(Event, &std::cout);
 
-    if (Event.Type == GEType::Window) {
-        switch (Event.Wind_Message) {
-            case GEWind_Message::Gain_Focus:
-            {
-                m_Focused = true;
-                break;
+    switch (Event.Type) {
+        case GEType::Window:
+        {
+            switch (Event.Wind_Message) {
+                case GEWind_Message::Gain_Focus:
+                {
+                    m_Focused = true;
+                    break;
+                }
+
+                case GEWind_Message::Lose_Focus:
+                {
+                    m_Focused = false;
+                    break;
+                }
+
+                case GEWind_Message::Move:
+                {
+                    m_Screen = Event.WP;
+                    return 0;
+                }
+
+                case GEWind_Message::Close:
+                {
+                    GEvent Event;
+                    Event.Core_Message = GECore_Message::Close;
+                    Event.Data_Ptr = this;
+                    GApp()->Post_Event(Event);
+
+                    return 1;
+                }
+
+                case GEWind_Message::Should_Iconify:
+                {
+                    GEvent Event;
+                    Event.Core_Message = GECore_Message::Iconify;
+                    Event.Data_Ptr = this;
+                    GApp()->Post_Event(Event);
+
+                    return 1;
+                }
+
+                case GEWind_Message::Should_Maximise:
+                {
+                    GEvent Event;
+                    Event.Core_Message = GECore_Message::Maximise;
+                    Event.Data_Ptr = this;
+                    GApp()->Post_Event(Event);
+
+                    return 1;
+                }
+
+                case GEWind_Message::Should_Restore:
+                {
+                    GEvent Event;
+                    Event.Core_Message = GECore_Message::Restore;
+                    Event.Data_Ptr = this;
+                    GApp()->Post_Event(Event);
+                    return 0;
+                }
             }
 
-            case GEWind_Message::Lose_Focus:
-            {
-                m_Focused = false;
-                break;
-            }
-
-            case GEWind_Message::Move:
-            {
-                m_Screen = Event.WP;
-                return 0;
-            }
-
-            case GEWind_Message::Close:
-            {
-                GEvent Event;
-                Event.Core_Message = GECore_Message::Close;
-                Event.Data_Ptr = this;
-                GApp()->Post_Event(Event);
-
-                return 1;
-            }
-
-            case GEWind_Message::Should_Iconify:
-            {
-                GEvent Event;
-                Event.Core_Message = GECore_Message::Iconify;
-                Event.Data_Ptr = this;
-                GApp()->Post_Event(Event);
-
-                return 1;
-            }
-
-            case GEWind_Message::Should_Maximise:
-            {
-                GEvent Event;
-                Event.Core_Message = GECore_Message::Maximise;
-                Event.Data_Ptr = this;
-                GApp()->Post_Event(Event);
-
-                return 1;
-            }
-
-            case GEWind_Message::Should_Restore:
-            {
-                GEvent Event;
-                Event.Core_Message = GECore_Message::Restore;
-                Event.Data_Ptr = this;
-                GApp()->Post_Event(Event);
-                return 0;
-            }
-
-            case GEWind_Message::Restore:
-            {
-                Render();
-                break;
-            }
-
-            case GEWind_Message::Resize:
-            {
-                Render();
-                break;
-            }
+            break;
         }
     }
 
@@ -217,7 +219,7 @@ void GWindow::Run() {
         return;
     }
 
-    GApp()->Set_Context(this);
+    glfwMakeContextCurrent(m_Window_Hndl);
 
     if (!gladLoadGL()) {
         GError() << "GLAD: Failed to initialize OpenGL context";
@@ -230,25 +232,23 @@ void GWindow::Run() {
 
     GApp()->Attach_Callbacks(this);
 
-    m_Renderer = new GRenderer(this);
+    m_Renderer = new GRenderer(this, m_Window_Hndl);
     m_Renderer->Set_Window_Space({ 0, 0 }, m_Window);
 
     glClearColor((25.0f / 255.0f), (40.0f / 255.0f), (90.0f / 255.0f), 1.0f);
-    m_Renderer->Clear();
-    glfwSwapBuffers(m_Window_Hndl);
-    m_Renderer->Clear();
-    glfwSwapBuffers(m_Window_Hndl);
+    glfwMakeContextCurrent(0);
+
 
     m_Worker = std::thread(&GWindow::Worker, this);
 
     GEvent Run_E;
     Run_E.Type = GEType::Window;
     Run_E.Wind_Message = GEWind_Message::Run;
-    Send_Event(Run_E);
+    Post_Event(Run_E);
 }
 
 void GWindow::Worker() {
-    //m_OpenGL_Th = std::thread(&GWindow::OpenGL_Func, this);
+    m_Renderer->Start_Thread();
 
     while (m_Running) {
         std::unique_lock<std::recursive_mutex> Lck(m_Dispatcher_Mutex);
@@ -264,39 +264,16 @@ void GWindow::Worker() {
             m_Queue.Pop();
         }
     }
-
-
-    m_Render_Request++;
-    //m_OpenGL_Th.join();
+    
+    m_Renderer->Join_Thread();
 }
 
 
-void GWindow::OpenGL_Func() {
-    glfwMakeContextCurrent(m_Window_Hndl);
-
-    while (m_Running) {
-        std::unique_lock<std::recursive_mutex> Lck(m_Render_Dispatcher_Mutex);
-        m_Render_DCV.wait(Lck, [=] { return m_Render_Request; });
-
-        while (m_Running && m_Render_Request) {
-            m_Renderer->Clear();
-
-            GEvent Event;
-            Event.Type = GEType::Window;
-            Event.Wind_Message = GEWind_Message::Render;
-            Send_Event(Event);
-
-            glfwSwapBuffers(m_Window_Hndl);
-
-            m_Render_Request--;
-        }
-    }
-
-    glfwMakeContextCurrent(0);
+void GWindow::Render() {
+    GEvent Event;
+    Event.Renderer_Message = GERenderer_Message::Render;
+    m_Renderer->Post_Event(Event);
 }
-
-
-void GWindow::Render() {}
 
 void GWindow::Terminate() {
     GEvent Event;
@@ -309,71 +286,36 @@ void GWindow::Terminate() {
 
 
 
-static void Store_Texture(unsigned char* Data, GTexture& Texture);
-GTexture GWindow::Load_Texture(const GString& Path) {
+GTexture GWindow::Load_Texture(const GString& Path, bool Flip) {
     GTexture Texture;
-    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(Flip);
     unsigned char* Data = stbi_load(Path.c_str(), &Texture.Width, &Texture.Height, &Texture.Channels, 0);
-    if (Data) Store_Texture(Data, Texture);
-    else      GError() << "Failed to load texture: " << Path;
+    if (Data) Texture.ID = m_Renderer->Store_Texture(Data, Texture);
+    else      std::cout << "Failed to load texture: " << Path;
+    //else      GError() << "Failed to load texture: " << Path;
+
+    //if (Data) {
+    //    std::fstream File(Path.cpp_str() + ".dat", std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
+    //
+    //    File.write((char*)Data, (size_t)Texture.Width * (size_t)Texture.Height * (size_t)Texture.Channels);
+    //}
 
     m_Texture_List.push_back(Texture);
     stbi_image_free(Data);
     return Texture;
 }
 
-GTexture GWindow::Load_Texture_No_Flip(const GString& Path) {
+GTexture GWindow::Load_Texture_From_Memory(const unsigned char* Mem_Data, unsigned int Size, bool Flip) {
     GTexture Texture;
-    stbi_set_flip_vertically_on_load(false);
-    unsigned char* Data = stbi_load(Path.c_str(), &Texture.Width, &Texture.Height, &Texture.Channels, 0);
-    if (Data) Store_Texture(Data, Texture);
-    else      GError() << "Failed to load texture: " << Path;
-
-    m_Texture_List.push_back(Texture);
-    stbi_image_free(Data);
-    return Texture;
-}
-
-GTexture GWindow::Load_Texture_From_Memory(const unsigned char* Mem_Data, unsigned int Size) {
-    GTexture Texture;
-    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(Flip);
     unsigned char* Data = stbi_load_from_memory(Mem_Data, Size, &Texture.Width, &Texture.Height, &Texture.Channels, 0);
-    if (Data) Store_Texture(Data, Texture);
-    else      GError() << "Failed to load texture from memory.";
+    if (Data) Texture.ID = m_Renderer->Store_Texture(Data, Texture);
+    else      std::cout << "Failed to load texture from memory.";
+    //else      GError() << "Failed to load texture from memory.";
 
     m_Texture_List.push_back(Texture);
     stbi_image_free(Data);
     return Texture;
-}
-
-GTexture GWindow::Load_Texture_From_Memory_No_Flip(const unsigned char* Mem_Data, unsigned int Size) {
-    GTexture Texture;
-    stbi_set_flip_vertically_on_load(false);
-    unsigned char* Data = stbi_load_from_memory(Mem_Data, Size, &Texture.Width, &Texture.Height, &Texture.Channels, 0);
-    if (Data) Store_Texture(Data, Texture);
-    else      GError() << "Failed to load texture from memory.";
-
-    m_Texture_List.push_back(Texture);
-    stbi_image_free(Data);
-    return Texture;
-}
-
-
-void Store_Texture(unsigned char* Data, GTexture& Texture) {
-    glGenTextures(1, &Texture.ID);
-    glBindTexture(GL_TEXTURE_2D, Texture.ID);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    if (Texture.Channels == 4) glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Texture.Width, Texture.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, Data);
-    else                       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,  Texture.Width, Texture.Height, 0, GL_RGB,  GL_UNSIGNED_BYTE, Data);
-
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 
@@ -391,7 +333,7 @@ GFont* GWindow::Load_Font(const GString& Font_File) {
     }
     else if (Error) {
         GError() << Font_File
-            << " - FreeType: another error code means that the font file could not be opened or read, or that it is broken.";
+            << " - FreeType: Unknown error code means that the font file could not be opened or read, or that it is broken.";
         delete Font;
         return nullptr;
     }

@@ -1,7 +1,7 @@
 #pragma once
 #include "GBasic_Window.h"
 
-enum class GRes {
+enum class GResize_Ancor {
     Bot = 0x01,
     Top = 0x02,
     Left = 0x04,
@@ -16,13 +16,13 @@ enum class GRes {
 
 class GResize_Area : public GBasic_Window {
 public:
-    GResize_Area(GBasic_Window* Parent, int Window_X, int Window_Y, int Screen_X, int Screen_Y, GRes Ancor, int Min_Size_X = 1, int Min_Size_Y = 1, int Max_Size_X = (uint16_t)-1, int Max_Size_Y = (uint16_t)-1);
-    GResize_Area(GBasic_Window* Parent, const GSize& Window, const GPos& Screen, GRes Ancor, GSize Min_Size = { 1, 1 }, GSize Max_Size = { (uint16_t)-1, (uint16_t)-1 });
+    GResize_Area(GBasic_Window* Parent, int Window_X, int Window_Y, int Screen_X, int Screen_Y, GResize_Ancor Ancor, int Min_Size_X = 1, int Min_Size_Y = 1, int Max_Size_X = (uint16_t)-1, int Max_Size_Y = (uint16_t)-1, bool Overlay = false);
+    GResize_Area(GBasic_Window* Parent, const GSize& Window, const GPos& Screen, GResize_Ancor Ancor, GSize Min_Size = { 1, 1 }, GSize Max_Size = { (uint16_t)-1, (uint16_t)-1 }, bool Overlay = false);
     ~GResize_Area();
 
 private:
     GSize m_Min_Size, m_Max_Size;
-    GRes m_Ancor;
+    GResize_Ancor m_Ancor;
 
     bool m_Tracking = false;
     GPos m_Prev_MP;

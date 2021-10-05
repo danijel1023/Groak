@@ -10,6 +10,7 @@
 #include "../Vendor/glad/include/glad/glad.h"
 #include "../Vendor/glfw3/include/GLFW/glfw3.h"
 #include "../Vendor/stb/include/stb_image.h"
+#include "../Vendor/stb/include/stb_image_write.h"
 
 #include "ft2build.h"
 #include FT_FREETYPE_H

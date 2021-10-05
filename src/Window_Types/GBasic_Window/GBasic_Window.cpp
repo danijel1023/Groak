@@ -2,10 +2,10 @@
 #include "GWindow.h"
 #include "GApplication.h"
 
-GBasic_Window::GBasic_Window(GBasic_Window* Parent, int Window_X, int Window_Y, int Screen_X, int Screen_Y)
-    :GBasic_Window(Parent, { Window_X, Window_Y }, { Screen_X, Screen_Y }) {}
+GBasic_Window::GBasic_Window(GBasic_Window* Parent, int Window_X, int Window_Y, int Screen_X, int Screen_Y, bool Overlay)
+    :GBasic_Window(Parent, { Window_X, Window_Y }, { Screen_X, Screen_Y }, Overlay) {}
 
-GBasic_Window::GBasic_Window(GBasic_Window* Parent, const GSize& Window, const GPos& Screen)
+GBasic_Window::GBasic_Window(GBasic_Window* Parent, const GSize& Window, const GPos& Screen, bool Overlay)
     : m_Parent(Parent), m_Window(Window), m_Screen(Screen) {
 
     //If this is child window - the main windows' m_Parent is always nullptr
@@ -13,8 +13,9 @@ GBasic_Window::GBasic_Window(GBasic_Window* Parent, const GSize& Window, const G
         //Get the direct GWindow pointer
         m_Main_Window = m_Parent->m_Main_Window;
         
-        //Add this child window to parents' child window list
-        m_Parent->m_Child_Windows.push_back(this);
+        //Add this child window to parents' child (/overlay) window list
+        if (Overlay) m_Parent->m_Overlay_Windows.push_back(this);
+        else m_Parent->m_Child_Windows.push_back(this);
 
         //Register the absolute position from (0, 0) from main window
         m_Absolute_Screen = m_Parent->m_Absolute_Screen + Screen;
@@ -22,6 +23,10 @@ GBasic_Window::GBasic_Window(GBasic_Window* Parent, const GSize& Window, const G
 }
 
 GBasic_Window::~GBasic_Window() {
+    for (auto Ch_Wnd : m_Overlay_Windows) {
+        delete Ch_Wnd;
+    }
+
     for (auto Ch_Wnd : m_Child_Windows) {
         delete Ch_Wnd;
     }
@@ -51,9 +56,9 @@ void GBasic_Window::Set_Viewport() {
 
 void GBasic_Window::Render() {
     GEvent Event;
-    //Event.Core_Message = GECore_Message::Render;
-    Event.Data_Ptr = m_Main_Window;
-    GApp()->Post_Event(Event);
+    Event.Type = GEType::Renderer;
+    Event.Renderer_Message = GERenderer_Message::Render;
+    m_Main_Window->Post_Event(Event);
 }
 
 
@@ -99,29 +104,28 @@ int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
             Active.Mouse_Message = GEMouse_Message::Active;
             if (!GCall(this, m_Callback_Ptr, Active)) return 0;
 
-            auto& MP = Event.MP;
-            for (auto Ch_Wnd : m_Child_Windows) {
+            GBasic_Window*& Mouse_Focus = m_Main_Window->m_Mouse_Focus;
+            GBasic_Window*& Wind_Under_Cursor = m_Main_Window->m_Wind_Under_Cursor;
+
+            const auto& MP = Event.MP;
+            for (auto Ch_Wnd : m_Overlay_Windows) {
                 //If the mouse is left form the child wondow, ignore
-                if (MP.X < Ch_Wnd->m_Screen.X) {
+                if (MP.X < Ch_Wnd->m_Screen.X)
                     continue;
-                }
-
+                
                 //If the mouse is right form the child wondow, ignore
-                if (MP.X > Ch_Wnd->m_Screen.X + Ch_Wnd->m_Window.X) {
+                if (MP.X > Ch_Wnd->m_Screen.X + Ch_Wnd->m_Window.X)
                     continue;
-                }
-
-
+                
                 //If the mouse is below form the child wondow, ignore
-                if (MP.Y < Ch_Wnd->m_Screen.Y) {
+                if (MP.Y < Ch_Wnd->m_Screen.Y)
                     continue;
-                }
-
+                
                 //If the mouse is above form the child wondow, ignore
-                if (MP.Y > Ch_Wnd->m_Screen.Y + Ch_Wnd->m_Window.Y) {
+                if (MP.Y > Ch_Wnd->m_Screen.Y + Ch_Wnd->m_Window.Y)
                     continue;
-                }
-
+            
+            
                 //else - the mouse is inside the child windows' box
                 GEvent Child_Event;
                 Child_Event = Event;
@@ -129,6 +133,31 @@ int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
                 if (GCall(Ch_Wnd, m_Dispatcher_Ptr, Child_Event)) return 1;
             }
 
+            //Same thing as with overlay windows
+            for (auto Ch_Wnd : m_Child_Windows) {
+                if (MP.X < Ch_Wnd->m_Screen.X)
+                    continue;
+                
+                if (MP.X > Ch_Wnd->m_Screen.X + Ch_Wnd->m_Window.X)
+                    continue;
+
+                if (MP.Y < Ch_Wnd->m_Screen.Y)
+                    continue;
+
+                if (MP.Y > Ch_Wnd->m_Screen.Y + Ch_Wnd->m_Window.Y)
+                    continue;
+
+                GEvent Child_Event;
+                Child_Event = Event;
+                Child_Event.MP -= Ch_Wnd->m_Screen;
+                if (GCall(Ch_Wnd, m_Dispatcher_Ptr, Child_Event)) return 1;
+            }
+
+            if (Mouse_Focus) {
+                GEvent Corrected_Event = Event;
+                Corrected_Event.MP = Event.MP + m_Absolute_Screen - Mouse_Focus->m_Absolute_Screen;
+                GCall(Mouse_Focus, m_Callback_Ptr, Corrected_Event);
+            }
 
             if (Event.Mouse_Message == GEMouse_Message::Down) {
                 m_Main_Window->m_Mouse_Buttons_Pressed++;
@@ -138,21 +167,21 @@ int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
                 Gain_Focus.Mouse_Message = GEMouse_Message::Gain_Focus;
                 GCall(this, m_Callback_Ptr, Gain_Focus);
 
-                m_Main_Window->m_Mouse_Focus = this;
+                Mouse_Focus = this;
             }
 
-            //No child window handled the event so this window will now process the event
+            //No child window handled the event so if the mouse position
+            //is inside of the current window
             if ((MP.X >= 0 && MP.Y >= 0) && (MP.X <= m_Window.X && MP.Y <= m_Window.Y)) {
-                if (m_Main_Window->m_Wind_Under_Cursor != this) {
-                    GBasic_Window*& Wind_Under_Cursor = m_Main_Window->m_Wind_Under_Cursor;
 
+                //Send Leave if some other window was under cursor before
+                if (Wind_Under_Cursor != this) {
+                    //Don't sent the event to nullptr
                     if (Wind_Under_Cursor) {
-                        GCall(Wind_Under_Cursor, m_Callback_Ptr, Event);
-
                         GEvent Leave;
                         Leave.Type = GEType::Mouse;
                         Leave.Mouse_Message = GEMouse_Message::Leave;
-                        Leave.MP = Event.MP;
+                        Leave.MP = Event.MP + m_Absolute_Screen - Wind_Under_Cursor->m_Absolute_Screen;
 
                         GCall(Wind_Under_Cursor, m_Callback_Ptr, Leave);
                     }
@@ -163,14 +192,15 @@ int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
                     Enter.MP = Event.MP;
 
                     GCall(this, m_Callback_Ptr, Enter);
-
-                    if (!Wind_Under_Cursor) GCall(this, m_Callback_Ptr, Event);
                     Wind_Under_Cursor = this;
                 }
             }
 
-            if (m_Main_Window->m_Wind_Under_Cursor)
-                return GCall(m_Main_Window->m_Wind_Under_Cursor, m_Callback_Ptr, Event);
+
+            if (m_Main_Window->m_Mouse_Buttons_Pressed == 0 && Mouse_Focus) {
+                Mouse_Focus = nullptr;
+                return 1;
+            }
             else
                 return GCall(this, m_Callback_Ptr, Event);
         }
@@ -178,6 +208,10 @@ int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
         case GEType::Window:
         {
             if (Event.Wind_Message == GEWind_Message::Close || Event.Wind_Message == GEWind_Message::Terminate_Thread) {
+                for (auto Ch_Wnd : m_Overlay_Windows) {
+                    GCall(Ch_Wnd, m_Dispatcher_Ptr, Event);
+                }
+
                 for (auto& Ch_Wnd : m_Child_Windows) {
                     GCall(Ch_Wnd, m_Dispatcher_Ptr, Event);
                 }
@@ -189,6 +223,10 @@ int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
                 GCall(this, m_Callback_Ptr, Event);
 
                 for (auto Ch_Wnd : m_Child_Windows) {
+                    GCall(Ch_Wnd, m_Dispatcher_Ptr, Event);
+                }
+
+                for (auto Ch_Wnd : m_Overlay_Windows) {
                     GCall(Ch_Wnd, m_Dispatcher_Ptr, Event);
                 }
             }
@@ -236,22 +274,6 @@ int GBasic_Window::Callback_Func(const GEvent& Event) {
 
             break;
         }
-
-
-
-        //[TODO] This is for Child Window
-        //case EType::Mouse:
-        //{
-        //    switch (*static_cast<EMouse_Message*>(Event.Message)) {
-        //        case EMouse_Message::LMB_Down:
-        //        {
-        //            m_Main_hwnd->m_Focus = this;
-        //            break;
-        //        }
-        //    }
-        //
-        //    break;
-        //}
     }
 
     return 1;

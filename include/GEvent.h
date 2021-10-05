@@ -2,21 +2,31 @@
 #include <stdint.h>
 #include <functional>
 #include "GUnits.h"
+#include "GTexture.h"
 
 //Core type doesn't exist since you have
 //to use GApp-calls (eg. GApp()->Post_Event(...)) directly, to write to its queue
-enum class GEType { Window, Mouse, Keyboard, Custom };
+enum class GEType { Window, Mouse, Keyboard, Renderer, Custom };
 
 enum class GECore_Message {
     Register, Run_Lambda,
+
+    Create_Cursor, Set_Cursor, Destroy_Cursor,
 
     Move, Resize,
     Iconify, Maximise, Restore,
     Show, Hide,
     Close,
 
-    Terminate,
-    Clear
+    Terminate
+};
+
+enum class GCursor_Type {
+    Default, Arrow, IBeam,
+    Crosshair, Hand, Resize_EW,
+    Resize_NS, Resize_NWSE,
+    Resize_NESW, Resize_All, Not_Allowed,
+    Custom
 };
 
 enum class GEWind_Message {
@@ -45,6 +55,13 @@ enum class GEMouse_Message {
 enum class GEKeyboard_Message { Key, Text };
 enum class GEKey_Action { Up, Down, Repeat };
 
+enum class GERenderer_Message {
+    Terminate_Thread,
+    Render,
+    Send_Event,
+    Load_Texture
+};
+
 
 struct GEvent {
     GEType Type = {};
@@ -53,6 +70,7 @@ struct GEvent {
         GEWind_Message Wind_Message;
         GEMouse_Message Mouse_Message;
         GEKeyboard_Message Keyboard_Message;
+        GERenderer_Message Renderer_Message;
     };
 
     int64_t Data = 0;
@@ -60,11 +78,12 @@ struct GEvent {
 
     GSize WS;   //Window size
     GPos  WP;   //Window position
-    GPos MP;    //Mouse position
 
     GEMouse_Button Mouse_Button = {};
+    GPos MP;    //Mouse position
 
     std::function<int()> Lambda;
+    GTexture Texture;
 
     struct {
         bool Modifier_Alt = false;
@@ -72,6 +91,7 @@ struct GEvent {
         bool Modifier_Ctrl = false;
     };
 
+    GCursor_Type Cursor_Type = {};
 
     int Key = 0;
     int Scancode = 0;

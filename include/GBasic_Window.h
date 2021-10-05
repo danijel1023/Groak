@@ -8,8 +8,8 @@
 class GWindow;
 class GBasic_Window {
 public:
-    GBasic_Window(GBasic_Window* Parent, int Window_X, int Window_Y, int Screen_X, int Screen_Y);
-    GBasic_Window(GBasic_Window* Parent, const GSize& Window, const GPos& Screen);
+    GBasic_Window(GBasic_Window* Parent, int Window_X, int Window_Y, int Screen_X, int Screen_Y, bool Overlay = false);
+    GBasic_Window(GBasic_Window* Parent, const GSize& Window, const GPos& Screen, bool Overlay = false);
     virtual ~GBasic_Window();
     
     GFramebuffer* Create_Framebuffer();
@@ -17,8 +17,6 @@ public:
     GQuad& Get_Quad(size_t Quad_i);
     void Set_Viewport();
     void Render();
-
-
 
     bool m_Enabled = true;
 
@@ -29,6 +27,7 @@ protected:
     GBasic_Window* m_Parent = nullptr;
 
     std::vector<GBasic_Window*> m_Child_Windows;
+    std::vector<GBasic_Window*> m_Overlay_Windows;
     std::vector<GQuad> m_Quad_List;
 
     GDispatcher m_Dispatcher_Ptr = &GBasic_Window::Dispatcher_Func;
@@ -53,4 +52,5 @@ public:
 
     friend class GWindow;
     friend class GFramebuffer;
+    friend class GRenderer;
 };

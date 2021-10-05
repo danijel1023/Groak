@@ -26,16 +26,16 @@ public:
         else                          return 0;
     }
 
-    GTexture Load_Texture(const GString& Path);
-    GTexture Load_Texture_No_Flip(const GString& Path);
-    GTexture Load_Texture_From_Memory(const unsigned char* Mem_Data, unsigned int Size);
-    GTexture Load_Texture_From_Memory_No_Flip(const unsigned char* Mem_Data, unsigned int Size);
+    GTexture Load_Texture(const GString& Path, bool Flip = false);
+    GTexture Load_Texture_From_Memory(const unsigned char* Mem_Data, unsigned int Size, bool Flip = false);
 
     GFont* Load_Font(const GString& Font_File);
     GFont* Set_Default_Font(GFont* Font);
     GFont* Get_Default_Font();
     void Set_Text_Height(int Height);   //Use default font
     void Set_Text_Height(int Height, GFont* Font);
+
+    void Render();
 
 protected:
     int Dispatcher_Func(const GEvent& Event);
@@ -47,23 +47,19 @@ protected:
 private:
     GLFWwindow* m_Window_Hndl = nullptr;
     GString m_Name;
-    bool m_Running = true;
-    GBasic_Window* m_Wind_Under_Cursor = nullptr;
-    GBasic_Window* m_Mouse_Focus = nullptr;
+    bool m_Running = true, m_Recording = false;
+    GBasic_Window* m_Mouse_Focus = nullptr, * m_Wind_Under_Cursor = nullptr;
     int m_Mouse_Buttons_Pressed = 0;
 
     GTEQueue m_Queue;
-    int m_Render_Request = 0;
-    std::recursive_mutex m_Dispatcher_Mutex, m_Render_Dispatcher_Mutex;
-    std::condition_variable_any m_DCV, m_Render_DCV;
+    std::recursive_mutex m_Dispatcher_Mutex;
+    std::condition_variable_any m_DCV;
 
-    void Render();
     void Terminate();
 
     void Run();
-    std::thread m_Worker, m_OpenGL_Th;
+    std::thread m_Worker;
     void Worker();
-    void OpenGL_Func();
 
     GRenderer* m_Renderer = nullptr;
     std::stack<GFramebuffer*> m_Last_Framebuffer = std::stack<GFramebuffer*>({ nullptr });

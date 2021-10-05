@@ -22,6 +22,17 @@ GApplication::GApplication() {
 #endif
 
     FT_Init_FreeType(&m_FreeType);
+
+    m_Arrow_Cur       = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+    m_IBeam_Cur       = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
+    m_Crosshair_Cur   = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
+    m_Hand_Cur        = glfwCreateStandardCursor(GLFW_POINTING_HAND_CURSOR);
+    m_Resize_EW_Cur   = glfwCreateStandardCursor(GLFW_RESIZE_EW_CURSOR);
+    m_Resize_NS_Cur   = glfwCreateStandardCursor(GLFW_RESIZE_NS_CURSOR);
+    m_Resize_NWSE_Cur = glfwCreateStandardCursor(GLFW_RESIZE_NWSE_CURSOR);
+    m_Resize_NESW_Cur = glfwCreateStandardCursor(GLFW_RESIZE_NESW_CURSOR);
+    m_Resize_All_Cur  = glfwCreateStandardCursor(GLFW_RESIZE_ALL_CURSOR);
+    m_Not_Allowed_Cur = glfwCreateStandardCursor(GLFW_NOT_ALLOWED_CURSOR);
 }
 
 GApplication::~GApplication() {
@@ -51,55 +62,26 @@ void GApplication::Attach_Simulator(GWindow* Window, bool Recording) {
 }
 
 
-
-void GApplication::Set_Context(GWindow* Window) {
-    if (Current_Context != Window)
-        glfwMakeContextCurrent(Window->m_Window_Hndl);
-    Current_Context = Window;
-}
-
-
 void GApplication::Attach_Callbacks(GWindow* Window) {
-    if (Window == m_Simulator_Window) {
-        if (!m_Recording) return;
-        else {
-            glfwSetWindowUserPointer(Window->m_Window_Hndl, Window);
+    if (Window == m_Simulator_Window && !m_Recording) return;
 
-            glfwSetKeyCallback(Window->m_Window_Hndl, GLFW_Recording_Key_Callback);
-            glfwSetCharCallback(Window->m_Window_Hndl, GLFW_Recording_Char_Callback);
+    glfwSetWindowUserPointer(Window->m_Window_Hndl, Window);
 
-            glfwSetCursorPosCallback(Window->m_Window_Hndl, GLFW_Recording_Cursor_Pos_Callback);
-            glfwSetCursorEnterCallback(Window->m_Window_Hndl, GLFW_Recording_Cursor_Enter_Callback);
-            glfwSetMouseButtonCallback(Window->m_Window_Hndl, GLFW_Recording_Mouse_Button_Callback);
-            glfwSetScrollCallback(Window->m_Window_Hndl, GLFW_Recording_Scroll_Callback);
+    glfwSetKeyCallback(Window->m_Window_Hndl, GLFW_Key_Callback);
+    glfwSetCharCallback(Window->m_Window_Hndl, GLFW_Char_Callback);
 
-            glfwSetWindowSizeCallback(Window->m_Window_Hndl, GLFW_Recording_Window_Size_Callback);
-            glfwSetWindowPosCallback(Window->m_Window_Hndl, GLFW_Recording_Window_Pos_Callback);
-            glfwSetWindowFocusCallback(Window->m_Window_Hndl, GLFW_Recording_Window_Focus_Callback);
-            glfwSetWindowCloseCallback(Window->m_Window_Hndl, GLFW_Recording_Window_Close_Callback);
-            glfwSetWindowMaximizeCallback(Window->m_Window_Hndl, GLFW_Recording_Window_Maximize_Callback);
-            glfwSetWindowIconifyCallback(Window->m_Window_Hndl, GLFW_Recording_Window_Iconify_Callback);
-        }
-    }
+    glfwSetCursorPosCallback(Window->m_Window_Hndl, GLFW_Cursor_Pos_Callback);
+    glfwSetCursorEnterCallback(Window->m_Window_Hndl, GLFW_Cursor_Enter_Callback);
+    glfwSetMouseButtonCallback(Window->m_Window_Hndl, GLFW_Mouse_Button_Callback);
+    glfwSetScrollCallback(Window->m_Window_Hndl, GLFW_Scroll_Callback);
 
-    else {
-        glfwSetWindowUserPointer(Window->m_Window_Hndl, Window);
-
-        glfwSetKeyCallback(Window->m_Window_Hndl, GLFW_Key_Callback);
-        glfwSetCharCallback(Window->m_Window_Hndl, GLFW_Char_Callback);
-
-        glfwSetCursorPosCallback(Window->m_Window_Hndl, GLFW_Cursor_Pos_Callback);
-        glfwSetCursorEnterCallback(Window->m_Window_Hndl, GLFW_Cursor_Enter_Callback);
-        glfwSetMouseButtonCallback(Window->m_Window_Hndl, GLFW_Mouse_Button_Callback);
-        glfwSetScrollCallback(Window->m_Window_Hndl, GLFW_Scroll_Callback);
-
-        glfwSetWindowSizeCallback(Window->m_Window_Hndl, GLFW_Window_Size_Callback);
-        glfwSetWindowPosCallback(Window->m_Window_Hndl, GLFW_Window_Pos_Callback);
-        glfwSetWindowFocusCallback(Window->m_Window_Hndl, GLFW_Window_Focus_Callback);
-        glfwSetWindowCloseCallback(Window->m_Window_Hndl, GLFW_Window_Close_Callback);
-        glfwSetWindowMaximizeCallback(Window->m_Window_Hndl, GLFW_Window_Maximize_Callback);
-        glfwSetWindowIconifyCallback(Window->m_Window_Hndl, GLFW_Window_Iconify_Callback);
-    }
+    glfwSetWindowSizeCallback(Window->m_Window_Hndl, GLFW_Window_Size_Callback);
+    glfwSetWindowPosCallback(Window->m_Window_Hndl, GLFW_Window_Pos_Callback);
+    glfwSetWindowFocusCallback(Window->m_Window_Hndl, GLFW_Window_Focus_Callback);
+    glfwSetWindowCloseCallback(Window->m_Window_Hndl, GLFW_Window_Close_Callback);
+    glfwSetWindowMaximizeCallback(Window->m_Window_Hndl, GLFW_Window_Maximize_Callback);
+    glfwSetWindowIconifyCallback(Window->m_Window_Hndl, GLFW_Window_Iconify_Callback);
+    glfwSetWindowRefreshCallback(Window->m_Window_Hndl, GLFW_Window_Refresh_Callback);
 }
 
 
@@ -126,7 +108,7 @@ void GApplication::Send_Event(const GEvent& Event) {
         std::unique_lock<std::recursive_mutex> Lck(m_QRM);
 
         m_SE = true;
-        m_SEEvent = &Event;
+        m_SEEvent = Event;
         glfwPostEmptyEvent();
     }
 
@@ -173,17 +155,6 @@ void GApplication::Worker(const GEvent& Event) {
                     break;
                 }
             }
-
-            break;
-        }
-
-        case GECore_Message::Clear:
-        {
-            GWindow* Window = static_cast<GWindow*>(Event.Data_Ptr);
-
-            Set_Context(Window);
-            Window->m_Renderer->Clear();
-            glfwSwapBuffers(Window->m_Window_Hndl);
 
             break;
         }
@@ -250,6 +221,51 @@ void GApplication::Worker(const GEvent& Event) {
             glfwRestoreWindow(Window->m_Window_Hndl);
             break;
         }
+
+        case GECore_Message::Set_Cursor:
+        {
+            GLFWcursor* Cursor = nullptr;
+            switch (Event.Cursor_Type) {
+                case GCursor_Type::Default:     Cursor = nullptr; break;
+                case GCursor_Type::Arrow:       Cursor = m_Arrow_Cur; break;
+                case GCursor_Type::IBeam:       Cursor = m_IBeam_Cur; break;
+                case GCursor_Type::Crosshair:   Cursor = m_Crosshair_Cur; break;
+                case GCursor_Type::Hand:        Cursor = m_Hand_Cur; break;
+                case GCursor_Type::Resize_EW:   Cursor = m_Resize_EW_Cur; break;
+                case GCursor_Type::Resize_NS:   Cursor = m_Resize_NS_Cur; break;
+                case GCursor_Type::Resize_NWSE: Cursor = m_Resize_NWSE_Cur; break;
+                case GCursor_Type::Resize_NESW: Cursor = m_Resize_NESW_Cur; break;
+                case GCursor_Type::Resize_All:  Cursor = m_Resize_All_Cur; break;
+                case GCursor_Type::Not_Allowed: Cursor = m_Not_Allowed_Cur; break;
+                case GCursor_Type::Custom:      Cursor = ((GCursor*)Event.Data)->m_Ptr; break;
+
+                default:
+                    GWarning() << "Unknow (default) cursor type provided. Val:" << (int)Event.Cursor_Type;
+            }
+
+            GWindow* Window = static_cast<GWindow*>(Event.Data_Ptr);
+            glfwSetCursor(Window->m_Window_Hndl, Cursor);
+            break;
+        }
+
+        case GECore_Message::Create_Cursor:
+        {
+            GCursor& Cursor = *((GCursor*)Event.Data);
+
+            GLFWimage Image;
+            Image.width = Cursor.Size.X;
+            Image.height = Cursor.Size.Y;
+            Image.pixels = (unsigned char*)Cursor.Data;
+
+            Cursor.m_Ptr = glfwCreateCursor(&Image, Cursor.Hot_Spot.X, Cursor.Size.Y - Cursor.Hot_Spot.Y);
+            break;
+        }
+
+        case GECore_Message::Destroy_Cursor:
+        {
+            glfwDestroyCursor(((GCursor*)Event.Data)->m_Ptr);
+            break;
+        }
     }
 }
 
@@ -263,7 +279,7 @@ int GApplication::Run() {
 
         if (m_SE) {
             m_SE = false;
-            Worker(*m_SEEvent);
+            Worker(m_SEEvent);
             m_SE_Continue = true;
             m_SECV.notify_all();
         }

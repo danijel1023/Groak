@@ -21,6 +21,7 @@ private:
     bool m_Iconified = false;
 
     GPos m_Prev_MP;
+    GSize m_Prev_Win_Size;
     bool m_Track_Mouse = false;
 
 protected:

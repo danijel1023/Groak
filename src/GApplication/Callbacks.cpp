@@ -1,5 +1,6 @@
 #include "GApplication.h"
 #include "GWindow.h"
+#include "GUnits.h"
 
 void GApplication::GLFW_Key_Callback(GLFWwindow* Window_Hndl, int Key, int Scancode, int Action, int Mods) {
     auto _This = static_cast<GWindow*>(glfwGetWindowUserPointer(Window_Hndl));
@@ -21,6 +22,11 @@ void GApplication::GLFW_Key_Callback(GLFWwindow* Window_Hndl, int Key, int Scanc
 
     Event.Key = Key;
     Event.Scancode = Scancode;
+    if (_This->m_Recording) {
+        GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
+        GApp()->m_Simulator_File.flush();
+    }
+
     _This->Post_Event(Event);
 }
 
@@ -31,6 +37,11 @@ void GApplication::GLFW_Char_Callback(GLFWwindow* Window_Hndl, unsigned int Code
     Event.Type = GEType::Keyboard;
     Event.Keyboard_Message = GEKeyboard_Message::Text;
     Event.Code_Point = Code_Point;
+
+    if (_This->m_Recording) {
+        GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
+        GApp()->m_Simulator_File.flush();
+    }
 
     _This->Post_Event(Event);
 }
@@ -45,22 +56,32 @@ void GApplication::GLFW_Cursor_Pos_Callback(GLFWwindow* Window_Hndl, double X_Po
     Event.Mouse_Message = GEMouse_Message::Move;
     Event.MP = { (int)X_Pos, _This->m_Window.Y - (int)Y_Pos};
 
+    if (_This->m_Recording) {
+        GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
+        GApp()->m_Simulator_File.flush();
+    }
+
     _This->Post_Event(Event);
 }
 
 void GApplication::GLFW_Cursor_Enter_Callback(GLFWwindow* Window_Hndl, int Entered) {
-    if (!Entered) {
-        auto _This = static_cast<GWindow*>(glfwGetWindowUserPointer(Window_Hndl));
+    if (Entered) return;    //Ignore enter events on "global" level
+    auto _This = static_cast<GWindow*>(glfwGetWindowUserPointer(Window_Hndl));
 
-        GEvent Event;
-        Event.Type = GEType::Mouse;
-        Event.Mouse_Message = GEMouse_Message::Leave;
-        
-        double X, Y;
-        glfwGetCursorPos(Window_Hndl, &X, &Y);
-        Event.MP = { (int)X, _This->m_Window.Y - (int)Y };
-        _This->Post_Event(Event);
+    GEvent Event;
+    Event.Type = GEType::Mouse;
+    Event.Mouse_Message = GEMouse_Message::Leave;
+
+    double X, Y;
+    glfwGetCursorPos(Window_Hndl, &X, &Y);
+    Event.MP = { (int)X, _This->m_Window.Y - (int)Y };
+
+    if (_This->m_Recording) {
+        GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
+        GApp()->m_Simulator_File.flush();
     }
+
+    _This->Post_Event(Event);
 }
 
 
@@ -87,6 +108,12 @@ void GApplication::GLFW_Mouse_Button_Callback(GLFWwindow* Window_Hndl, int Butto
     double X, Y;
     glfwGetCursorPos(Window_Hndl, &X, &Y);
     Event.MP = { (int)X, _This->m_Window.Y - (int)Y };
+
+    if (_This->m_Recording) {
+        GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
+        GApp()->m_Simulator_File.flush();
+    }
+
     _This->Post_Event(Event);
 }
 
@@ -105,6 +132,12 @@ void GApplication::GLFW_Scroll_Callback(GLFWwindow* Window_Hndl, double X_Offset
     double X, Y;
     glfwGetCursorPos(Window_Hndl, &X, &Y);
     Event.MP = { (int)X, _This->m_Window.Y - (int)Y };
+
+    if (_This->m_Recording) {
+        GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
+        GApp()->m_Simulator_File.flush();
+    }
+
     _This->Post_Event(Event);
 }
 
@@ -119,6 +152,11 @@ void GApplication::GLFW_Window_Size_Callback(GLFWwindow* Window_Hndl, int Width,
     Event.Data_Ptr = _This;
     Event.WS = { Width, Height };
 
+    if (_This->m_Recording) {
+        GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
+        GApp()->m_Simulator_File.flush();
+    }
+
     _This->Post_Event(Event);
 }
 
@@ -130,6 +168,11 @@ void GApplication::GLFW_Window_Pos_Callback(GLFWwindow* Window_Hndl, int X_Pos, 
     Event.Wind_Message = GEWind_Message::Move;
     Event.Data_Ptr = _This;
     Event.WP = { X_Pos, Y_Pos};
+
+    if (_This->m_Recording) {
+        GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
+        GApp()->m_Simulator_File.flush();
+    }
 
     _This->Post_Event(Event);
 }
@@ -144,6 +187,11 @@ void GApplication::GLFW_Window_Focus_Callback(GLFWwindow* Window_Hndl, int Focus
     if (Focused) Event.Wind_Message = GEWind_Message::Gain_Focus;
     else Event.Wind_Message = GEWind_Message::Lose_Focus;
 
+    if (_This->m_Recording) {
+        GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
+        GApp()->m_Simulator_File.flush();
+    }
+
     _This->Post_Event(Event);
 }
 
@@ -153,6 +201,11 @@ void GApplication::GLFW_Window_Close_Callback(GLFWwindow* Window_Hndl) {
     GEvent Event;
     Event.Type = GEType::Window;
     Event.Wind_Message = GEWind_Message::Close;
+
+    if (_This->m_Recording) {
+        GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
+        GApp()->m_Simulator_File.flush();
+    }
 
     _This->Post_Event(Event);
 }
@@ -166,6 +219,11 @@ void GApplication::GLFW_Window_Maximize_Callback(GLFWwindow* Window_Hndl, int Ma
     if (Maximized) Event.Wind_Message = GEWind_Message::Maximise;
     else           Event.Wind_Message = GEWind_Message::Restore;
 
+    if (_This->m_Recording) {
+        GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
+        GApp()->m_Simulator_File.flush();
+    }
+
     _This->Post_Event(Event);
 }
 
@@ -177,6 +235,26 @@ void GApplication::GLFW_Window_Iconify_Callback(GLFWwindow* Window_Hndl, int Ico
     Event.Data_Ptr = _This;
     if (Iconified) Event.Wind_Message = GEWind_Message::Iconify;
     else           Event.Wind_Message = GEWind_Message::Restore;
+
+    if (_This->m_Recording) {
+        GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
+        GApp()->m_Simulator_File.flush();
+    }
+
+    _This->Post_Event(Event);
+}
+
+void GApplication::GLFW_Window_Refresh_Callback(GLFWwindow* Window_Hndl) {
+    auto _This = static_cast<GWindow*>(glfwGetWindowUserPointer(Window_Hndl));
+
+    GEvent Event;
+    Event.Type = GEType::Renderer;
+    Event.Renderer_Message = GERenderer_Message::Render;
+
+    if (_This->m_Recording) {
+        GApp()->m_Simulator_File.write((char*)&Event, sizeof(GEvent));
+        GApp()->m_Simulator_File.flush();
+    }
 
     _This->Post_Event(Event);
 }

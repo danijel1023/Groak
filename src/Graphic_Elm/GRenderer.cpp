@@ -17,8 +17,8 @@
 static unsigned int Create_Shader(const std::string& Vertex, const std::string& Fragment);
 
 
-GRenderer::GRenderer(GWindow* Main_Wind)
-    : m_Main_Wind(Main_Wind) {
+GRenderer::GRenderer(GWindow* Main_Wind, GLFWwindow* Window_Hndl)
+    : m_Main_Wind(Main_Wind), m_Window_Hndl(Window_Hndl) {
     m_Buffer = new GVertex[__Quad_Count * 4];
 
     m_Shader = Create_Shader(Vertex_Shader, Fragment_Shader);
@@ -82,11 +82,131 @@ GRenderer::~GRenderer() {
 }
 
 
+void GRenderer::Post_Event(const GEvent& Event) {
+    if (Event.Renderer_Message == GERenderer_Message::Render)
+        if (m_Render_Request < 2)
+            m_Render_Request++;
+        else
+            return;
+
+    auto Node = m_Queue.Get_Node();
+    Node->Data = Event;
+    m_Queue.Insert(Node);
+
+
+    m_DCV.notify_all();
+}
+
+
+void GRenderer::Send_Event(const GEvent& Event) {
+    {
+        std::unique_lock<std::recursive_mutex> Lck(m_Dispatcher_Mutex);
+        m_SEEvent = Event;
+
+        GEvent Event;
+        Event.Renderer_Message = GERenderer_Message::Send_Event;
+        Post_Event(Event);
+    }
+
+    {
+        std::unique_lock<std::recursive_mutex> Lck(m_SERM);
+        m_SECV.wait(Lck, [=] { return m_SE_Continue.load(); });
+
+        m_SE_Continue = false;
+    }
+}
+
+
+void GRenderer::Start_Thread() {
+    m_Worker = std::thread(&GRenderer::Worker, this);
+}
+
+void GRenderer::Join_Thread() {
+    GEvent Event;
+    Event.Renderer_Message = GERenderer_Message::Terminate_Thread;
+    Post_Event(Event);
+
+    m_Worker.join();
+}
+
+
+void GRenderer::Worker() {
+    glfwMakeContextCurrent(m_Window_Hndl);
+
+    while (m_Running) {
+        std::unique_lock<std::recursive_mutex> Lck(m_Dispatcher_Mutex);
+        m_DCV.wait(Lck, [=] { return !m_Queue.Empty(); });
+
+        while (!m_Queue.Empty()) {
+            GEvent Event = m_Queue.Peek_Front();
+            Callback_Func(Event);
+
+            if (Event.Renderer_Message == GERenderer_Message::Terminate_Thread)
+                m_Running = false;
+
+            m_Queue.Pop();
+        }
+    }
+
+    glfwMakeContextCurrent(0);
+}
+
+
+int GRenderer::Callback_Func(const GEvent& Event) {
+    switch (Event.Renderer_Message) {
+        case GERenderer_Message::Render:
+        {
+            m_Render_Request--;
+            Clear();
+
+            GEvent Event;
+            Event.Type = GEType::Window;
+            Event.Wind_Message = GEWind_Message::Render;
+            GCall(m_Main_Wind, m_Dispatcher_Ptr, Event);
+
+            glfwSwapBuffers(m_Window_Hndl);
+            break;
+        }
+
+        case GERenderer_Message::Load_Texture:
+        {
+            GTexture Texture = Event.Texture;
+            glGenTextures(1, &Texture.ID);
+            glBindTexture(GL_TEXTURE_2D, Texture.ID);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            if (Texture.Channels == 4) glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Texture.Width, Texture.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, Event.Data_Ptr);
+            else                       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Texture.Width, Texture.Height, 0, GL_RGB, GL_UNSIGNED_BYTE, Event.Data_Ptr);
+
+            glGenerateMipmap(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            return Texture.ID;
+        }
+
+        case GERenderer_Message::Send_Event:
+        {
+            m_SE_Ret = Callback_Func(m_SEEvent);
+            m_SE_Continue = true;
+            m_SECV.notify_all();
+
+            break;
+        }
+    }
+
+    return 0;
+}
+
+
 
 unsigned int GRenderer::Get_Shader() {
     return m_Shader;
 }
-
 
 
 void GRenderer::Set_Scale(const GSize& Window) {
@@ -123,10 +243,11 @@ void GRenderer::Render() {
     glBindVertexArray(m_VAO);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 
-    for (const auto& Texture : Textures_id) {
-        glActiveTexture(GL_TEXTURE0 + Texture.second);
-        glBindTexture(GL_TEXTURE_2D, Texture.first);
-    }
+    if (Textures_id.size() > 1)
+        for (const auto& Texture : Textures_id) {
+            glActiveTexture(GL_TEXTURE0 + Texture.second);
+            glBindTexture(GL_TEXTURE_2D, Texture.first);
+        }
 
     glBufferSubData(GL_ARRAY_BUFFER, 0, Quad_i * 4 * sizeof(GVertex), m_Buffer);
     glDrawElements(GL_TRIANGLES, (GLsizei)Quad_i * 6, GL_UNSIGNED_INT, nullptr);
@@ -171,9 +292,10 @@ void GRenderer::Draw_Text(const GText& Str, const GPos& Pos, GFont* Font) {
         GAtlas& Atlas = Get_Atlas(Font, Ch.Code_Point);  //Generate if needed
         GAChar_Data& Ch_Data = Atlas.Map[Ch.Code_Point];
 
-        GQuad Quad(Ch_Data.Size.X * Scale, Ch_Data.Size.Y * Scale,
-                   Pos.X + (Ch_Data.Bearing.X + X_Offset) * Scale,
-                   Pos.Y + (-Ch_Data.Size.Y + Ch_Data.Bearing.Y + Font->Descender) * Scale);
+        //Remove float to int conversion data loss warning
+        GQuad Quad(int(Ch_Data.Size.X * Scale), int(Ch_Data.Size.Y * Scale),
+                   int(Pos.X + (Ch_Data.Bearing.X + X_Offset) * Scale),
+                   int(Pos.Y + (-Ch_Data.Size.Y + Ch_Data.Bearing.Y + Font->Descender) * Scale));
 
         Quad.m_Type = GQuad_Type::Char;
         Quad.m_Color = Ch.Color;
@@ -272,13 +394,23 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
     FB->Un_Bind(m_Main_Wind->Get_Last_FB());
 }
 
-
 GAtlas& GRenderer::Get_Empty_Atlas() {
     static GAtlas Atlas;
     static GBasic_Framebuffer FB(1, 1);
     Atlas.FB = &FB;
 
     return Atlas;
+}
+
+
+unsigned int GRenderer::Store_Texture(unsigned char* Data, const GTexture& Texture) {
+    GEvent Event;
+    Event.Renderer_Message = GERenderer_Message::Load_Texture;
+    Event.Data_Ptr = Data;
+    Event.Texture = Texture;
+    Send_Event(Event);
+
+    return m_SE_Ret;
 }
 
 

@@ -73,7 +73,7 @@ int Window::Callback_Func(const GEvent& Event) {
                 Text.push_back({ '!', {1.0, 0.0, 1.0}});
 
                 GTexture Tex = Load_Texture("C:/test.bmp");
-                GQuad Quad(Tex.Width * (5.2 / 100.0), Tex.Height * (5.2 / 100.0), 0, 75);
+                GQuad Quad(Tex.Width * 52 / 1000, Tex.Height * 52 / 1000, 0, 75);
                 Quad.Repeat_Texture(Tex, 1, 1);
                 Quad_i = Add_Quad(Quad);
 

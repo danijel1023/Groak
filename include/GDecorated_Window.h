@@ -11,10 +11,19 @@ public:
 
     ~GDecorated_Window();
 
+    void Set_Min_Size(const GSize& Size);
+    void Set_Max_Size(const GSize& Size);
+    GSize Get_Min_Size();
+    GSize Get_Max_Size();
+
 private:
     GTitle_Bar* m_Title_Bar = nullptr;
-    GResize_Area* m_Left_Resize = nullptr, * m_Right_Resize = nullptr;
-    GResize_Area* m_Up_Resize = nullptr, * m_Down_Resize = nullptr;
+    GResize_Area* m_Top_Right = nullptr, * m_Top = nullptr, * m_Top_Left = nullptr;
+    GResize_Area* m_Left = nullptr;
+    GResize_Area* m_Bot_Left = nullptr, * m_Bot = nullptr, * m_Bot_Right = nullptr;
+    GResize_Area* m_Right = nullptr;
+
+    GSize m_Min_Size, m_Max_Size;
 
 protected:
     int Callback_Func(const GEvent& Event);

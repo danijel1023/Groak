@@ -13,7 +13,6 @@ GDecorated_Window::~GDecorated_Window() {}
 
 
 
-GResize_Area* Resize_Area_Arr[4] = { nullptr, nullptr, nullptr, nullptr };
 int GDecorated_Window::Callback_Func(const GEvent& Event) {
     switch (Event.Type) {
         case GEType::Window:
@@ -21,18 +20,18 @@ int GDecorated_Window::Callback_Func(const GEvent& Event) {
             switch (Event.Wind_Message) {
                 case GEWind_Message::Run:
                 {
-                    //m_Left_Resize = new GResize_Area(this, { 10, m_Window.Y - 20 }, { 0, 10 }, GRes::Left, { 50, 50 });
-                    //m_Right_Resize = new GResize_Area(this, { 10, m_Window.Y - 20 }, { m_Window.X - 10, 10 }, GRes::Right, { 50, 50 });
-                    //
-                    //m_Up_Resize = new GResize_Area(this, { m_Window.X, 10 }, { 0, m_Window.Y - 10 }, GRes::Top, { 50, 50 });
-                    //m_Down_Resize = new GResize_Area(this, { m_Window.X, 10 }, { 0, 0 }, GRes::Bot, { 50, 50 });
+                    m_Left  = new GResize_Area(this, { 7, m_Window.Y - 14 }, { 0, 7 },              GResize_Ancor::Left,  m_Min_Size, m_Max_Size, true);
+                    m_Right = new GResize_Area(this, { 7, m_Window.Y - 14 }, { m_Window.X - 7, 7 }, GResize_Ancor::Right, m_Min_Size, m_Max_Size, true);
+                    
+                    m_Top = new GResize_Area(this, { m_Window.X - 14, 7 }, { 7, m_Window.Y - 7 }, GResize_Ancor::Top, m_Min_Size, m_Max_Size, true);
+                    m_Bot = new GResize_Area(this, { m_Window.X - 14, 7 }, { 7, 0 },              GResize_Ancor::Bot, m_Min_Size, m_Max_Size, true);
 
-                    Resize_Area_Arr[0] = new GResize_Area(this, {10, 10}, { m_Window.X - 10, m_Window.Y - 10}, GRes::Top_Right, {50, 50});
-                    Resize_Area_Arr[1] = new GResize_Area(this, {10, 10}, { 0, m_Window.Y - 10 },              GRes::Top_Left,  {50, 50});
-                    Resize_Area_Arr[2] = new GResize_Area(this, {10, 10}, { 0, 0 },                            GRes::Bot_Left,  {50, 50});
-                    Resize_Area_Arr[3] = new GResize_Area(this, {10, 10}, { m_Window.X - 10, 0},               GRes::Bot_Right, {50, 50});
+                    m_Top_Left  = new GResize_Area(this, {7, 7}, { 0, m_Window.Y - 7 },             GResize_Ancor::Top_Left,  m_Min_Size, m_Max_Size, true);
+                    m_Top_Right = new GResize_Area(this, {7, 7}, { m_Window.X - 7, m_Window.Y - 7}, GResize_Ancor::Top_Right, m_Min_Size, m_Max_Size, true);
+                    m_Bot_Left  = new GResize_Area(this, {7, 7}, { 0, 0 },                          GResize_Ancor::Bot_Left,  m_Min_Size, m_Max_Size, true);
+                    m_Bot_Right = new GResize_Area(this, {7, 7}, { m_Window.X - 7, 0},              GResize_Ancor::Bot_Right, m_Min_Size, m_Max_Size, true);
 
-                    //m_Title_Bar = new GTitle_Bar(this, { m_Window.X, 32 }, { 0, m_Window.Y - 32 });
+                    m_Title_Bar = new GTitle_Bar(this, { m_Window.X, 32 }, { 0, m_Window.Y - 32 });
                     break;
                 }
                 
@@ -40,23 +39,23 @@ int GDecorated_Window::Callback_Func(const GEvent& Event) {
                 {
                     GWindow::Callback_Func(Event);
 
-                    //m_Left_Resize->Set_Window({ 10, m_Window.Y - 20 });
-                    //m_Left_Resize->Set_Screen({ 0, 10 });
-                    //m_Right_Resize->Set_Window({ 10, m_Window.Y - 20 });
-                    //m_Right_Resize->Set_Screen({ m_Window.X - 10, 10 });
-                    //
-                    //m_Up_Resize->Set_Window({ m_Window.X, 10 });
-                    //m_Up_Resize->Set_Screen({ 0, m_Window.Y - 10 });
-                    //m_Down_Resize->Set_Window({ m_Window.X, 10 });
-                    //m_Down_Resize->Set_Screen({ 0, 0 });
+                    m_Left ->Set_Window({ 7, m_Window.Y - 14 });
+                    m_Right->Set_Window({ 7, m_Window.Y - 14 });
+                    m_Left ->Set_Screen({ 0, 7 });
+                    m_Right->Set_Screen({ m_Window.X - 7, 7 });
+                    
+                    m_Top->Set_Window({ m_Window.X - 14, 7 });
+                    m_Bot->Set_Window({ m_Window.X - 14, 7 });
+                    m_Top->Set_Screen({ 7, m_Window.Y - 7 });
+                    m_Bot->Set_Screen({ 7, 0 });
 
-                    Resize_Area_Arr[0]->Set_Screen({ m_Window.X - 10, m_Window.Y - 10 });
-                    Resize_Area_Arr[1]->Set_Screen({ 0, m_Window.Y - 10 });
-                    Resize_Area_Arr[2]->Set_Screen({ 0, 0 });
-                    Resize_Area_Arr[3]->Set_Screen({ m_Window.X - 10, 0 });
+                    m_Top_Left ->Set_Screen({ 0, m_Window.Y - 7 });
+                    m_Top_Right->Set_Screen({ m_Window.X - 7, m_Window.Y - 7 });
+                    m_Bot_Left ->Set_Screen({ 0, 0 });
+                    m_Bot_Right->Set_Screen({ m_Window.X - 7, 0 });
 
-                    //m_Title_Bar->Set_Window({ m_Window.X, 32 });
-                    //m_Title_Bar->Set_Screen({ 0, m_Window.Y - 32 });
+                    m_Title_Bar->Set_Window({ m_Window.X, 32 });
+                    m_Title_Bar->Set_Screen({ 0, m_Window.Y - 32 });
 
                     return 1;
                 }
@@ -65,29 +64,35 @@ int GDecorated_Window::Callback_Func(const GEvent& Event) {
                 case GEWind_Message::Maximise:
                 case GEWind_Message::Restore:
                 {
-                    //GEvent TBEvent;
-                    //TBEvent.Type = GEType::Window;
-                    //TBEvent.Data_Ptr = m_Title_Bar;
-                    //TBEvent.Wind_Message = Event.Wind_Message;
-                    //Post_Event(TBEvent);
+                    if (Event.Wind_Message == GEWind_Message::Maximise) {
+                        m_Left      ->m_Enabled = false;
+                        m_Right     ->m_Enabled = false;
+                        m_Top       ->m_Enabled = false;
+                        m_Bot       ->m_Enabled = false;
+                        m_Top_Left  ->m_Enabled = false;
+                        m_Top_Right ->m_Enabled = false;
+                        m_Bot_Left  ->m_Enabled = false;
+                        m_Bot_Right ->m_Enabled = false;
+                    }
+
+                    else {
+                        m_Left      ->m_Enabled = true;
+                        m_Right     ->m_Enabled = true;
+                        m_Top       ->m_Enabled = true;
+                        m_Bot       ->m_Enabled = true;
+                        m_Top_Left  ->m_Enabled = true;
+                        m_Top_Right ->m_Enabled = true;
+                        m_Bot_Left  ->m_Enabled = true;
+                        m_Bot_Right ->m_Enabled = true;
+                    }
+
+                    GEvent TBEvent;
+                    TBEvent.Type = GEType::Window;
+                    TBEvent.Data_Ptr = m_Title_Bar;
+                    TBEvent.Wind_Message = Event.Wind_Message;
+                    Post_Event(TBEvent);
 
                     break;
-                }
-            }
-
-            break;
-        }
-
-        case GEType::Mouse:
-        {
-            switch (Event.Mouse_Message) {
-                case GEMouse_Message::Down:
-                {
-                    GEvent Event;
-                    Event.Data_Ptr = this;
-                    Event.Core_Message = GECore_Message::Resize;
-                    Event.WS = {m_Window.X, m_Window.Y + 200};
-                    //GApp()->Post_Event(Event);
                 }
             }
 
@@ -96,4 +101,21 @@ int GDecorated_Window::Callback_Func(const GEvent& Event) {
     }
 
     return GWindow::Callback_Func(Event);
+}
+
+
+void GDecorated_Window::Set_Min_Size(const GSize& Size) {
+    m_Min_Size = Size;
+}
+
+void GDecorated_Window::Set_Max_Size(const GSize& Size) {
+    m_Max_Size = Size;
+}
+
+GSize GDecorated_Window::Get_Min_Size() {
+    return m_Min_Size;
+}
+
+GSize GDecorated_Window::Get_Max_Size() {
+    return m_Max_Size;
 }
