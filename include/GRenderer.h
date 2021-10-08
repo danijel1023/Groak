@@ -9,6 +9,10 @@
 #include "GCharacter.h"
 #include "GTexture.h"
 
+#define G_QUAD_COUNT 256
+#define G_ATLAS_SIZE_X 2048
+#define G_ATLAS_SIZE_Y 2048
+
 class GBasic_Framebuffer;
 class GWindow;
 
@@ -43,6 +47,8 @@ public:
     void Set_Scale(const GSize& Window);
 
     unsigned int Get_Shader();
+    static const unsigned char* Get_Integrated_Font_File();
+    static size_t Get_Integrated_Font_File_Size();
 
 private:
     GWindow* m_Main_Wind;

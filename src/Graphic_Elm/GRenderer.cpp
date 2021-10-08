@@ -13,14 +13,23 @@
 #include "GFramebuffer.h"
 #include "GTexture.h"
 
+#include "Inconsolata-Black.inl"
 
-#define __Quad_Count 256
+const unsigned char* GRenderer::Get_Integrated_Font_File() {
+    return Font_File;
+}
+
+size_t GRenderer::Get_Integrated_Font_File_Size() {
+    return sizeof(Font_File);
+}
+
+
 static unsigned int Create_Shader(const std::string& Vertex, const std::string& Fragment);
 
 
 GRenderer::GRenderer(GWindow* Main_Wind, GLFWwindow* Window_Hndl)
     : m_Main_Wind(Main_Wind), m_Window_Hndl(Window_Hndl) {
-    m_Buffer = new GVertex[__Quad_Count * 4];
+    m_Buffer = new GVertex[G_QUAD_COUNT * 4];
 
     m_Shader = Create_Shader(Vertex_Shader, Fragment_Shader);
     int Samplers[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
@@ -33,7 +42,7 @@ GRenderer::GRenderer(GWindow* Main_Wind, GLFWwindow* Window_Hndl)
     // Vertex buffer and stride
     glGenBuffers(1, &m_VBO);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-    glBufferData(GL_ARRAY_BUFFER, __Quad_Count * 4 * sizeof(GVertex), nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, G_QUAD_COUNT * 4 * sizeof(GVertex), nullptr, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -51,8 +60,8 @@ GRenderer::GRenderer(GWindow* Main_Wind, GLFWwindow* Window_Hndl)
     glVertexAttribPointer (6, 1, GL_FLOAT, GL_FALSE, sizeof(GVertex), (void*)offsetof(GVertex, Rotation));
 
     // Index (element) buffer
-    unsigned int Indices[__Quad_Count * 6];
-    for (unsigned int i = 0; i < __Quad_Count; i++) {
+    unsigned int Indices[G_QUAD_COUNT * 6];
+    for (unsigned int i = 0; i < G_QUAD_COUNT; i++) {
         Indices[(i * 6) + 0] = (i * 4) + 0;
         Indices[(i * 6) + 1] = (i * 4) + 1;
         Indices[(i * 6) + 2] = (i * 4) + 2;
@@ -253,7 +262,7 @@ void GRenderer::Add_Quad(const GQuad& Quad) {
 
     //Copy the vertices of quad to memory
     Quad.Insert_Vertices(&m_Buffer[Quad_i * 4], Textures_id[Quad.m_Texture]);
-    if (++Quad_i == __Quad_Count) Flush();
+    if (++Quad_i == G_QUAD_COUNT) Flush();
 }
 
 
@@ -285,10 +294,6 @@ void GRenderer::Clear() {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-
-
-#define Atlas_Size_X 2048
-#define Atlas_Size_Y 2048
 
 void GRenderer::Draw_Text(const GText& Str, const GPos& Pos, int Height) {
     if (!m_Main_Wind->Get_Default_Font()) {
@@ -348,45 +353,45 @@ GAtlas& GRenderer::Get_Atlas(GFont* Font, unsigned int Code_Point) {
 }
 
 static inline void Set_Pixel(const GPos& Pos, unsigned char Color, unsigned char* Map) {
-    int Offset = (Atlas_Size_X * Pos.Y + Pos.X);
+    int Offset = (G_ATLAS_SIZE_X * Pos.Y + Pos.X);
 
     Map[Offset] = Color;
 }
 
 
 void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
-    unsigned char* Texture_Plane = new unsigned char[Atlas_Size_X * Atlas_Size_Y];
+    unsigned char* Texture_Plane = new unsigned char[G_ATLAS_SIZE_X * G_ATLAS_SIZE_Y];
                                                     //Size * 4 channels (RGBW)
-    memset(Texture_Plane, 0, Atlas_Size_X * Atlas_Size_Y);
+    memset(Texture_Plane, 0, G_ATLAS_SIZE_X * G_ATLAS_SIZE_Y);
 
     int X_Offset = 0, Y_Offset = 0;
     unsigned int Ch = 0;
 
     unsigned int Index = 0;
-    if (Atlas.Min != FT_Get_First_Char(Font->Face, &Index)) GError() << "Atlas.Min != FT_Get_First_Char(Font->Face, &Index)";
+    if (Atlas.Min != FT_Get_First_Char(Font->Face, &Index))
+        GError() << "Atlas.Min != FT_Get_First_Char(Font->Face, &Index)";
 
     Ch = Atlas.Min;
     while (Ch <= Atlas.Max) {
         GAChar_Data Ch_Data;
-        if (FT_Load_Char(Font->Face, Ch, FT_LOAD_RENDER)) {
-            GError() << "FreeType: Failed to load Glyph";
-        }
+        if (FT_Load_Char(Font->Face, Ch, FT_LOAD_RENDER))
+            GError() << "FreeType: Failed to load Glyph " << Ch;
 
         auto& Glyph = Font->Face->glyph;
-
+        
         Ch_Data.Size = { (int)Glyph->bitmap.width, (int)Glyph->bitmap.rows };
         Ch_Data.Bearing = { Glyph->bitmap_left,       Glyph->bitmap_top };
         Ch_Data.Advance = Glyph->advance.x >> 6;
-
-
-        if (X_Offset + Ch_Data.Advance >= Atlas_Size_X) {
+        
+        
+        if (X_Offset + Ch_Data.Advance >= G_ATLAS_SIZE_X) {
             X_Offset = 0;
             Y_Offset += Font->Height;
         }
-
+        
         Ch_Data.Pos = { X_Offset + Ch_Data.Bearing.X, Y_Offset + Ch_Data.Bearing.Y + Font->Descender - Ch_Data.Size.Y };
         const GPos& Pos = Ch_Data.Pos;
-
+        
         for (int Y = 0; Y < Ch_Data.Size.Y; Y++) {
             for (int X = 0; X < Ch_Data.Size.X; X++) {
                 int Offset = (Ch_Data.Size.Y - Y - 1) * Ch_Data.Size.X + X;
@@ -397,17 +402,18 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
         Atlas.Map[Ch] = Ch_Data;
         X_Offset += Ch_Data.Advance;
 
+        if (Ch == Atlas.Max) break;
         Ch = FT_Get_Next_Char(Font->Face, Ch, &Index);
     }
 
-    Set_Window_Space({ 0, 0 }, { Atlas_Size_X, Atlas_Size_Y });
-    Atlas.FB = new GBasic_Framebuffer(Atlas_Size_X, Atlas_Size_Y);
+    Set_Window_Space({ 0, 0 }, { G_ATLAS_SIZE_X, G_ATLAS_SIZE_Y });
+    Atlas.FB = new GBasic_Framebuffer(G_ATLAS_SIZE_X, G_ATLAS_SIZE_Y);
     Atlas.FB->Bind();
     
     GTexture Texture;
     Texture.Channels = 1;
-    Texture.Height = Atlas_Size_Y;
-    Texture.Width = Atlas_Size_X;
+    Texture.Height = G_ATLAS_SIZE_Y;
+    Texture.Width = G_ATLAS_SIZE_X;
     
     
     GEvent Event;
@@ -415,7 +421,7 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
     Event.Data_Ptr = Texture_Plane;
     Event.Texture = Texture;
     
-    GQuad Quad(Atlas_Size_X, Atlas_Size_Y, 0, 0);
+    GQuad Quad(G_ATLAS_SIZE_X, G_ATLAS_SIZE_Y, 0, 0);
     Quad.m_Texture = Send_Event_NL(Event);
     Quad.m_Type = GQuad_Type::Atlas;
     

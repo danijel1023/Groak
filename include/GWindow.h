@@ -30,6 +30,7 @@ public:
     GTexture Load_Texture_From_Memory(const unsigned char* Mem_Data, unsigned int Size, bool Flip = false);
 
     GFont* Load_Font(const GString& Font_File);
+    GFont* Load_Font_From_Memory(const unsigned char* Buffer, size_t Size);
     GFont* Set_Default_Font(GFont* Font);
     GFont* Get_Default_Font();
 
@@ -65,6 +66,7 @@ private:
 
     GFont* m_Default_Font = nullptr;
     std::vector<GFont*> m_Font_List;
+    void Create_Font_Matrices(GFont* Font);
 
     std::vector<GTexture> m_Texture_List;
 

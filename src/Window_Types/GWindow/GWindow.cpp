@@ -318,7 +318,25 @@ GTexture GWindow::Load_Texture_From_Memory(const unsigned char* Mem_Data, unsign
     return Texture;
 }
 
+GFont* GWindow::Load_Font_From_Memory(const unsigned char* Buffer, size_t Size) {
+    GFont* Font = new GFont;
+    Font->File = "Memory loaded";
 
+    auto Error = FT_New_Memory_Face(GApp()->Get_FT_Lib(), Buffer, Size, 0, &Font->Face);
+    if (Error == FT_Err_Unknown_File_Format) {
+        GError() << "FreeType from memory: It appears that font format is unsupported.";
+        delete Font;
+        return nullptr;
+    }
+    else if (Error) {
+        GError() << "FreeType from memory: Unknown error.";
+        delete Font;
+        return nullptr;
+    }
+
+    Create_Font_Matrices(Font);
+    return Font;
+}
 
 GFont* GWindow::Load_Font(const GString& Font_File) {
     GFont* Font = new GFont;
@@ -338,6 +356,11 @@ GFont* GWindow::Load_Font(const GString& Font_File) {
         return nullptr;
     }
 
+    Create_Font_Matrices(Font);
+    return Font;
+}
+
+void GWindow::Create_Font_Matrices(GFont* Font) {
     FT_Set_Pixel_Sizes(Font->Face, 0, 58);
 
     Font->Height = Font->Face->size->metrics.height >> 6;
@@ -362,12 +385,12 @@ GFont* GWindow::Load_Font(const GString& Font_File) {
         }
 
         int Advance = Font->Face->glyph->advance.x >> 6;
-        if (X_Offset + Advance >= 2048) {
+        if (X_Offset + Advance >= G_ATLAS_SIZE_X) {
             X_Offset = 0;
             Y_Offset += Font->Height;
         }
 
-        if (Y_Offset + Font->Height >= 2048) {
+        if (Y_Offset + Font->Height >= G_ATLAS_SIZE_Y) {
             Atlas->Max = Prev_Ch;
             Y_Offset = 0;
 
@@ -377,14 +400,15 @@ GFont* GWindow::Load_Font(const GString& Font_File) {
 
         X_Offset += Advance;
         Prev_Ch = Ch;
+
         Ch = FT_Get_Next_Char(Font->Face, Ch, &Index);
     }
 
     Atlas->Max = Prev_Ch;
 
     m_Font_List.push_back(Font);
-    return Font;
 }
+
 
 GFont* GWindow::Set_Default_Font(GFont* Font) {
     auto Last_Default_Font = m_Default_Font;

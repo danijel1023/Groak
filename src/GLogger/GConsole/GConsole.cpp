@@ -108,6 +108,7 @@ bool Track_C = false;
 
 static GText Text;
 static int Text_Height = 20;
+static GFont* Consola;
 
 GCursor My_Cursor;
 int GConsole::Callback_Func(const GEvent& Event) {
@@ -135,8 +136,12 @@ int GConsole::Callback_Func(const GEvent& Event) {
                     Event.Data = (int64_t)&My_Cursor;
                     GApp()->Post_Event(Event);
 
-                    //Set_Default_Font(Load_Font("C:/Windows/Fonts/consola.ttf"));
-                    Set_Default_Font(Load_Font("C:/Windows/Fonts/calibri.ttf"));
+                    //Consola = Load_Font("C:/Windows/Fonts/consola.ttf");
+                    Consola = Load_Font("C:/MEGA/Programming/Cross-Platform/Inconsolata/static/Inconsolata/Inconsolata-Regular.ttf");
+                    //Set_Default_Font(
+                    //    Load_Font_From_Memory(Get_Renderer()->Get_Integrated_Font_File(),
+                    //                          Get_Renderer()->Get_Integrated_Font_File_Size()));
+
                     //calibri.ttf
 
                     Text.push_back({ 'R', {0.94, 0.96, 0.25} });
@@ -177,7 +182,8 @@ int GConsole::Callback_Func(const GEvent& Event) {
                     GWindow::Callback_Func(Event);
 
                     //Render text
-                    Renderer.Draw_Text(Text, { 50, 50 }, Text_Height);
+                    Renderer.Draw_Text(Text, { 50, 50 }, Text_Height, Consola);
+                    //Renderer.Draw_Text(Text, { 50, 50 }, Text_Height);
                     Renderer.Flush();
                     return 0;
                 }
