@@ -57,7 +57,7 @@ int GTitle_Bar::Callback_Func(const GEvent& Event) {
                     m_Maximise->m_Press = { (60.0f / 100.0f), (60.0f / 100.0f), (60.0f / 100.0f), (100.0f / 100.0f) };
 
 
-                    GQuad Quad(m_Window, { 0, 0 });
+                    GQuad Quad(m_Window.Convert_Type<float>(), { 0, 0 });
                     Quad.m_Color = m_Bkg_Color;
                     m_Bkg_Quad = Add_Quad(Quad);
 
@@ -70,7 +70,7 @@ int GTitle_Bar::Callback_Func(const GEvent& Event) {
                 case GEWind_Message::Resize:
                 {
                     GBasic_Window::Callback_Func(Event);
-                    Get_Quad(m_Bkg_Quad).m_Window = m_Window;
+                    Get_Quad(m_Bkg_Quad).m_Window = m_Window.Convert_Type<float>();
 
                     GEvent Event;
                     Event.Type = GEType::Window;
@@ -137,8 +137,6 @@ int GTitle_Bar::Callback_Func(const GEvent& Event) {
 
         case GEType::Mouse:
         {
-            GApp()->Resolve_Event(Event, &std::cout, "[GTitle_Bar] ");
-
             if (Event.Mouse_Message == GEMouse_Message::Move) {
                 if (m_Track_Mouse) {
                     if (m_Maximised) {

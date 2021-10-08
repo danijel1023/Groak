@@ -1,6 +1,7 @@
 #include <string>
 #include <iostream>
 #include <map>
+#include <fstream>
 #include "Shaders/Shaders.inl"
 
 #include "GCore.h"
@@ -42,8 +43,8 @@ GRenderer::GRenderer(GWindow* Main_Wind, GLFWwindow* Window_Hndl)
     glEnableVertexAttribArray(5);
     glEnableVertexAttribArray(6);
     glVertexAttribIPointer(0, 1, GL_INT,             sizeof(GVertex), (void*)offsetof(GVertex, Type));
-    glVertexAttribIPointer(1, 2, GL_INT,             sizeof(GVertex), (void*)offsetof(GVertex, Pos));
-    glVertexAttribIPointer(2, 2, GL_INT,             sizeof(GVertex), (void*)offsetof(GVertex, Centre));
+    glVertexAttribPointer (1, 2, GL_FLOAT, GL_FALSE, sizeof(GVertex), (void*)offsetof(GVertex, Pos));
+    glVertexAttribPointer (2, 2, GL_FLOAT, GL_FALSE, sizeof(GVertex), (void*)offsetof(GVertex, Centre));
     glVertexAttribPointer (3, 4, GL_FLOAT, GL_FALSE, sizeof(GVertex), (void*)offsetof(GVertex, Color));
     glVertexAttribPointer (4, 2, GL_FLOAT, GL_FALSE, sizeof(GVertex), (void*)offsetof(GVertex, Tex_Coords));
     glVertexAttribIPointer(5, 1, GL_INT,             sizeof(GVertex), (void*)offsetof(GVertex, Tex_id));
@@ -83,6 +84,7 @@ GRenderer::~GRenderer() {
 
 
 void GRenderer::Post_Event(const GEvent& Event) {
+    std::unique_lock<std::recursive_mutex> Lck(m_Dispatcher_Mutex);
     if (Event.Renderer_Message == GERenderer_Message::Render)
         if (m_Render_Request < 2)
             m_Render_Request++;
@@ -98,7 +100,7 @@ void GRenderer::Post_Event(const GEvent& Event) {
 }
 
 
-void GRenderer::Send_Event(const GEvent& Event) {
+int GRenderer::Send_Event(const GEvent& Event) {
     {
         std::unique_lock<std::recursive_mutex> Lck(m_Dispatcher_Mutex);
         m_SEEvent = Event;
@@ -114,6 +116,14 @@ void GRenderer::Send_Event(const GEvent& Event) {
 
         m_SE_Continue = false;
     }
+
+    return m_SE_Ret;
+}
+
+
+int GRenderer::Send_Event_NL(const GEvent& Event) {
+    std::unique_lock<std::recursive_mutex> Lck(m_Dispatcher_Mutex);
+    return Callback_Func(Event);
 }
 
 
@@ -180,8 +190,17 @@ int GRenderer::Callback_Func(const GEvent& Event) {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-            if (Texture.Channels == 4) glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Texture.Width, Texture.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, Event.Data_Ptr);
-            else                       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Texture.Width, Texture.Height, 0, GL_RGB, GL_UNSIGNED_BYTE, Event.Data_Ptr);
+            switch (Texture.Channels) {
+            case 4:
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Texture.Width, Texture.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, Event.Data_Ptr);
+                break;
+            case 3:
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Texture.Width, Texture.Height, 0, GL_RGB, GL_UNSIGNED_BYTE, Event.Data_Ptr);
+                break;
+            case 1:
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, Texture.Width, Texture.Height, 0, GL_RED, GL_UNSIGNED_BYTE, Event.Data_Ptr);
+                break;
+            }
 
             glGenerateMipmap(GL_TEXTURE_2D);
             glBindTexture(GL_TEXTURE_2D, 0);
@@ -271,31 +290,31 @@ void GRenderer::Clear() {
 #define Atlas_Size_X 2048
 #define Atlas_Size_Y 2048
 
-void GRenderer::Draw_Text(const GText& Str, const GPos& Pos) {
+void GRenderer::Draw_Text(const GText& Str, const GPos& Pos, int Height) {
     if (!m_Main_Wind->Get_Default_Font()) {
         GError() << "Draw_Text called on no default font";
         return;
     }
 
-    Draw_Text(Str, Pos, m_Main_Wind->Get_Default_Font());
+    Draw_Text(Str, Pos, Height, m_Main_Wind->Get_Default_Font());
 }
 
-void GRenderer::Draw_Text(const GText& Str, const GPos& Pos, GFont* Font) {
+void GRenderer::Draw_Text(const GText& Str, const GPos& Pos, int Height, GFont* Font) {
     if (!Font) {
         GError() << "Draw_Text called with no font (nullptr)";
         return;
     }
 
-    float Scale = (float)Font->Scale_Height / (float)Font->Height;
+    float Scale = (float)Height / (float)Font->Height;
     int X_Offset = 0;
     for (const auto& Ch : Str) {
         GAtlas& Atlas = Get_Atlas(Font, Ch.Code_Point);  //Generate if needed
         GAChar_Data& Ch_Data = Atlas.Map[Ch.Code_Point];
 
         //Remove float to int conversion data loss warning
-        GQuad Quad(int(Ch_Data.Size.X * Scale), int(Ch_Data.Size.Y * Scale),
-                   int(Pos.X + (Ch_Data.Bearing.X + X_Offset) * Scale),
-                   int(Pos.Y + (-Ch_Data.Size.Y + Ch_Data.Bearing.Y + Font->Descender) * Scale));
+        GQuad Quad(Ch_Data.Size.X * Scale, Ch_Data.Size.Y * Scale,
+                   Pos.X + ((Ch_Data.Bearing.X + X_Offset) * Scale),
+                   Pos.Y + ((-Ch_Data.Size.Y + Ch_Data.Bearing.Y + Font->Descender) * Scale));
 
         Quad.m_Type = GQuad_Type::Char;
         Quad.m_Color = Ch.Color;
@@ -307,12 +326,19 @@ void GRenderer::Draw_Text(const GText& Str, const GPos& Pos, GFont* Font) {
 }
 
 
+#include <chrono>
+
 GAtlas& GRenderer::Get_Atlas(GFont* Font, unsigned int Code_Point) {
     for (auto& Atlas : Font->Atlas_List) {
         if (Atlas.Min <= Code_Point && Code_Point <= Atlas.Max) {
             if (Atlas.FB) return Atlas;
 
+            //uint64_t Start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
             Fill_Atlas(Font, Atlas);
+            //uint64_t End = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+            //std::cout << "Atlas creation: " << End - Start << std::endl;
+
+
             return Atlas;
         }
     }
@@ -321,22 +347,25 @@ GAtlas& GRenderer::Get_Atlas(GFont* Font, unsigned int Code_Point) {
     return Get_Empty_Atlas();
 }
 
+static inline void Set_Pixel(const GPos& Pos, unsigned char Color, unsigned char* Map) {
+    int Offset = (Atlas_Size_X * Pos.Y + Pos.X);
+
+    Map[Offset] = Color;
+}
+
 
 void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
-    Set_Window_Space({ 0, 0 }, { Atlas_Size_X, Atlas_Size_Y });
-    GBasic_Framebuffer* FB = new GBasic_Framebuffer(Atlas_Size_X, Atlas_Size_Y);
-    Atlas.FB = FB;
-    FB->Bind();
+    unsigned char* Texture_Plane = new unsigned char[Atlas_Size_X * Atlas_Size_Y];
+                                                    //Size * 4 channels (RGBW)
+    memset(Texture_Plane, 0, Atlas_Size_X * Atlas_Size_Y);
 
-    unsigned int Textures[16], Tex_I = 0;
     int X_Offset = 0, Y_Offset = 0;
     unsigned int Ch = 0;
 
     unsigned int Index = 0;
-    if (Atlas.Min != FT_Get_First_Char(Font->Face, &Index)) GError() << "SHIUWHSLFJANC ?!?!!?";
+    if (Atlas.Min != FT_Get_First_Char(Font->Face, &Index)) GError() << "Atlas.Min != FT_Get_First_Char(Font->Face, &Index)";
 
     Ch = Atlas.Min;
-    glGenTextures(16, Textures);
     while (Ch <= Atlas.Max) {
         GAChar_Data Ch_Data;
         if (FT_Load_Char(Font->Face, Ch, FT_LOAD_RENDER)) {
@@ -345,54 +374,60 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
 
         auto& Glyph = Font->Face->glyph;
 
-        glBindTexture(GL_TEXTURE_2D, Textures[Tex_I]);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED,
-                     Glyph->bitmap.width,
-                     Glyph->bitmap.rows,
-                     0, GL_RED, GL_UNSIGNED_BYTE,
-                     Glyph->bitmap.buffer
-        );
-
-        Ch_Data.Size =    { (int)Glyph->bitmap.width, (int)Glyph->bitmap.rows };
-        Ch_Data.Bearing = {      Glyph->bitmap_left,       Glyph->bitmap_top };
-        Ch_Data.Advance =        Glyph->advance.x >> 6;
+        Ch_Data.Size = { (int)Glyph->bitmap.width, (int)Glyph->bitmap.rows };
+        Ch_Data.Bearing = { Glyph->bitmap_left,       Glyph->bitmap_top };
+        Ch_Data.Advance = Glyph->advance.x >> 6;
 
 
-        if (X_Offset + Ch_Data.Advance >= 2048) {
+        if (X_Offset + Ch_Data.Advance >= Atlas_Size_X) {
             X_Offset = 0;
             Y_Offset += Font->Height;
         }
 
+        Ch_Data.Pos = { X_Offset + Ch_Data.Bearing.X, Y_Offset + Ch_Data.Bearing.Y + Font->Descender - Ch_Data.Size.Y };
+        const GPos& Pos = Ch_Data.Pos;
 
-        GQuad Quad(Ch_Data.Size.X, Ch_Data.Size.Y,
-                   X_Offset + Ch_Data.Bearing.X,
-                   Y_Offset + Ch_Data.Bearing.Y + Font->Descender - Ch_Data.Size.Y);
-        Quad.m_Type = GQuad_Type::Atlas;
-        Quad.m_Texture = Textures[Tex_I];
-        Quad.m_Color = { 1.0, 1.0, 1.0, 1.0 };
-        Add_Quad(Quad);
+        for (int Y = 0; Y < Ch_Data.Size.Y; Y++) {
+            for (int X = 0; X < Ch_Data.Size.X; X++) {
+                int Offset = (Ch_Data.Size.Y - Y - 1) * Ch_Data.Size.X + X;
+                Set_Pixel({ Pos.X + X, Pos.Y + Y }, Glyph->bitmap.buffer[Offset], Texture_Plane);
+            }
+        }
 
-
-        Ch_Data.Pos = Quad.m_Screen;
         Atlas.Map[Ch] = Ch_Data;
         X_Offset += Ch_Data.Advance;
 
         Ch = FT_Get_Next_Char(Font->Face, Ch, &Index);
-        if (++Tex_I == 16) { Tex_I = 0; Flush(); }
-        //It's using the same 16 textures, so it is important to manually flush
-        //The automatic flush will occur only if 17 or more textures are in use
     }
 
+    Set_Window_Space({ 0, 0 }, { Atlas_Size_X, Atlas_Size_Y });
+    Atlas.FB = new GBasic_Framebuffer(Atlas_Size_X, Atlas_Size_Y);
+    Atlas.FB->Bind();
+    
+    GTexture Texture;
+    Texture.Channels = 1;
+    Texture.Height = Atlas_Size_Y;
+    Texture.Width = Atlas_Size_X;
+    
+    
+    GEvent Event;
+    Event.Renderer_Message = GERenderer_Message::Load_Texture;
+    Event.Data_Ptr = Texture_Plane;
+    Event.Texture = Texture;
+    
+    GQuad Quad(Atlas_Size_X, Atlas_Size_Y, 0, 0);
+    Quad.m_Texture = Send_Event_NL(Event);
+    Quad.m_Type = GQuad_Type::Atlas;
+    
+    Add_Quad(Quad);
     Flush();
-    glDeleteTextures(16, Textures);
-    FB->Un_Bind(m_Main_Wind->Get_Last_FB());
+    
+    Atlas.FB->Un_Bind(m_Main_Wind->Get_Last_FB());
+    
+    glDeleteTextures(1, &Quad.m_Texture);
+    delete[] Texture_Plane;
 }
+
 
 GAtlas& GRenderer::Get_Empty_Atlas() {
     static GAtlas Atlas;
@@ -408,9 +443,8 @@ unsigned int GRenderer::Store_Texture(unsigned char* Data, const GTexture& Textu
     Event.Renderer_Message = GERenderer_Message::Load_Texture;
     Event.Data_Ptr = Data;
     Event.Texture = Texture;
-    Send_Event(Event);
 
-    return m_SE_Ret;
+    return Send_Event(Event);
 }
 
 

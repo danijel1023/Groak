@@ -59,7 +59,7 @@ void App::On_Close() {}
 
 GPos MP;
 bool Track = false;
-GText Text;
+static GText Text;
 size_t Quad_i = 0;
 int Window::Callback_Func(const GEvent& Event) {
     switch (Event.Type) {
@@ -69,7 +69,6 @@ int Window::Callback_Func(const GEvent& Event) {
                 //Set_Default_Font(Load_Font("C:/Windows/Fonts/segoeui.ttf"));
                 Set_Default_Font(Load_Font("C:/Windows/Fonts/consola.ttf"));
 
-                Set_Text_Height(20);
                 Text.push_back({ '!', {1.0, 0.0, 1.0}});
 
                 GTexture Tex = Load_Texture("C:/test.bmp");
@@ -88,7 +87,7 @@ int Window::Callback_Func(const GEvent& Event) {
                 GWindow::Callback_Func(Event);
                 
                 //Render text
-                Renderer.Draw_Text(Text, { 0, 0 });
+                Renderer.Draw_Text(Text, { 0, 0 }, 20);
                 Renderer.Flush();
                 return 0;
             }
@@ -117,11 +116,11 @@ int Window::Callback_Func(const GEvent& Event) {
                         if (Event.Key == 265) {
                             Quad.m_Window.X += int((double)Quad.m_Window.X * 0.02);
                             Quad.m_Window.Y += int((double)Quad.m_Window.Y * 0.02);
-                            Set_Text_Height(++Scale);
+                            //Set_Text_Height(++Scale);
                         } else if (Event.Key == 264) {
                             Quad.m_Window.X -= int((double)Quad.m_Window.X * 0.02);
                             Quad.m_Window.Y -= int((double)Quad.m_Window.Y * 0.02);
-                            Set_Text_Height(--Scale);
+                            //Set_Text_Height(--Scale);
                         }
                         
                         else if (Event.Key == 263) {

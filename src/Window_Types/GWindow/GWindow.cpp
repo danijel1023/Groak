@@ -343,7 +343,6 @@ GFont* GWindow::Load_Font(const GString& Font_File) {
     Font->Height = Font->Face->size->metrics.height >> 6;
     Font->Descender = -(Font->Face->size->metrics.descender >> 6);
     Font->Max_Advance_Width = Font->Face->size->metrics.max_advance >> 6;
-    Font->Scale_Height = Font->Height;
 
 
     GAtlas* Atlas = nullptr;
@@ -395,18 +394,4 @@ GFont* GWindow::Set_Default_Font(GFont* Font) {
 
 GFont* GWindow::Get_Default_Font() {
     return m_Default_Font;
-}
-
-
-void GWindow::Set_Text_Height(int Height) {
-    if (!m_Default_Font) {
-        GError() << "Set_Text_Height(" << Height << ") called on no default font";
-        return;
-    }
-
-    Set_Text_Height(Height, m_Default_Font);
-}
-
-void GWindow::Set_Text_Height(int Height, GFont* Font) {
-    Font->Scale_Height = Height;
 }

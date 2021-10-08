@@ -3,9 +3,9 @@
 
 GQuad::GQuad() {}
 
-GQuad::GQuad(const GSize& Size, const GPos& Pos)
+GQuad::GQuad(const GVec2& Size, const GVec2& Pos)
     : m_Window(Size), m_Screen(Pos) {}
-GQuad::GQuad(int Window_X, int Window_Y, int Screen_X, int Screen_Y)
+GQuad::GQuad(float Window_X, float Window_Y, float Screen_X, float Screen_Y)
     : m_Window({ Window_X, Window_Y }), m_Screen({ Screen_X, Screen_Y }) {}
 
 

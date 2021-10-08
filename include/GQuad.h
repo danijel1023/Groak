@@ -10,8 +10,8 @@ enum class GQuad_Type :int { Quad = 0, Atlas = 1, Char = 2 };
 struct GTexture;
 struct GQuad {
     GQuad();
-    GQuad(int Window_X, int Window_Y, int Screen_X, int Screen_Y);
-    GQuad(const GSize& Size, const GPos& Pos);
+    GQuad(float Window_X, float Window_Y, float Screen_X, float Screen_Y);
+    GQuad(const GVec2& Size, const GVec2& Pos);
 
     //To remove a quad from rendering, instead of removing it from the m_Quad_List altogether,
     //you just need to set this flag to false and when iterating through the list, if the flag
@@ -21,8 +21,8 @@ struct GQuad {
     bool m_Active = true;
 
     GQuad_Type m_Type = GQuad_Type::Quad;
-    GIVec2 m_Window = { 0, 0 };
-    GIVec2 m_Screen = { 0, 0 };
+    GVec2 m_Window = { 0, 0 };
+    GVec2 m_Screen = { 0, 0 };
     GColor m_Color;
     float m_Rotation = 0.0f;
     unsigned int m_Texture = -1;

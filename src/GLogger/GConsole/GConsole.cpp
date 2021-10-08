@@ -76,7 +76,6 @@ GConsole::GConsole()
     Set_Min_Size({184, 32});
     Set_Max_Size({700, 350});
 
-
     //GApp()->Attach_Simulator(this, false);
 }
 
@@ -107,6 +106,9 @@ GPos MP_C;
 bool Track_C = false;
 
 
+static GText Text;
+static int Text_Height = 20;
+
 GCursor My_Cursor;
 int GConsole::Callback_Func(const GEvent& Event) {
     //return GDecorated_Window::Callback_Func(Event);
@@ -117,8 +119,9 @@ int GConsole::Callback_Func(const GEvent& Event) {
             switch (Event.Wind_Message) {
                 case GEWind_Message::Run:
                 {
-                    GQuad Quad({ 2, 100 }, { 20, 0 });
+                    GQuad Quad({ 2, 100 }, { 50, 0 });
                     Quad.m_Color = { 1.0f, 0.0f, 0.0f, 1.0f };
+                    Quad.m_Rotation = 31;
 
                     Add_Quad(Quad);
                     Render();
@@ -132,6 +135,23 @@ int GConsole::Callback_Func(const GEvent& Event) {
                     Event.Data = (int64_t)&My_Cursor;
                     GApp()->Post_Event(Event);
 
+                    //Set_Default_Font(Load_Font("C:/Windows/Fonts/consola.ttf"));
+                    Set_Default_Font(Load_Font("C:/Windows/Fonts/calibri.ttf"));
+                    //calibri.ttf
+
+                    Text.push_back({ 'R', {0.94, 0.96, 0.25} });
+                    Text.push_back({ 'e', {0.92, 0.25, 0.2} });
+                    Text.push_back({ 'c', {1.0, 0.0, 1.0} });
+                    Text.push_back({ 'o', {1.0, 0.0, 1.0} });
+                    Text.push_back({ 'r', {1.0, 0.0, 1.0} });
+                    Text.push_back({ 'd', {1.0, 0.0, 1.0} });
+                    Text.push_back({ 'i', {1.0, 0.0, 1.0} });
+                    Text.push_back({ 'n', {1.0, 0.0, 1.0} });
+                    Text.push_back({ 'g', {1.0, 0.0, 1.0} });
+                    Text.push_back({ '.', {1.0, 0.0, 1.0} });
+                    Text.push_back({ '.', {1.0, 0.0, 1.0} });
+                    Text.push_back({ '.', {1.0, 0.0, 1.0} });
+                    //
                     break;
                 }
 
@@ -146,6 +166,20 @@ int GConsole::Callback_Func(const GEvent& Event) {
                     Event.Core_Message = GECore_Message::Terminate;
                     GApp()->Post_Event(Event);
                     break;
+                }
+
+                case GEWind_Message::Render:
+                {
+                    GRenderer& Renderer = *Get_Renderer();
+                    Renderer.Clear();
+
+                    //Default
+                    GWindow::Callback_Func(Event);
+
+                    //Render text
+                    Renderer.Draw_Text(Text, { 50, 50 }, Text_Height);
+                    Renderer.Flush();
+                    return 0;
                 }
             }
 
@@ -167,8 +201,6 @@ int GConsole::Callback_Func(const GEvent& Event) {
 
         case GEType::Mouse:
         {
-            GApp()->Resolve_Event(Event, &std::cout, "[GConsole] ");
-
             switch (Event.Mouse_Message) {
                 case GEMouse_Message::Enter:
                 {
@@ -189,6 +221,20 @@ int GConsole::Callback_Func(const GEvent& Event) {
                     Event.Data_Ptr = m_Main_Window;
                     Event.Cursor_Type = GCursor_Type::Default;
                     GApp()->Post_Event(Event);
+                    break;
+                }
+
+                case GEMouse_Message::Scroll_Down:
+                {
+                    if (Text_Height) Text_Height--;
+                    Render();
+                    break;
+                }
+
+                case GEMouse_Message::Scroll_Up:
+                {
+                    Text_Height++;
+                    Render();
                     break;
                 }
             }

@@ -14,24 +14,13 @@ GResize_Area::~GResize_Area() {}
 
 
 
-bool operator&(const GResize_Ancor& Left, const GResize_Ancor& Right) {
+static bool operator&(const GResize_Ancor& Left, const GResize_Ancor& Right) {
     return static_cast<int>(Left) & static_cast<int>(Right);
 }
 
 
 int GResize_Area::Callback_Func(const GEvent& Event) {
     if (Event.Type == GEType::Mouse) {
-        switch (m_Ancor) {
-            case GResize_Ancor::Bot:       GApp()->Resolve_Event(Event, &std::cout, "[GResize::Bot] "); break;
-            case GResize_Ancor::Bot_Left:  GApp()->Resolve_Event(Event, &std::cout, "[GResize::Bot_Left] ");  break;
-            case GResize_Ancor::Bot_Right: GApp()->Resolve_Event(Event, &std::cout, "[GResize::Bot_Right] ");  break;
-            case GResize_Ancor::Top:       GApp()->Resolve_Event(Event, &std::cout, "[GResize::Top] "); break;
-            case GResize_Ancor::Top_Left:  GApp()->Resolve_Event(Event, &std::cout, "[GResize::Top_Left] "); break;
-            case GResize_Ancor::Top_Right: GApp()->Resolve_Event(Event, &std::cout, "[GResize::Top_Right] "); break;
-            case GResize_Ancor::Left:      GApp()->Resolve_Event(Event, &std::cout, "[GResize::Left] "); break;
-            case GResize_Ancor::Right:     GApp()->Resolve_Event(Event, &std::cout, "[GResize::Right] "); break;
-        }
-
         switch (Event.Mouse_Message) {
             case GEMouse_Message::Enter:
             {

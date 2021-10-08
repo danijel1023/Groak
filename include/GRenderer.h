@@ -17,8 +17,8 @@ public:
     GRenderer(GWindow* Main_Wind, GLFWwindow* Window_Hndl);
     ~GRenderer();
 
-    void Draw_Text(const GText& Str, const GPos& Pos);  //Use default font
-    void Draw_Text(const GText& Str, const GPos& Pos, GFont* Font);
+    void Draw_Text(const GText& Str, const GPos& Pos, int Height);  //Use default font
+    void Draw_Text(const GText& Str, const GPos& Pos, int Height, GFont* Font);
 
     GAtlas& Get_Atlas(GFont* Font, unsigned int Code_Point);
     GAtlas& Get_Empty_Atlas();
@@ -34,7 +34,8 @@ public:
     void Clear();
 
     void Post_Event(const GEvent& Event);
-    void Send_Event(const GEvent& Event);
+    int Send_Event(const GEvent& Event);
+    int Send_Event_NL(const GEvent& Event);
     void Start_Thread();
     void Join_Thread();
 

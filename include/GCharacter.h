@@ -37,7 +37,6 @@ struct GFont {
     GString File;
     FT_Face Face = nullptr;
 
-    int Scale_Height = 0;
     int Height = 0;
     int Descender = 0;
     int Max_Advance_Width = 0;

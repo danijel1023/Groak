@@ -2,8 +2,8 @@ const char* Vertex_Shader = R"(
 #version 330 core
 
 layout(location = 0) in int     cpu_Type;
-layout(location = 1) in ivec2   cpu_Pos;
-layout(location = 2) in ivec2   cpu_Centre;
+layout(location = 1) in vec2    cpu_Pos;
+layout(location = 2) in vec2    cpu_Centre;
 layout(location = 3) in vec4    cpu_Color;
 layout(location = 4) in vec2    cpu_Tex_Coord;
 layout(location = 5) in int     cpu_Tex_Slot;
@@ -39,7 +39,7 @@ void main() {
     v_Type = cpu_Type;
 
     //1 -> Atlas
-    if (v_Type == 1) v_Tex_Coord.y = 1.0 - v_Tex_Coord.y;
+    //if (v_Type == 1) v_Tex_Coord.y = 1.0 - v_Tex_Coord.y;
 }
 
 )";

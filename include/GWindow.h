@@ -32,8 +32,6 @@ public:
     GFont* Load_Font(const GString& Font_File);
     GFont* Set_Default_Font(GFont* Font);
     GFont* Get_Default_Font();
-    void Set_Text_Height(int Height);   //Use default font
-    void Set_Text_Height(int Height, GFont* Font);
 
     void Render();
 
