@@ -16,6 +16,8 @@ public:
     GSize Get_Min_Size();
     GSize Get_Max_Size();
 
+    GSize Get_Title_Bar_Window();
+
 private:
     GTitle_Bar* m_Title_Bar = nullptr;
     GResize_Area* m_Top_Right = nullptr, * m_Top = nullptr, * m_Top_Left = nullptr;

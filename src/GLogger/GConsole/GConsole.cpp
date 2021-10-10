@@ -112,16 +112,45 @@ static GFont* Consola;
 
 GCursor My_Cursor;
 int GConsole::Callback_Func(const GEvent& Event) {
-    //return GDecorated_Window::Callback_Func(Event);
-
     switch (Event.Type) {
+        case GEType::Console:
+        {
+            switch (Event.Console_Message) {
+                case GEConsole_Message::Sync:
+                {
+                    m_Render_Text.clear();
+                    for (size_t i = 0; i < m_Buffer.size(); i++) {
+                        auto& Buffer_String = m_Buffer[i];
+
+                        GColor Color;
+                        if      (Buffer_String.substr(0, 7) == "[Trace]")   Color = { 0, 55, 218, 255 };
+                        else if (Buffer_String.substr(0, 6) == "[Info]")    Color = { 97, 214, 214, 255 };
+                        else if (Buffer_String.substr(0, 9) == "[Warning]") Color = { 193, 156, 0, 255 };
+                        else if (Buffer_String.substr(0, 7) == "[Error]")   Color = { 231, 72, 86, 255 };
+                        else if (Buffer_String.substr(0, 7) == "[Fatal]")   Color = { 197, 15, 31, 255 };
+                        else                                                Color = { 204, 204, 204, 255 };
+
+                        m_Render_Text.emplace_back();
+                        auto& Render_String = m_Render_Text.back();
+                        for (size_t Ch = 0; Ch < Buffer_String.size(); Ch++) {
+                            Render_String.push_back({ (int)Buffer_String[Ch], Color });
+                        }
+                    }
+
+                    break;
+                }
+            }
+
+            break;
+        }
+
         case GEType::Window:
         {
             switch (Event.Wind_Message) {
                 case GEWind_Message::Run:
                 {
                     GQuad Quad({ 2, 100 }, { 50, 0 });
-                    Quad.m_Color = { 1.0f, 0.0f, 0.0f, 1.0f };
+                    Quad.m_Color = { 255, 0, 0, 255 };
                     Quad.m_Rotation = 31;
 
                     Add_Quad(Quad);
@@ -136,27 +165,29 @@ int GConsole::Callback_Func(const GEvent& Event) {
                     Event.Data = (int64_t)&My_Cursor;
                     GApp()->Post_Event(Event);
 
-                    //Consola = Load_Font("C:/Windows/Fonts/consola.ttf");
-                    Consola = Load_Font("C:/MEGA/Programming/Cross-Platform/Inconsolata/static/Inconsolata/Inconsolata-Regular.ttf");
-                    //Set_Default_Font(
-                    //    Load_Font_From_Memory(Get_Renderer()->Get_Integrated_Font_File(),
-                    //                          Get_Renderer()->Get_Integrated_Font_File_Size()));
+                    Consola = Load_Font("C:/Windows/Fonts/consola.ttf");
 
-                    //calibri.ttf
+                    Text.push_back({ 'R', {240, 245, 64, 255} });
+                    Text.push_back({ 'e', {235, 64, 51, 255} });
+                    Text.push_back({ 'c', {255, 0, 255, 255} });
+                    Text.push_back({ 'o', {255, 0, 255, 255} });
+                    Text.push_back({ 'r', {255, 0, 255, 255} });
+                    Text.push_back({ 'd', {255, 0, 255, 255} });
+                    Text.push_back({ 'i', {255, 0, 255, 255} });
+                    Text.push_back({ 'n', {255, 0, 255, 255} });
+                    Text.push_back({ 'g', {255, 0, 255, 255} });
+                    Text.push_back({ '.', {255, 0, 255, 255} });
+                    Text.push_back({ '.', {255, 0, 255, 255} });
+                    Text.push_back({ 272, {255, 0, 255, 255} });
+                    
+                    GInfo() << "Constructig GConsole...";
 
-                    Text.push_back({ 'R', {0.94, 0.96, 0.25} });
-                    Text.push_back({ 'e', {0.92, 0.25, 0.2} });
-                    Text.push_back({ 'c', {1.0, 0.0, 1.0} });
-                    Text.push_back({ 'o', {1.0, 0.0, 1.0} });
-                    Text.push_back({ 'r', {1.0, 0.0, 1.0} });
-                    Text.push_back({ 'd', {1.0, 0.0, 1.0} });
-                    Text.push_back({ 'i', {1.0, 0.0, 1.0} });
-                    Text.push_back({ 'n', {1.0, 0.0, 1.0} });
-                    Text.push_back({ 'g', {1.0, 0.0, 1.0} });
-                    Text.push_back({ '.', {1.0, 0.0, 1.0} });
-                    Text.push_back({ '.', {1.0, 0.0, 1.0} });
-                    Text.push_back({ '.', {1.0, 0.0, 1.0} });
-                    //
+                    GTrace() << "Testing Trace mode";
+                    GInfo() << "Testing Info mode";
+                    GWarning() << "Testing Warning mode";
+                    GError() << "Testing Error mode";
+                    GFatal() << "Testing Fatal mode";
+
                     break;
                 }
 
@@ -182,8 +213,11 @@ int GConsole::Callback_Func(const GEvent& Event) {
                     GWindow::Callback_Func(Event);
 
                     //Render text
-                    Renderer.Draw_Text(Text, { 50, 50 }, Text_Height, Consola);
-                    //Renderer.Draw_Text(Text, { 50, 50 }, Text_Height);
+                    for (int i = 0; i < m_Render_Text.size(); i++) {
+                        Renderer.Draw_Text(m_Render_Text.at(i), { 50, m_Window.Y - Get_Title_Bar_Window().Y - (Text_Height * (i+1)) }, Text_Height);
+                        //Renderer.Draw_Text(m_Render_Text.at(i), { 50, m_Window.Y - Get_Title_Bar_Window().Y - (Text_Height * (i+1)) }, Text_Height, Consola);
+                    }
+
                     Renderer.Flush();
                     return 0;
                 }

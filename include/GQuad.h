@@ -1,10 +1,6 @@
 #pragma once
 #include "GVertex.h"
 
-struct GColor {
-    float Red = 0.0f, Green = 0.0f, Blue = 0.0f, Alpha = 1.0f;
-};
-
 enum class GQuad_Type :int { Quad = 0, Atlas = 1, Char = 2 };
 
 struct GTexture;

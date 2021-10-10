@@ -119,3 +119,7 @@ GSize GDecorated_Window::Get_Min_Size() {
 GSize GDecorated_Window::Get_Max_Size() {
     return m_Max_Size;
 }
+
+GSize GDecorated_Window::Get_Title_Bar_Window() {
+    return m_Title_Bar->Get_Window();
+}

@@ -32,18 +32,18 @@ int GTitle_Bar::Callback_Func(const GEvent& Event) {
                     m_Close = new GButton(this, { 46, 32 }, { m_Window.X - 1 * 46, 0 });
                     m_Close->m_Texture = m_Main_Window->Load_Texture_From_Memory(PNG_Close_Data, sizeof(PNG_Close_Data));
                     m_Close->m_On_Press_Event = On_Click;
-                    m_Close->m_Leave = { 0.0f, 0.0f, 0.0f, 0.0f };
-                    m_Close->m_Hover = { (70.0f / 100.0f), (00.0f / 100.0f), (00.0f / 100.0f), (100.0f / 100.0f) };
-                    m_Close->m_Press = { (60.0f / 100.0f), (00.0f / 100.0f), (00.0f / 100.0f), (100.0f / 100.0f) };
-
+                    m_Close->m_Leave = { 0, 0, 0, 0 };
+                    m_Close->m_Hover = { (70 * 255 / 100), (0 * 255 / 100), (0 * 255 / 100), (100 * 255 / 100) };
+                    m_Close->m_Press = { (60 * 255 / 100), (0 * 255 / 100), (0 * 255 / 100), (100 * 255 / 100) };
+                    
 
                     On_Click.Wind_Message = GEWind_Message::Should_Iconify;
                     m_Iconify = new GButton(this, { 46, 32 }, { m_Window.X - 3 * 46, 0 });
                     m_Iconify->m_Texture = m_Main_Window->Load_Texture_From_Memory(PNG_Iconify_Data, sizeof(PNG_Iconify_Data));
                     m_Iconify->m_On_Press_Event = On_Click;
-                    m_Iconify->m_Leave = { 0.0f, 0.0f, 0.0f, 0.0f };
-                    m_Iconify->m_Hover = { (50.0f / 100.0f), (50.0f / 100.0f), (50.0f / 100.0f), (100.0f / 100.0f) };
-                    m_Iconify->m_Press = { (60.0f / 100.0f), (60.0f / 100.0f), (60.0f / 100.0f), (100.0f / 100.0f) };
+                    m_Iconify->m_Leave = { 0, 0, 0, 0 };
+                    m_Iconify->m_Hover = { (50 * 255 / 100), (50 * 255 / 100), (50 * 255 / 100), (100 * 255 / 100) };
+                    m_Iconify->m_Press = { (60 * 255 / 100), (60 * 255 / 100), (60 * 255 / 100), (100 * 255 / 100) };
 
 
                     m_Maximise_Tex = m_Main_Window->Load_Texture_From_Memory(PNG_Maximise_Data, sizeof(PNG_Maximise_Data));
@@ -52,9 +52,9 @@ int GTitle_Bar::Callback_Func(const GEvent& Event) {
                     m_Maximise = new GButton(this, { 46, 32 }, { m_Window.X - 2 * 46, 0 });
                     m_Maximise->m_Texture = m_Maximise_Tex;
                     m_Maximise->m_On_Press_Event = On_Click;
-                    m_Maximise->m_Leave = { 0.0f, 0.0f, 0.0f, 0.0f };
-                    m_Maximise->m_Hover = { (50.0f / 100.0f), (50.0f / 100.0f), (50.0f / 100.0f), (100.0f / 100.0f) };
-                    m_Maximise->m_Press = { (60.0f / 100.0f), (60.0f / 100.0f), (60.0f / 100.0f), (100.0f / 100.0f) };
+                    m_Maximise->m_Leave = { 0, 0, 0, 0 };
+                    m_Maximise->m_Hover = { (50 * 255 / 100), (50 * 255 / 100), (50 * 255 / 100), (100 * 255 / 100) };
+                    m_Maximise->m_Press = { (60 * 255 / 100), (60 * 255 / 100), (60 * 255 / 100), (100 * 255 / 100) };
 
 
                     GQuad Quad(m_Window.Convert_Type<float>(), { 0, 0 });

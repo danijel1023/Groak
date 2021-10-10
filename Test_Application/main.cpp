@@ -69,7 +69,7 @@ int Window::Callback_Func(const GEvent& Event) {
                 //Set_Default_Font(Load_Font("C:/Windows/Fonts/segoeui.ttf"));
                 Set_Default_Font(Load_Font("C:/Windows/Fonts/consola.ttf"));
 
-                Text.push_back({ '!', {1.0, 0.0, 1.0}});
+                Text.push_back({ '!', {255, 0, 255}});
 
                 GTexture Tex = Load_Texture("C:/test.bmp");
                 GQuad Quad(Tex.Width * 52 / 1000, Tex.Height * 52 / 1000, 0, 75);
@@ -141,7 +141,7 @@ int Window::Callback_Func(const GEvent& Event) {
                         std::string Str = SS.str();
 
                         for (auto& Ch : Str) {
-                            Text.push_back({ Ch, {1.0, 0.0, 1.0} });
+                            Text.push_back({ Ch, {255, 0, 255} });
                         }
                         GInfo() << "Scale: " << Scale;
 

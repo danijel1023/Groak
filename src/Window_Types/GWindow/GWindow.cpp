@@ -88,6 +88,11 @@ int GWindow::Dispatcher_Func(const GEvent& Event) {
             return GCall(m_Focus, m_Callback_Ptr, Event);
         }
 
+        case GEType::Console:
+        {
+            return GCall(this, m_Callback_Ptr, Event);
+        }
+
         case GEType::Mouse:
         {
             if (m_Mouse_Focus) {
@@ -258,13 +263,15 @@ void GWindow::Worker() {
             GEvent Event = m_Queue.Peek_Front();
             GCall(this, m_Dispatcher_Ptr, Event);
 
+            if (Event.Type == GEType::Window && Event.Wind_Message == GEWind_Message::Run)
+                m_Renderer->Start_Rendering();
             if (Event.Type == GEType::Window && Event.Wind_Message == GEWind_Message::Terminate_Thread)
                 m_Running = false;
 
             m_Queue.Pop();
         }
     }
-    
+
     m_Renderer->Join_Thread();
 }
 

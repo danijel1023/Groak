@@ -6,7 +6,7 @@
 
 //Core type doesn't exist since you have
 //to use GApp-calls (eg. GApp()->Post_Event(...)) directly, to write to its queue
-enum class GEType { Window, Mouse, Keyboard, Renderer, Custom };
+enum class GEType { Window, Mouse, Keyboard, Renderer, Console, Custom };
 
 enum class GECore_Message {
     Register, Run_Lambda,
@@ -62,6 +62,10 @@ enum class GERenderer_Message {
     Load_Texture
 };
 
+enum class GEConsole_Message {
+    Sync
+};
+
 
 struct GEvent {
     GEType Type = {};
@@ -71,6 +75,7 @@ struct GEvent {
         GEMouse_Message Mouse_Message;
         GEKeyboard_Message Keyboard_Message;
         GERenderer_Message Renderer_Message;
+        GEConsole_Message Console_Message;
     };
 
     int64_t Data = 0;

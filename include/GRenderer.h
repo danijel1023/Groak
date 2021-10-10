@@ -42,6 +42,7 @@ public:
     int Send_Event_NL(const GEvent& Event);
     void Start_Thread();
     void Join_Thread();
+    void Start_Rendering();
 
     void Set_Window_Space(const GPos& Screen, const GSize& Window);
     void Set_Scale(const GSize& Window);
@@ -57,8 +58,10 @@ private:
     bool m_Running = true;
     GTEQueue m_Queue;
     int m_Render_Request = 0;
+    std::atomic<bool> m_Allow_Render = false;
     std::recursive_mutex m_Dispatcher_Mutex;
     std::condition_variable_any m_DCV;
+
 
     std::recursive_mutex m_SERM;
     std::condition_variable_any m_SECV;

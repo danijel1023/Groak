@@ -17,7 +17,7 @@ private:
     GTexture m_Maximise_Tex, m_Restore_Tex;
 
     size_t m_Bkg_Quad = 0;
-    GColor m_Bkg_Color = { (40.0f / 100.0f), (40.0f / 100.0f), (40.0f / 100.0f), (100.0f / 100.0f) };
+    GColor m_Bkg_Color = { (40 * 255 / 100), (40 * 255 / 100), (40 * 255 / 100), (100 * 255 / 100) };
     bool m_Iconified = false;
 
     GPos m_Prev_MP;

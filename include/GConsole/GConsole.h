@@ -9,7 +9,7 @@
 /*
 * If you close GConsole with close signal, then the actuall GConsole object will get destroied.
 * But if you just change the `Log_Device`, then the console stays open and just gets hidden.
-* -- It's not a but, it's a feature
+* -- It's not a bug, it's a feature
 */
 
 class GConsole : public GDecorated_Window {
@@ -27,12 +27,9 @@ private:
     GSBuff m_Stream_Buff;
     std::ostream m_Stream;
 
-    //std::atomic<bool> m_Read = std::atomic<bool>(false);
-    std::atomic_bool m_Read = false;
+    std::mutex m_Buffer_Mutex;
     std::vector<GString> m_Buffer;
-
-    GTitle_Bar* m_Title_Bar = nullptr;
-    Content_Area* m_Content_Area = nullptr;
+    std::vector<GText> m_Render_Text;
 
 protected:
     int Callback_Func(const GEvent& Event);

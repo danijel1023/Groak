@@ -54,7 +54,7 @@ GRenderer::GRenderer(GWindow* Main_Wind, GLFWwindow* Window_Hndl)
     glVertexAttribIPointer(0, 1, GL_INT,             sizeof(GVertex), (void*)offsetof(GVertex, Type));
     glVertexAttribPointer (1, 2, GL_FLOAT, GL_FALSE, sizeof(GVertex), (void*)offsetof(GVertex, Pos));
     glVertexAttribPointer (2, 2, GL_FLOAT, GL_FALSE, sizeof(GVertex), (void*)offsetof(GVertex, Centre));
-    glVertexAttribPointer (3, 4, GL_FLOAT, GL_FALSE, sizeof(GVertex), (void*)offsetof(GVertex, Color));
+    glVertexAttribIPointer(3, 4, GL_INT,             sizeof(GVertex), (void*)offsetof(GVertex, Color));
     glVertexAttribPointer (4, 2, GL_FLOAT, GL_FALSE, sizeof(GVertex), (void*)offsetof(GVertex, Tex_Coords));
     glVertexAttribIPointer(5, 1, GL_INT,             sizeof(GVertex), (void*)offsetof(GVertex, Tex_id));
     glVertexAttribPointer (6, 1, GL_FLOAT, GL_FALSE, sizeof(GVertex), (void*)offsetof(GVertex, Rotation));
@@ -80,6 +80,10 @@ GRenderer::GRenderer(GWindow* Main_Wind, GLFWwindow* Window_Hndl)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     Textures_id[-1] = -1;
+
+    m_Main_Wind->Set_Default_Font(
+        m_Main_Wind->Load_Font_From_Memory(Get_Integrated_Font_File(),
+                                           Get_Integrated_Font_File_Size()));
 }
 
 GRenderer::~GRenderer() {
@@ -94,11 +98,14 @@ GRenderer::~GRenderer() {
 
 void GRenderer::Post_Event(const GEvent& Event) {
     std::unique_lock<std::recursive_mutex> Lck(m_Dispatcher_Mutex);
-    if (Event.Renderer_Message == GERenderer_Message::Render)
-        if (m_Render_Request < 2)
+    if (Event.Renderer_Message == GERenderer_Message::Render) {
+        if (m_Render_Request < 3)
             m_Render_Request++;
         else
             return;
+
+        if (!m_Allow_Render) return;
+    }
 
     auto Node = m_Queue.Get_Node();
     Node->Data = Event;
@@ -146,6 +153,10 @@ void GRenderer::Join_Thread() {
     Post_Event(Event);
 
     m_Worker.join();
+}
+
+void GRenderer::Start_Rendering() {
+    m_Allow_Render = true;
 }
 
 
@@ -306,8 +317,13 @@ void GRenderer::Draw_Text(const GText& Str, const GPos& Pos, int Height) {
 
 void GRenderer::Draw_Text(const GText& Str, const GPos& Pos, int Height, GFont* Font) {
     if (!Font) {
-        GError() << "Draw_Text called with no font (nullptr)";
-        return;
+        GWarning() << "Draw_Text called with no font (nullptr). The default font will be used.";
+
+        Font = m_Main_Wind->Get_Default_Font();
+        if (!Font) {
+            GError() << "No default font found!";
+            return;
+        }
     }
 
     float Scale = (float)Height / (float)Font->Height;
