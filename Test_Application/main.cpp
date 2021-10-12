@@ -95,6 +95,7 @@ int Window::Callback_Func(const GEvent& Event) {
             else if (Event.Wind_Message == GEWind_Message::Close) {
                 GInfo() << "Close event: Application termination";
                 GEvent Event;
+                Event.Type = GEType::Core;
                 Event.Core_Message = GECore_Message::Terminate;
                 GApp()->Post_Event(Event);
 
@@ -130,10 +131,6 @@ int Window::Callback_Func(const GEvent& Event) {
                         }
 
 
-                        GEvent Render;
-                        //Render.Core_Message = GECore_Message::Render;
-                        Render.Data_Ptr = this;
-                        GApp()->Post_Event(Render);
 
                         Text.clear();
                         std::stringstream SS;

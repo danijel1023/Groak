@@ -256,5 +256,5 @@ void GApplication::GLFW_Window_Refresh_Callback(GLFWwindow* Window_Hndl) {
         GApp()->m_Simulator_File.flush();
     }
 
-    _This->Post_Event(Event);
+    _This->Get_Renderer()->Post_Event(Event);
 }

@@ -27,9 +27,11 @@ private:
     GSBuff m_Stream_Buff;
     std::ostream m_Stream;
 
-    std::mutex m_Buffer_Mutex;
+    std::mutex m_Buffer_Mutex, m_Render_Sync_Mutex;
     std::vector<GString> m_Buffer;
     std::vector<GText> m_Render_Text;
+
+    GFont* m_;
 
 protected:
     int Callback_Func(const GEvent& Event);

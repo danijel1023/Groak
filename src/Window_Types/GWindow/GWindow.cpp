@@ -166,6 +166,7 @@ int GWindow::Callback_Func(const GEvent& Event) {
                 case GEWind_Message::Close:
                 {
                     GEvent Event;
+                    Event.Type = GEType::Core;
                     Event.Core_Message = GECore_Message::Close;
                     Event.Data_Ptr = this;
                     GApp()->Post_Event(Event);
@@ -176,6 +177,7 @@ int GWindow::Callback_Func(const GEvent& Event) {
                 case GEWind_Message::Should_Iconify:
                 {
                     GEvent Event;
+                    Event.Type = GEType::Core;
                     Event.Core_Message = GECore_Message::Iconify;
                     Event.Data_Ptr = this;
                     GApp()->Post_Event(Event);
@@ -186,6 +188,7 @@ int GWindow::Callback_Func(const GEvent& Event) {
                 case GEWind_Message::Should_Maximise:
                 {
                     GEvent Event;
+                    Event.Type = GEType::Core;
                     Event.Core_Message = GECore_Message::Maximise;
                     Event.Data_Ptr = this;
                     GApp()->Post_Event(Event);
@@ -196,6 +199,7 @@ int GWindow::Callback_Func(const GEvent& Event) {
                 case GEWind_Message::Should_Restore:
                 {
                     GEvent Event;
+                    Event.Type = GEType::Core;
                     Event.Core_Message = GECore_Message::Restore;
                     Event.Data_Ptr = this;
                     GApp()->Post_Event(Event);
@@ -278,6 +282,7 @@ void GWindow::Worker() {
 
 void GWindow::Render() {
     GEvent Event;
+    Event.Type = GEType::Renderer;
     Event.Renderer_Message = GERenderer_Message::Render;
     m_Renderer->Post_Event(Event);
 }

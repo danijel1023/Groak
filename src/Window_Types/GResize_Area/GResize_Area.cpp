@@ -25,6 +25,7 @@ int GResize_Area::Callback_Func(const GEvent& Event) {
             case GEMouse_Message::Enter:
             {
                 GEvent Event;
+                Event.Type = GEType::Core;
                 Event.Core_Message = GECore_Message::Set_Cursor;
                 Event.Data_Ptr = m_Main_Window;
 
@@ -49,6 +50,7 @@ int GResize_Area::Callback_Func(const GEvent& Event) {
             case GEMouse_Message::Leave:
             {
                 GEvent Event;
+                Event.Type = GEType::Core;
                 Event.Core_Message = GECore_Message::Set_Cursor;
                 Event.Data_Ptr = m_Main_Window;
                 Event.Cursor_Type = GCursor_Type::Default;
@@ -83,10 +85,12 @@ int GResize_Area::Callback_Func(const GEvent& Event) {
 
                     Move.Data_Ptr = m_Main_Window;
                     Move.Core_Message = GECore_Message::Move;
+                    Move.Type = GEType::Core;
                     Move.WP = Screen;
 
                     Resize.Data_Ptr = m_Main_Window;
                     Resize.Core_Message = GECore_Message::Resize;
+                    Resize.Type = GEType::Core;
                     Resize.WS = Window;
 
 

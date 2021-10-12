@@ -12,6 +12,7 @@
 #include "GBasic_Framebuffer.h"
 #include "GFramebuffer.h"
 #include "GTexture.h"
+#include "GApplication.h"
 
 #include "Inconsolata-Black.inl"
 
@@ -97,20 +98,18 @@ GRenderer::~GRenderer() {
 
 
 void GRenderer::Post_Event(const GEvent& Event) {
-    std::unique_lock<std::recursive_mutex> Lck(m_Dispatcher_Mutex);
     if (Event.Renderer_Message == GERenderer_Message::Render) {
+        if (!m_Allow_Render) return;
+
         if (m_Render_Request < 3)
             m_Render_Request++;
         else
             return;
-
-        if (!m_Allow_Render) return;
     }
 
     auto Node = m_Queue.Get_Node();
     Node->Data = Event;
     m_Queue.Insert(Node);
-
 
     m_DCV.notify_all();
 }
@@ -118,10 +117,10 @@ void GRenderer::Post_Event(const GEvent& Event) {
 
 int GRenderer::Send_Event(const GEvent& Event) {
     {
-        std::unique_lock<std::recursive_mutex> Lck(m_Dispatcher_Mutex);
         m_SEEvent = Event;
 
         GEvent Event;
+        Event.Type = GEType::Renderer;
         Event.Renderer_Message = GERenderer_Message::Send_Event;
         Post_Event(Event);
     }
@@ -138,7 +137,6 @@ int GRenderer::Send_Event(const GEvent& Event) {
 
 
 int GRenderer::Send_Event_NL(const GEvent& Event) {
-    std::unique_lock<std::recursive_mutex> Lck(m_Dispatcher_Mutex);
     return Callback_Func(Event);
 }
 
@@ -149,6 +147,7 @@ void GRenderer::Start_Thread() {
 
 void GRenderer::Join_Thread() {
     GEvent Event;
+    Event.Type = GEType::Renderer;
     Event.Renderer_Message = GERenderer_Message::Terminate_Thread;
     Post_Event(Event);
 
@@ -157,6 +156,11 @@ void GRenderer::Join_Thread() {
 
 void GRenderer::Start_Rendering() {
     m_Allow_Render = true;
+
+    GEvent Event;
+    Event.Type = GEType::Renderer;
+    Event.Renderer_Message = GERenderer_Message::Render;
+    Post_Event(Event);
 }
 
 
@@ -433,6 +437,7 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
     
     
     GEvent Event;
+    Event.Type = GEType::Renderer;
     Event.Renderer_Message = GERenderer_Message::Load_Texture;
     Event.Data_Ptr = Texture_Plane;
     Event.Texture = Texture;
@@ -462,6 +467,7 @@ GAtlas& GRenderer::Get_Empty_Atlas() {
 
 unsigned int GRenderer::Store_Texture(unsigned char* Data, const GTexture& Texture) {
     GEvent Event;
+    Event.Type = GEType::Renderer;
     Event.Renderer_Message = GERenderer_Message::Load_Texture;
     Event.Data_Ptr = Data;
     Event.Texture = Texture;

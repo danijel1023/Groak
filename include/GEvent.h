@@ -3,15 +3,15 @@
 #include <functional>
 #include "GUnits.h"
 #include "GTexture.h"
+#include "GString.h"
 
-//Core type doesn't exist since you have
-//to use GApp-calls (eg. GApp()->Post_Event(...)) directly, to write to its queue
-enum class GEType { Window, Mouse, Keyboard, Renderer, Console, Custom };
+enum class GEType { Core, Window, Mouse, Keyboard, Renderer, Console, Custom };
 
 enum class GECore_Message {
     Register, Run_Lambda,
 
     Create_Cursor, Set_Cursor, Destroy_Cursor,
+    Get_Clipboard, Set_Clipboard,
 
     Move, Resize,
     Iconify, Maximise, Restore,
@@ -102,4 +102,7 @@ struct GEvent {
     int Scancode = 0;
     uint32_t Code_Point = 0;
     GEKey_Action Key_Action = {};
+
+
+    void Resolve_Event(std::ostream* Stream_Ptr, const GString& Prefix = "", bool New_Line = true, bool Print_Active = false) const;
 };

@@ -266,6 +266,23 @@ void GApplication::Worker(const GEvent& Event) {
             glfwDestroyCursor(((GCursor*)Event.Data)->m_Ptr);
             break;
         }
+
+        case GECore_Message::Get_Clipboard:
+        {
+            const char* Clipboard = glfwGetClipboardString(nullptr);
+            if (Clipboard) {
+                GError() << "";
+                break;
+            }
+
+            break;
+        }
+
+        case GECore_Message::Set_Clipboard:
+        {
+
+            break;
+        }
     }
 }
 
@@ -324,254 +341,9 @@ void GApplication::Simulator_Thread() {
             }
         }
 
-        GApp()->Resolve_Event(Event[i], &std::cout);
+        Event[i].Resolve_Event(&std::cout);
         m_Simulator_Window->Post_Event(Event[i]);
     }
 
     File.close();
-}
-
-
-void GApplication::Resolve_Event(const GEvent& Event, std::ostream* Stream_Ptr, const GString& Prefix, bool New_Line, bool Print_Active, bool Is_Core) {
-    if (!Print_Active && Event.Type == GEType::Mouse && Event.Mouse_Message == GEMouse_Message::Active) return;
-
-    std::ostream& Stream = *Stream_Ptr;
-    Stream << Prefix;
-
-    if (Is_Core) {
-        Stream << "Core: ";
-
-        switch (Event.Core_Message) {
-            case GECore_Message::Register:
-                Stream << "Register(" << Event.Data_Ptr << ")";
-                break;
-            case GECore_Message::Run_Lambda:
-                Stream << "Run_Lambda";
-                break;
-            case GECore_Message::Move:
-                Stream << "Move(" << Event.WP << ")";
-                break;
-            case GECore_Message::Resize:
-                Stream << "Resize(" << Event.WS << ")";
-                break;
-            case GECore_Message::Iconify:
-                Stream << "Iconify(" << Event.Data_Ptr << ")";
-                break;
-            case GECore_Message::Maximise:
-                Stream << "Maximise(" << Event.Data_Ptr << ")";
-                break;
-            case GECore_Message::Restore:
-                Stream << "Restore(" << Event.Data_Ptr << ")";
-                break;
-            case GECore_Message::Show:
-                Stream << "Show(" << Event.Data_Ptr << ")";
-                break;
-            case GECore_Message::Hide:
-                Stream << "Hide(" << Event.Data_Ptr << ")";
-                break;
-            case GECore_Message::Close:
-                Stream << "Close(" << Event.Data_Ptr << ")";
-                break;
-            case GECore_Message::Terminate:
-                Stream << "Terminate";
-                break;
-
-            default:
-                Stream << "Core -- Unknown";
-        }
-
-        if (New_Line) Stream << std::endl;
-        return;
-    }
-
-
-    switch (Event.Type) {
-        case GEType::Window:
-        {
-            Stream << "Window: ";
-
-            switch (Event.Wind_Message) {
-                case GEWind_Message::Resize:
-                    Stream << "Resize(" << Event.WS << ")";
-                    break;
-
-                case GEWind_Message::Lose_Focus:
-                    Stream << "Lose focus";
-                    break;
-
-                case GEWind_Message::Gain_Focus:
-                    Stream << "Gain focus";
-                    break;
-
-                case GEWind_Message::Run:
-                    Stream << "Run";
-                    break;
-
-                case GEWind_Message::Move:
-                    Stream << "Move(" << Event.WP << ")";
-                    break;
-
-                case GEWind_Message::Render:
-                    Stream << "Render";
-                    break;
-
-                case GEWind_Message::Show:
-                    Stream << "Show";
-                    break;
-
-                case GEWind_Message::Hide:
-                    Stream << "Hide";
-                    break;
-
-                case GEWind_Message::Close:
-                    Stream << "Close";
-                    break;
-
-                case GEWind_Message::Iconify:
-                    Stream << "Iconify";
-                    break;
-
-                case GEWind_Message::Should_Iconify:
-                    Stream << "Should_Iconify";
-                    break;
-
-                case GEWind_Message::Maximise:
-                    Stream << "Maximise";
-                    break;
-
-                case GEWind_Message::Should_Maximise:
-                    Stream << "Should_Maximise";
-                    break;
-
-                case GEWind_Message::Restore:
-                    Stream << "Restore";
-                    break;
-
-                case GEWind_Message::Should_Restore:
-                    Stream << "Should_Restore";
-                    break;
-
-                case GEWind_Message::Terminate_Thread:
-                    Stream << "Terminating thread";
-                    break;
-
-                default:
-                    Stream << "Window -- Unknown";
-            }
-
-            break;
-        }
-
-        case GEType::Mouse:
-        {
-            Stream << "Mouse: ";
-
-            switch (Event.Mouse_Message) {
-                case GEMouse_Message::Down:
-                    Stream << "Down(" << Event.MP << ") - ";
-                    switch (Event.Mouse_Button) {
-                        case GEMouse_Button::LMB: Stream << "LMB"; break;
-                        case GEMouse_Button::RMB: Stream << "RMB"; break;
-                        case GEMouse_Button::MMB: Stream << "MMB"; break;
-                    }
-
-                    if (Event.Modifier_Shift) Stream << " (Shift)";
-                    if (Event.Modifier_Alt) Stream << " (Alt)";
-                    if (Event.Modifier_Ctrl) Stream << " (Ctrl)";
-
-                    break;
-
-                case GEMouse_Message::Up:
-                    Stream << "Up(" << Event.MP << ") - ";
-                    switch (Event.Mouse_Button) {
-                        case GEMouse_Button::LMB: Stream << "LMB"; break;
-                        case GEMouse_Button::RMB: Stream << "RMB"; break;
-                        case GEMouse_Button::MMB: Stream << "MMB"; break;
-                    }
-
-                    if (Event.Modifier_Shift) Stream << " (Shift)";
-                    if (Event.Modifier_Alt) Stream << " (Alt)";
-                    if (Event.Modifier_Ctrl) Stream << " (Ctrl)";
-
-                    break;
-
-                case GEMouse_Message::Scroll_Up:
-                    Stream << "Scroll_Up(" << Event.MP << ")";
-                    break;
-
-                case GEMouse_Message::Scroll_Down:
-                    Stream << "Scroll_Down(" << Event.MP << ")";
-                    break;
-
-                case GEMouse_Message::Scroll_Left:
-                    Stream << "Scroll_Left(" << Event.MP << ")";
-                    break;
-
-                case GEMouse_Message::Scroll_Right:
-                    Stream << "Scroll_Right(" << Event.MP << ")";
-                    break;
-
-                case GEMouse_Message::Move:
-                    Stream << "Move(" << Event.MP << ")";
-                    break;
-
-                case GEMouse_Message::Enter:
-                    Stream << "Enter(" << Event.MP << ")";
-                    break;
-
-                case GEMouse_Message::Leave:
-                    Stream << "Leave(" << Event.MP << ")";
-                    break;
-
-                case GEMouse_Message::Active:
-                    Stream << "Is active?";
-                    break;
-
-                case GEMouse_Message::Gain_Focus:
-                    Stream << "Gain mouse focus (send mouse msgs to that window)";
-                    break;
-
-                case GEMouse_Message::Lose_Focus:
-                    Stream << "Lose mouse focus";
-                    break;
-
-                default:
-                    Stream << "Mouse -- Unknown";
-            }
-
-            break;
-        }
-
-        case GEType::Keyboard:
-        {
-            Stream << "Keyboard: ";
-
-            switch (Event.Keyboard_Message) {
-                case GEKeyboard_Message::Key:
-                    Stream << "Key(key:" << Event.Key << ", scan_code:" << Event.Scancode << ") - ";
-                    switch (Event.Key_Action) {
-                        case GEKey_Action::Up: Stream << "Up"; break;
-                        case GEKey_Action::Down: Stream << "Down"; break;
-                        case GEKey_Action::Repeat: Stream << "Repeat"; break;
-                    }
-
-                    if (Event.Modifier_Shift) Stream << " (Shift)";
-                    if (Event.Modifier_Alt) Stream << " (Alt)";
-                    if (Event.Modifier_Ctrl) Stream << " (Ctrl)";
-
-                    break;
-
-                case GEKeyboard_Message::Text:
-                    Stream << "Text(num:" << Event.Code_Point << ", ch: " << GString().push_back(Event.Code_Point) << ")";
-                    break;
-
-                default:
-                    Stream << "Keyboard -- Unknown";
-            }
-
-            break;
-        }
-    }
-
-    if (New_Line) Stream << std::endl;
 }
