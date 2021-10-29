@@ -3,7 +3,7 @@
 
 class GBasic_Framebuffer {
 public:
-    GBasic_Framebuffer(int Window_X, int Window_Y);
+    GBasic_Framebuffer(const GSize& Window);
     ~GBasic_Framebuffer();
 
     void Bind();

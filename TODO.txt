@@ -1,24 +1,4 @@
-Current task: <1>
+Event abstraction:
+eg. #define Window_Icon_Event(Event, Texture_Array, Count) -- Set type, message, etc.
 
-<0> Transfer window rendering (and clearing the screen) to the "rendering thread" of each window
-        - (Manage window context - currently unhandaled!) -- no need
-        - Cleanup the GRenderer code: all of the rendering related "stuff" should be done
-          inside of GREnderer
-
-<1> Fix GTitle_Bar
-    - Possible error in mouse dispatcher (problem found in GTitle_Bar & GResize_Area)
-    -> Works exactly like imagined: the GResize_Area was not overlay so the mouse system assigned
-       mouse events to the first coordinate match. But found problem <5>
-
-<2> Re-think event system:
-        - along the lines - "Should_Close" (type: request, receive), "Close" (type: command, respond), etc.
-
-<3> Implemet CPU-side atlas creation
-        - optional: SIMD?
-
-<-4-> Move sending of Enter and Leave events to callback (from dispacher)
-        - The sending of Enter and Leave events will stay in dispatcher because
-          Leave event always comes before Move event - so if a window ignores Move event,
-          there might be a problem with Leave events (further investigation needed)
-
-<5> Problem found with Move, Leave & Enter events. Affected classes: GBasic_Window, GWindow
+Implement circle as quad type

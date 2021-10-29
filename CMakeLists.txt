@@ -8,6 +8,7 @@ find_package(OpenGL REQUIRED)
 
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 add_library(Groak STATIC ${SRC_FILES})
+target_compile_definitions(Groak PRIVATE GROAK_BUILD)
 
 #build glad & glfw libraries
 add_subdirectory("Vendor/glad")
@@ -20,15 +21,14 @@ add_subdirectory("Vendor/freetype")
 add_subdirectory("Vendor/stb")
 
 
-add_compile_definitions(GLEW_STATIC)
+target_compile_definitions(Groak PRIVATE GLEW_STATIC)
 target_include_directories(Groak PRIVATE "include")
 
 #FreeType beeing FreeType requiers to add include dir directly to it's own include dir
 target_include_directories(Groak PUBLIC "Vendor/freetype/include")
 
 #link all of the libraries
-target_link_libraries(Groak PUBLIC glad glfw freetype stb)
-#target_link_libraries(Groak PUBLIC "OpenGL")
+target_link_libraries(Groak PRIVATE glad glfw freetype stb)
 
 
 add_subdirectory("Test_Application")

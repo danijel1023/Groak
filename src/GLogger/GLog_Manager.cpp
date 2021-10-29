@@ -1,6 +1,7 @@
 #include "GLog_Manager.h"
 
 
+std::mutex GLog_Manager::m_Write_Mutex;
 GLog_Stream* GLog_Manager::m_Stream_Ptr = nullptr;
 GLog_Level GLog_Manager::m_Log_Lvl = GLog_Level::Trace;
 
@@ -28,6 +29,7 @@ std::ostream* GLog_Manager::Get_Stream() {
 }
 
 GLog_Manager::GLog_Manager() {}
+
 GLog_Manager::~GLog_Manager() {
     if (m_Use_Line_Ending) m_Stream_Ptr->New_Line();
 }

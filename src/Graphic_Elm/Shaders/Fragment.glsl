@@ -32,7 +32,9 @@ vec4 Get_Texture(int Tex_Slot) {
 
 
 void main() {
-    switch (v_Type) {
+    int Type = v_Type & 0x00ff;
+
+    switch (Type) {
     case 0: {
         if (v_Tex_Slot == -1)   Color = v_Color;
         else                    Color = Get_Texture(v_Tex_Slot);

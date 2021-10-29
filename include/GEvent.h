@@ -13,11 +13,14 @@ enum class GECore_Message {
     Create_Cursor, Set_Cursor, Destroy_Cursor,
     Get_Clipboard, Set_Clipboard,
 
+    Set_Window_Icon, Set_Window_Name,
+
     Move, Resize,
     Iconify, Maximise, Restore,
     Show, Hide,
     Close,
 
+    Send_Event,
     Terminate
 };
 
@@ -31,6 +34,7 @@ enum class GCursor_Type {
 
 enum class GEWind_Message {
     Resize, Lose_Focus, Gain_Focus,
+    Set_Window_Icon,
 
     Run,
     Move, Iconify, Maximise, Restore,
@@ -63,7 +67,8 @@ enum class GERenderer_Message {
 };
 
 enum class GEConsole_Message {
-    Sync
+    Sync,
+    Update_Rendered_Text
 };
 
 
@@ -81,6 +86,8 @@ struct GEvent {
     int64_t Data = 0;
     void* Data_Ptr = 0;
 
+    GString String;
+
     GSize WS;   //Window size
     GPos  WP;   //Window position
 
@@ -90,11 +97,12 @@ struct GEvent {
     std::function<int()> Lambda;
     GTexture Texture;
 
-    struct {
-        bool Modifier_Alt = false;
-        bool Modifier_Shift = false;
-        bool Modifier_Ctrl = false;
-    };
+    int Texture_Count = 0;
+    GTexture* Texture_Arrays = nullptr;
+
+    bool Modifier_Alt = false;
+    bool Modifier_Shift = false;
+    bool Modifier_Ctrl = false;
 
     GCursor_Type Cursor_Type = {};
 

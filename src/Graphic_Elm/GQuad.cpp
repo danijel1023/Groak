@@ -24,10 +24,10 @@ void GQuad::Texture_Region(const GTexture& Texture, const GSize& Window, const G
 
 void GQuad::Texture_Region(const GTexture& Texture, unsigned int Window_X, unsigned int Window_Y, unsigned int Screen_X, unsigned int Screen_Y) {
     float Window_Xf = (float)Window_X, Window_Yf = (float)Window_Y, Screen_Xf = (float)Screen_X, Screen_Yf = (float)Screen_Y;
-    Window_Xf /= Texture.Width;
-    Window_Yf /= Texture.Height;
-    Screen_Xf /= Texture.Width;
-    Screen_Yf /= Texture.Height;
+    Window_Xf /= Texture.Size.X;
+    Window_Yf /= Texture.Size.Y;
+    Screen_Xf /= Texture.Size.X;
+    Screen_Yf /= Texture.Size.Y;
 
     m_Tex_Coords[0] = { Screen_Xf,              Screen_Yf };
     m_Tex_Coords[1] = { Screen_Xf + Window_Xf,  Screen_Yf };
@@ -37,10 +37,14 @@ void GQuad::Texture_Region(const GTexture& Texture, unsigned int Window_X, unsig
     m_Texture = Texture.ID;
 }
 
-
 void GQuad::Insert_Vertices(GVertex* Buffer, int Texture_Slot) const {
-    Buffer[0] = GVertex{ (int)m_Type, m_Screen.X,              m_Screen.Y,              m_Screen.X + (m_Window.X / 2), m_Screen.Y + (m_Window.Y / 2), m_Color.Red, m_Color.Green, m_Color.Blue, m_Color.Alpha, m_Tex_Coords[0], Texture_Slot, m_Rotation };
-    Buffer[1] = GVertex{ (int)m_Type, m_Screen.X + m_Window.X, m_Screen.Y,              m_Screen.X + (m_Window.X / 2), m_Screen.Y + (m_Window.Y / 2), m_Color.Red, m_Color.Green, m_Color.Blue, m_Color.Alpha, m_Tex_Coords[1], Texture_Slot, m_Rotation };
-    Buffer[2] = GVertex{ (int)m_Type, m_Screen.X + m_Window.X, m_Screen.Y + m_Window.Y, m_Screen.X + (m_Window.X / 2), m_Screen.Y + (m_Window.Y / 2), m_Color.Red, m_Color.Green, m_Color.Blue, m_Color.Alpha, m_Tex_Coords[2], Texture_Slot, m_Rotation };
-    Buffer[3] = GVertex{ (int)m_Type, m_Screen.X,              m_Screen.Y + m_Window.Y, m_Screen.X + (m_Window.X / 2), m_Screen.Y + (m_Window.Y / 2), m_Color.Red, m_Color.Green, m_Color.Blue, m_Color.Alpha, m_Tex_Coords[3], Texture_Slot, m_Rotation };
+    int32_t Data = (int32_t)m_Type;
+
+    if (Flip_Texture)   Data |= 0x0100;
+    else                Data &= ~0x0100;
+    
+    Buffer[0] = GVertex{ Data, m_Screen.X,              m_Screen.Y,              m_Screen.X + (m_Window.X / 2), m_Screen.Y + (m_Window.Y / 2), m_Color.Red, m_Color.Green, m_Color.Blue, m_Color.Alpha, m_Tex_Coords[0], Texture_Slot, m_Rotation };
+    Buffer[1] = GVertex{ Data, m_Screen.X + m_Window.X, m_Screen.Y,              m_Screen.X + (m_Window.X / 2), m_Screen.Y + (m_Window.Y / 2), m_Color.Red, m_Color.Green, m_Color.Blue, m_Color.Alpha, m_Tex_Coords[1], Texture_Slot, m_Rotation };
+    Buffer[2] = GVertex{ Data, m_Screen.X + m_Window.X, m_Screen.Y + m_Window.Y, m_Screen.X + (m_Window.X / 2), m_Screen.Y + (m_Window.Y / 2), m_Color.Red, m_Color.Green, m_Color.Blue, m_Color.Alpha, m_Tex_Coords[2], Texture_Slot, m_Rotation };
+    Buffer[3] = GVertex{ Data, m_Screen.X,              m_Screen.Y + m_Window.Y, m_Screen.X + (m_Window.X / 2), m_Screen.Y + (m_Window.Y / 2), m_Color.Red, m_Color.Green, m_Color.Blue, m_Color.Alpha, m_Tex_Coords[3], Texture_Slot, m_Rotation };
 }

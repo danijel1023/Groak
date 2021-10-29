@@ -2,6 +2,14 @@
 #include "GApplication.h"
 #include "GLog_Manager.h"
 
+#define Window_Icon_Event(Event, Array_Ptr, Count)\
+(Event).Type = GEType::Core;\
+(Event).Core_Message = GECore_Message::Set_Window_Icon;\
+(Event).Data_Ptr = this;\
+(Event).Texture_Count = Count;\
+(Event).Texture_Arrays = Array_Ptr;
+
+
 
 GConsole::GConsole()
     : GDecorated_Window("Groak Console", 500, 250), m_Stream_Buff(this), m_Stream(&m_Stream_Buff) {
@@ -40,10 +48,8 @@ std::ostream* GConsole::Get_Stream() { return &m_Stream; }
 GPos MP_C;
 bool Track_C = false;
 
-
-static GText Text;
-static int Text_Height = 20;
-static GFont* Consola;
+GCursor Cursor;
+GTexture Icon;
 
 int GConsole::Callback_Func(const GEvent& Event) {
     switch (Event.Type) {
@@ -52,14 +58,24 @@ int GConsole::Callback_Func(const GEvent& Event) {
             switch (Event.Console_Message) {
                 case GEConsole_Message::Sync:
                 {
+                    GEvent Event;
+                    Event.Type = GEType::Console;
+                    Event.Console_Message = GEConsole_Message::Update_Rendered_Text;
+                    Post_Event(Event);
+                    break;
+                }
+
+                case GEConsole_Message::Update_Rendered_Text:
+                {
                     std::unique_lock<std::mutex> Lck(m_Render_Sync_Mutex);
+                    std::unique_lock<std::mutex> Lck2(m_Buffer_Mutex);
 
                     m_Render_Text.clear();
                     for (size_t i = 0; i < m_Buffer.size(); i++) {
                         auto& Buffer_String = m_Buffer[i];
 
                         GColor Color;
-                        if      (Buffer_String.substr(0, 7) == "[Trace]")   Color = { 0, 55, 218, 255 };
+                        if (Buffer_String.substr(0, 7) == "[Trace]")        Color = { 0, 55, 218, 255 };
                         else if (Buffer_String.substr(0, 6) == "[Info]")    Color = { 97, 214, 214, 255 };
                         else if (Buffer_String.substr(0, 9) == "[Warning]") Color = { 193, 156, 0, 255 };
                         else if (Buffer_String.substr(0, 7) == "[Error]")   Color = { 231, 72, 86, 255 };
@@ -69,7 +85,8 @@ int GConsole::Callback_Func(const GEvent& Event) {
                         m_Render_Text.emplace_back();
                         auto& Render_String = m_Render_Text.back();
                         for (size_t Ch = 0; Ch < Buffer_String.size(); Ch++) {
-                            Render_String.push_back({ (int)Buffer_String[Ch], Color });
+                            int Code_Point = (int)Buffer_String[Ch];
+                            Render_String.push_back({ Code_Point, Color });
                         }
                     }
 
@@ -93,22 +110,23 @@ int GConsole::Callback_Func(const GEvent& Event) {
                     Add_Quad(Quad);
                     Render();
 
-                    Consola = Load_Font("C:/Windows/Fonts/consola.ttf");
+                    m_Console_Font = Load_Font("C:/Windows/Fonts/consola.ttf");
 
-                    Text.push_back({ 'R', {240, 245, 64, 255} });
-                    Text.push_back({ 'e', {235, 64, 51, 255} });
-                    Text.push_back({ 'c', {255, 0, 255, 255} });
-                    Text.push_back({ 'o', {255, 0, 255, 255} });
-                    Text.push_back({ 'r', {255, 0, 255, 255} });
-                    Text.push_back({ 'd', {255, 0, 255, 255} });
-                    Text.push_back({ 'i', {255, 0, 255, 255} });
-                    Text.push_back({ 'n', {255, 0, 255, 255} });
-                    Text.push_back({ 'g', {255, 0, 255, 255} });
-                    Text.push_back({ '.', {255, 0, 255, 255} });
-                    Text.push_back({ '.', {255, 0, 255, 255} });
-                    Text.push_back({ 272, {255, 0, 255, 255} });
-                    
-                    GInfo() << "Constructig GConsole...";
+                    Icon = Groak::Load_Texture("../../../../Image1.png");
+                    Store_Texture(&Icon);
+                    GEvent Event;
+                    Window_Icon_Event(Event, &Icon, 1);
+                    GApp()->Post_Event(Event);
+
+                    GEvent Cur;
+                    Cur.Type = GEType::Core;
+                    Cur.Core_Message = GECore_Message::Create_Cursor;
+
+                    Cursor.Data = (uint8_t*)Icon.Pixels;
+                    Cursor.Size = Icon.Size;
+
+                    Cur.Data = (int64_t)&Cursor;
+                    GApp()->Post_Event(Cur);
 
                     GTrace() << "Testing Trace mode";
                     GInfo() << "Testing Info mode";
@@ -140,9 +158,10 @@ int GConsole::Callback_Func(const GEvent& Event) {
 
                     //Render text
                     std::unique_lock<std::mutex> Lck(m_Render_Sync_Mutex);
+
                     for (int i = 0; i < m_Render_Text.size(); i++) {
-                        Renderer.Draw_Text(m_Render_Text.at(i), { 50, m_Window.Y - Get_Title_Bar_Window().Y - (Text_Height * (i+1)) }, Text_Height);
-                        //Renderer.Draw_Text(m_Render_Text.at(i), { 50, m_Window.Y - Get_Title_Bar_Window().Y - (Text_Height * (i+1)) }, Text_Height, Consola);
+                        //Renderer.Draw_Text(m_Render_Text.at(i), { 50, m_Window.Y - Get_Title_Bar_Window().Y - (Text_Height * (i+1)) }, Text_Height);
+                        Renderer.Draw_Text(m_Render_Text.at(i), GPos({ 50, m_Window.Y - Get_Title_Bar_Window().Y - (m_Text_Height * (i+1)) }) - m_Text_Offset, m_Text_Height, m_Console_Font);
                     }
 
                     Renderer.Flush();
@@ -166,6 +185,19 @@ int GConsole::Callback_Func(const GEvent& Event) {
                 if (Event.Key_Action == GEKey_Action::Down && Event.Key == 82) {
                     Event.Resolve_Event(GInfo().NLE().Get_Stream());
                 }
+
+                if ((Event.Key_Action == GEKey_Action::Down || Event.Key_Action == GEKey_Action::Repeat)
+                    && Event.Key == 86 && Event.Modifier_Ctrl) {
+
+                    GEvent Clipboard;
+                    Clipboard.Type = GEType::Core;
+                    Clipboard.Core_Message = GECore_Message::Get_Clipboard;
+                    GApp()->Send_Event(Clipboard);
+
+                    GInfo() << Clipboard.String;
+                }
+
+                Event.Resolve_Event(&std::cout);
             }
 
             break;
@@ -180,7 +212,8 @@ int GConsole::Callback_Func(const GEvent& Event) {
                     Event.Type = GEType::Core;
                     Event.Core_Message = GECore_Message::Set_Cursor;
                     Event.Data_Ptr = m_Main_Window;
-                    Event.Cursor_Type = GCursor_Type::Not_Allowed;
+                    Event.Cursor_Type = GCursor_Type::Custom;
+                    Event.Data = (int64_t)&Cursor;
                     GApp()->Post_Event(Event);
 
                     break;
@@ -199,14 +232,36 @@ int GConsole::Callback_Func(const GEvent& Event) {
 
                 case GEMouse_Message::Scroll_Down:
                 {
-                    if (Text_Height) Text_Height--;
+                    if (m_Modifier_Ctrl) {
+                        if (m_Text_Height)
+                            m_Text_Height--;
+                    }
+
+                    else {
+                        if (m_Modifier_Shift)
+                            m_Text_Offset.X--;
+                        else
+                            m_Text_Offset.Y -= m_Text_Height;
+                    }
+
                     Render();
                     break;
                 }
 
                 case GEMouse_Message::Scroll_Up:
                 {
-                    Text_Height++;
+                    if (m_Modifier_Ctrl) {
+                        if (m_Text_Height)
+                            m_Text_Height++;
+                    }
+
+                    else {
+                        if (m_Modifier_Shift)
+                            m_Text_Offset.X++;
+                        else
+                            m_Text_Offset.Y += m_Text_Height;
+                    }
+
                     Render();
                     break;
                 }

@@ -115,9 +115,9 @@ void GRenderer::Post_Event(const GEvent& Event) {
 }
 
 
-int GRenderer::Send_Event(const GEvent& Event) {
+int GRenderer::Send_Event(GEvent& Event) {
     {
-        m_SEEvent = Event;
+        m_SEEvent = &Event;
 
         GEvent Event;
         Event.Type = GEType::Renderer;
@@ -127,7 +127,7 @@ int GRenderer::Send_Event(const GEvent& Event) {
 
     {
         std::unique_lock<std::recursive_mutex> Lck(m_SERM);
-        m_SECV.wait(Lck, [=] { return m_SE_Continue.load(); });
+        m_SECV.wait(Lck, [=] { return m_SE_Continue; });
 
         m_SE_Continue = false;
     }
@@ -136,7 +136,7 @@ int GRenderer::Send_Event(const GEvent& Event) {
 }
 
 
-int GRenderer::Send_Event_NL(const GEvent& Event) {
+int GRenderer::Send_Event_NL(GEvent& Event) {
     return Callback_Func(Event);
 }
 
@@ -186,7 +186,7 @@ void GRenderer::Worker() {
 }
 
 
-int GRenderer::Callback_Func(const GEvent& Event) {
+int GRenderer::Callback_Func(GEvent& Event) {
     switch (Event.Renderer_Message) {
         case GERenderer_Message::Render:
         {
@@ -216,13 +216,13 @@ int GRenderer::Callback_Func(const GEvent& Event) {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
             switch (Texture.Channels) {
             case 4:
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Texture.Width, Texture.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, Event.Data_Ptr);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Texture.Size.X, Texture.Size.Y, 0, GL_RGBA, GL_UNSIGNED_BYTE, Event.Data_Ptr);
                 break;
             case 3:
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Texture.Width, Texture.Height, 0, GL_RGB, GL_UNSIGNED_BYTE, Event.Data_Ptr);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Texture.Size.X, Texture.Size.Y, 0, GL_RGB, GL_UNSIGNED_BYTE, Event.Data_Ptr);
                 break;
             case 1:
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, Texture.Width, Texture.Height, 0, GL_RED, GL_UNSIGNED_BYTE, Event.Data_Ptr);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, Texture.Size.X, Texture.Size.Y, 0, GL_RED, GL_UNSIGNED_BYTE, Event.Data_Ptr);
                 break;
             }
 
@@ -234,7 +234,7 @@ int GRenderer::Callback_Func(const GEvent& Event) {
 
         case GERenderer_Message::Send_Event:
         {
-            m_SE_Ret = Callback_Func(m_SEEvent);
+            m_SE_Ret = Callback_Func(*m_SEEvent);
             m_SE_Continue = true;
             m_SECV.notify_all();
 
@@ -398,20 +398,20 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
             GError() << "FreeType: Failed to load Glyph " << Ch;
 
         auto& Glyph = Font->Face->glyph;
-        
+
         Ch_Data.Size = { (int)Glyph->bitmap.width, (int)Glyph->bitmap.rows };
         Ch_Data.Bearing = { Glyph->bitmap_left,       Glyph->bitmap_top };
         Ch_Data.Advance = Glyph->advance.x >> 6;
-        
-        
+
+
         if (X_Offset + Ch_Data.Advance >= G_ATLAS_SIZE_X) {
             X_Offset = 0;
             Y_Offset += Font->Height;
         }
-        
+
         Ch_Data.Pos = { X_Offset + Ch_Data.Bearing.X, Y_Offset + Ch_Data.Bearing.Y + Font->Descender - Ch_Data.Size.Y };
         const GPos& Pos = Ch_Data.Pos;
-        
+
         for (int Y = 0; Y < Ch_Data.Size.Y; Y++) {
             for (int X = 0; X < Ch_Data.Size.X; X++) {
                 int Offset = (Ch_Data.Size.Y - Y - 1) * Ch_Data.Size.X + X;
@@ -427,13 +427,12 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
     }
 
     Set_Window_Space({ 0, 0 }, { G_ATLAS_SIZE_X, G_ATLAS_SIZE_Y });
-    Atlas.FB = new GBasic_Framebuffer(G_ATLAS_SIZE_X, G_ATLAS_SIZE_Y);
+    Atlas.FB = new GBasic_Framebuffer({ G_ATLAS_SIZE_X, G_ATLAS_SIZE_Y });
     Atlas.FB->Bind();
-    
+
     GTexture Texture;
     Texture.Channels = 1;
-    Texture.Height = G_ATLAS_SIZE_Y;
-    Texture.Width = G_ATLAS_SIZE_X;
+    Texture.Size = { G_ATLAS_SIZE_X, G_ATLAS_SIZE_Y };
     
     
     GEvent Event;
@@ -458,18 +457,18 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
 
 GAtlas& GRenderer::Get_Empty_Atlas() {
     static GAtlas Atlas;
-    static GBasic_Framebuffer FB(1, 1);
+    static GBasic_Framebuffer FB({ 1, 1 });
     Atlas.FB = &FB;
 
     return Atlas;
 }
 
 
-unsigned int GRenderer::Store_Texture(unsigned char* Data, const GTexture& Texture) {
+unsigned int GRenderer::Store_Texture(const GTexture& Texture) {
     GEvent Event;
     Event.Type = GEType::Renderer;
     Event.Renderer_Message = GERenderer_Message::Load_Texture;
-    Event.Data_Ptr = Data;
+    Event.Data_Ptr = Texture.Pixels;
     Event.Texture = Texture;
 
     return Send_Event(Event);

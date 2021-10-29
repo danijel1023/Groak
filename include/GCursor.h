@@ -1,9 +1,10 @@
 #pragma once
 #include "GCore.h"
+struct GLFWcursor;
 
 class GCursor {
 public:
-    const char* Data = nullptr;
+    uint8_t* Data = nullptr;
     GSize Size;
     GPos Hot_Spot;
 

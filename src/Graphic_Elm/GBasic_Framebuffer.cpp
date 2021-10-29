@@ -1,16 +1,15 @@
 #include "GCore.h"
 #include "GBasic_Framebuffer.h"
 
-GBasic_Framebuffer::GBasic_Framebuffer(int Window_X, int Window_Y) {
-    m_FB_Texture.Height = Window_Y;
-    m_FB_Texture.Width = Window_X;
+GBasic_Framebuffer::GBasic_Framebuffer(const GSize& Window) {
+    m_FB_Texture.Size = Window;
 
     glGenFramebuffers(1, &m_Framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
 
     glGenTextures(1, &m_FB_Texture.ID);
     glBindTexture(GL_TEXTURE_2D, m_FB_Texture.ID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Window_X, Window_Y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Window.X, Window.Y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_FB_Texture.ID, 0);

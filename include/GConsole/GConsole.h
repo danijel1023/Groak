@@ -31,7 +31,10 @@ private:
     std::vector<GString> m_Buffer;
     std::vector<GText> m_Render_Text;
 
-    GFont* m_;
+    GFont* m_Console_Font = nullptr;
+    int m_Text_Height = 20;
+
+    GPos m_Text_Offset;
 
 protected:
     int Callback_Func(const GEvent& Event);

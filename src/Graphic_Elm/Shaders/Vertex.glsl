@@ -37,6 +37,6 @@ void main() {
     v_Tex_Coord = cpu_Tex_Coord;
     v_Type = cpu_Type;
 
-    //1 -> Atlas
-    //if (v_Type == 1) v_Tex_Coord.y = 1.0 - v_Tex_Coord.y;
+
+    if (bool(v_Type & 0x0100)) v_Tex_Coord.y = 1.0 - v_Tex_Coord.y;
 }

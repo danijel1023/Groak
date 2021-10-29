@@ -7,6 +7,7 @@
 #include "GBasic_Window.h"
 #include "GRenderer.h"
 
+struct GLFWwindow;
 
 class GWindow : public GBasic_Window {
 public:
@@ -26,8 +27,7 @@ public:
         else                          return 0;
     }
 
-    GTexture Load_Texture(const GString& Path, bool Flip = false);
-    GTexture Load_Texture_From_Memory(const unsigned char* Mem_Data, unsigned int Size, bool Flip = false);
+    void Store_Texture(GTexture* Texture);
 
     GFont* Load_Font(const GString& Font_File);
     GFont* Load_Font_From_Memory(const unsigned char* Buffer, size_t Size);
@@ -42,6 +42,8 @@ protected:
 
     bool m_Focused = true;
     GBasic_Window* m_Focus = this;
+
+    bool m_Modifier_Shift = false, m_Modifier_Alt = false, m_Modifier_Ctrl = false;
 
 private:
     GLFWwindow* m_Window_Hndl = nullptr;

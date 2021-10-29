@@ -7,7 +7,6 @@
 #include "GCursor.h"
 #include "GCore.h"
 
-
 class GWindow;
 class GApplication {
 public:
@@ -18,8 +17,8 @@ public:
     static GApplication* m_Instance;
 
     void Post_Event(const GEvent& Event);
-    void Send_Event_NL(const GEvent& Event);
-    void Send_Event(const GEvent& Event);
+    int Send_Event_NL(GEvent& Event);
+    int Send_Event(GEvent& Event);
 
     void Register_Window(GWindow* Window);
 
@@ -30,14 +29,14 @@ public:
 
 private:
     bool m_Running = true;
-    void Worker(const GEvent& Event);
+    int Callback_Func(GEvent& Event);
 
     //SE: Send Event
     std::recursive_mutex m_SERM;
     std::condition_variable_any m_SECV;
-    bool m_SE = false;
     bool m_SE_Continue = false;
-    GEvent m_SEEvent;
+    int m_SE_Ret = 0;
+    GEvent* m_SEEvent = nullptr;
 
     std::recursive_mutex m_QRM;
     GTEQueue m_Queue;

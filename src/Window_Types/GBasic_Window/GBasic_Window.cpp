@@ -235,6 +235,8 @@ int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
                 auto Wind = static_cast<GBasic_Window*>(Event.Data_Ptr);
                 GCall(Wind, m_Callback_Ptr, Event);
             }
+
+            break;
         }
     }
 
@@ -272,6 +274,14 @@ int GBasic_Window::Callback_Func(const GEvent& Event) {
                 }
             }
 
+            break;
+        }
+
+        case GEType::Keyboard:
+        {
+            m_Main_Window->m_Modifier_Alt = Event.Modifier_Alt;
+            m_Main_Window->m_Modifier_Ctrl = Event.Modifier_Ctrl;
+            m_Main_Window->m_Modifier_Shift = Event.Modifier_Shift;
             break;
         }
     }

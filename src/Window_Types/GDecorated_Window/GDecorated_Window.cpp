@@ -94,6 +94,16 @@ int GDecorated_Window::Callback_Func(const GEvent& Event) {
 
                     break;
                 }
+
+                case GEWind_Message::Set_Window_Icon:
+                {
+                    GEvent Response;
+                    Response = Event;
+                    Response.Data_Ptr = m_Title_Bar;
+                    Post_Event(Response);
+
+                    break;
+                }
             }
 
             break;

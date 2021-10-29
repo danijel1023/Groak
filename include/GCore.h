@@ -1,26 +1,17 @@
 #pragma once
 
-#ifndef NDEBUG
-#define Gcout(x) std::cout << x
-#else
-#define Gcout(x)
-#endif // NDEBUG
 
-
+#ifdef GROAK_BUILD
 #include "../Vendor/glad/include/glad/glad.h"
 #include "../Vendor/glfw3/include/GLFW/glfw3.h"
 #include "../Vendor/stb/include/stb_image.h"
-#include "../Vendor/stb/include/stb_image_write.h"
 
+#include "../Vendor/stb/include/stb_image_write.h"
+#endif
+
+//TODO: Abstract ft
 #include "ft2build.h"
 #include FT_FREETYPE_H
-
-#ifdef _WIN64
-#  define GROAK_FONT_FILE "C:/Windows/Fonts/consola.ttf"
-#else
-#  define GROAK_FONT_FILE "/home/danijel/Desktop/consola.ttf"
-//#  error supply font file for specific platform
-#endif
 
 #include "GEvent.h"
 #include "GQueue/GQueue.h"
@@ -37,3 +28,10 @@ using GTEQueue = GTQueue<GEvent>;   //Groak Thread safe Event Queue
 #define GGenCall(_This, Func, ...) (*_This->Func)(__VA_ARGS__)
 
 #define GApp() GApplication::m_Instance
+
+
+namespace Groak {
+    GTexture Load_Texture(const GString& Path, bool Flip = false);
+    GTexture Load_Texture_From_Memory(const unsigned char* Mem_Data, unsigned int Size, bool Flip = false);
+    void Delete_Texture(GTexture& Texture);
+}

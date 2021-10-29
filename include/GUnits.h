@@ -11,8 +11,8 @@ struct Template_Vec2 {
     Template_Vec2& operator+=(const Template_Vec2& Right) { X += Right.X; Y += Right.Y; return *this; }
     Template_Vec2& operator-=(const Template_Vec2& Right) { X -= Right.X; Y -= Right.Y; return *this; }
 
-    template<typename Convert_T>
-    Template_Vec2<Convert_T> Convert_Type() const { return { static_cast<Convert_T>(X), static_cast<Convert_T>(Y) }; }
+    template<typename Cast_T>
+    Template_Vec2<Cast_T> Cast() const { return { static_cast<Cast_T>(X), static_cast<Cast_T>(Y) }; }
 };
 
 template<typename T>
@@ -25,8 +25,8 @@ struct Template_Vec3 {
     Template_Vec3& operator+=(const Template_Vec3& Right) { X += Right.X; Y += Right.Y; Z += Right.Z; return *this; }
     Template_Vec3& operator-=(const Template_Vec3& Right) { X -= Right.X; Y -= Right.Y; Z -= Right.Z; return *this; }
 
-    template<typename Convert_T>
-    Template_Vec2<Convert_T> Convert_Type() const { return { static_cast<Convert_T>(X), static_cast<Convert_T>(Y), static_cast<Convert_T>(Z) }; }
+    template<typename Cast_T>
+    Template_Vec3<Cast_T> Convert_Type() const { return { static_cast<Cast_T>(X), static_cast<Cast_T>(Y), static_cast<Cast_T>(Z) }; }
 };
 
 template<typename T>
@@ -39,8 +39,8 @@ struct Template_Vec4 {
     Template_Vec4& operator+=(const Template_Vec4& Right) { X += Right.X; Y += Right.Y; Z += Right.Z; W += Right.W; return *this; }
     Template_Vec4& operator-=(const Template_Vec4& Right) { X -= Right.X; Y -= Right.Y; Z -= Right.Z; W -= Right.W; return *this; }
 
-    template<typename Convert_T>
-    Template_Vec2<Convert_T> Convert_Type() const { return { static_cast<Convert_T>(X), static_cast<Convert_T>(Y), static_cast<Convert_T>(Z), static_cast<Convert_T>(W) }; }
+    template<typename Cast_T>
+    Template_Vec4<Cast_T> Convert_Type() const { return { static_cast<Cast_T>(X), static_cast<Cast_T>(Y), static_cast<Cast_T>(Z), static_cast<Cast_T>(W) }; }
 };
 
 using GVec2 = Template_Vec2<float>;

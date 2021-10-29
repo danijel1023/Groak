@@ -8,7 +8,7 @@ GFramebuffer::GFramebuffer(int Window_X, int Window_Y, GBasic_Window* Current_Wi
 
 GFramebuffer::GFramebuffer(const GSize& Window, GBasic_Window* Current_Window) {
     m_Current_Window = Current_Window;
-    m_FB_Quad.m_Window = Window.Convert_Type<float>();
+    m_FB_Quad.m_Window = Window.Cast<float>();
 
     glGenFramebuffers(1, &m_Framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);

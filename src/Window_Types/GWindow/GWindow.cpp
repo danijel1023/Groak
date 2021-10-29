@@ -21,7 +21,8 @@ GWindow::~GWindow() {
     }
 
     for (auto& Texture : m_Texture_List) {
-        glGenTextures(1, &Texture.ID);
+        Groak::Delete_Texture(Texture);
+        if (Texture.ID) glGenTextures(1, &Texture.ID);
     }
 }
 
@@ -296,40 +297,6 @@ void GWindow::Terminate() {
     m_Worker.join();
 }
 
-
-
-GTexture GWindow::Load_Texture(const GString& Path, bool Flip) {
-    GTexture Texture;
-    stbi_set_flip_vertically_on_load(Flip);
-    unsigned char* Data = stbi_load(Path.c_str(), &Texture.Width, &Texture.Height, &Texture.Channels, 0);
-    if (Data) Texture.ID = m_Renderer->Store_Texture(Data, Texture);
-    else      std::cout << "Failed to load texture: " << Path;
-    //else      GError() << "Failed to load texture: " << Path;
-
-    //if (Data) {
-    //    std::fstream File(Path.cpp_str() + ".dat", std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
-    //
-    //    File.write((char*)Data, (size_t)Texture.Width * (size_t)Texture.Height * (size_t)Texture.Channels);
-    //}
-
-    m_Texture_List.push_back(Texture);
-    stbi_image_free(Data);
-    return Texture;
-}
-
-GTexture GWindow::Load_Texture_From_Memory(const unsigned char* Mem_Data, unsigned int Size, bool Flip) {
-    GTexture Texture;
-    stbi_set_flip_vertically_on_load(Flip);
-    unsigned char* Data = stbi_load_from_memory(Mem_Data, Size, &Texture.Width, &Texture.Height, &Texture.Channels, 0);
-    if (Data) Texture.ID = m_Renderer->Store_Texture(Data, Texture);
-    else      std::cout << "Failed to load texture from memory.";
-    //else      GError() << "Failed to load texture from memory.";
-
-    m_Texture_List.push_back(Texture);
-    stbi_image_free(Data);
-    return Texture;
-}
-
 GFont* GWindow::Load_Font_From_Memory(const unsigned char* Buffer, size_t Size) {
     GFont* Font = new GFont;
     Font->File = "Memory loaded";
@@ -349,6 +316,18 @@ GFont* GWindow::Load_Font_From_Memory(const unsigned char* Buffer, size_t Size) 
     Create_Font_Matrices(Font);
     return Font;
 }
+
+
+void GWindow::Store_Texture(GTexture* Texture) {
+    if (!Texture->Pixels) {
+        GError() << "Cannot store texture: pixel array was nullptr.";
+        return;
+    }
+
+    Texture->ID = m_Renderer->Store_Texture(*Texture);
+    m_Texture_List.push_back(*Texture);
+}
+
 
 GFont* GWindow::Load_Font(const GString& Font_File) {
     GFont* Font = new GFont;

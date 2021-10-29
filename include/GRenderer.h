@@ -15,6 +15,7 @@
 
 class GBasic_Framebuffer;
 class GWindow;
+struct GLFWwindow;
 
 class GRenderer {
 public:
@@ -28,7 +29,7 @@ public:
     GAtlas& Get_Empty_Atlas();
     void Fill_Atlas(GFont* Font, GAtlas& Atlas);
     
-    unsigned int Store_Texture(unsigned char* Data, const GTexture& Texture);
+    unsigned int Store_Texture(const GTexture& Texture);
 
     //Call to add a quad to render
     void Add_Quad(const GQuad& Quad);
@@ -38,8 +39,8 @@ public:
     void Clear();
 
     void Post_Event(const GEvent& Event);
-    int Send_Event(const GEvent& Event);
-    int Send_Event_NL(const GEvent& Event);
+    int Send_Event(GEvent& Event);
+    int Send_Event_NL(GEvent& Event);
     void Start_Thread();
     void Join_Thread();
     void Start_Rendering();
@@ -65,14 +66,14 @@ private:
 
     std::recursive_mutex m_SERM;
     std::condition_variable_any m_SECV;
-    std::atomic<bool> m_SE_Continue = false;
+    bool m_SE_Continue = false;
     int m_SE_Ret = 0;
-    GEvent m_SEEvent;
+    GEvent* m_SEEvent;
 
 
     std::thread m_Worker;
     void Worker();
-    int Callback_Func(const GEvent& Event);
+    int Callback_Func(GEvent& Event);
 
 
 

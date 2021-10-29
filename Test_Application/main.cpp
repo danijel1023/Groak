@@ -1,9 +1,9 @@
 #include <iostream>
 #include <sstream>
+#include <filesystem>
 #include "Groak.h"
 #include "GCharacter.h"
 #include "GDecorated_Window.h"
-
 
 class App : public GApplication {
 public:
@@ -13,7 +13,8 @@ public:
     void On_Startup();
     void On_Close();
 };
-int main() {
+
+int main(int argc, char* argv[]) {
     App Application;
     return Application.Run();
 }
@@ -71,8 +72,12 @@ int Window::Callback_Func(const GEvent& Event) {
 
                 Text.push_back({ '!', {255, 0, 255}});
 
-                GTexture Tex = Load_Texture("C:/test.bmp");
-                GQuad Quad(Tex.Width * 52 / 1000, Tex.Height * 52 / 1000, 0, 75);
+                
+
+                GTexture Tex = Groak::Load_Texture("C:/test.bmp");
+                Store_Texture(&Tex);
+
+                GQuad Quad(Tex.Size.X * 52 / 1000, Tex.Size.Y * 52 / 1000, 0, 75);
                 Quad.Repeat_Texture(Tex, 1, 1);
                 Quad_i = Add_Quad(Quad);
 
@@ -115,12 +120,12 @@ int Window::Callback_Func(const GEvent& Event) {
                         auto& Quad = Get_Quad(Quad_i);
 
                         if (Event.Key == 265) {
-                            Quad.m_Window.X += int((double)Quad.m_Window.X * 0.02);
-                            Quad.m_Window.Y += int((double)Quad.m_Window.Y * 0.02);
+                            Quad.m_Window.X += int(Quad.m_Window.X * 0.02);
+                            Quad.m_Window.Y += int(Quad.m_Window.Y * 0.02);
                             //Set_Text_Height(++Scale);
                         } else if (Event.Key == 264) {
-                            Quad.m_Window.X -= int((double)Quad.m_Window.X * 0.02);
-                            Quad.m_Window.Y -= int((double)Quad.m_Window.Y * 0.02);
+                            Quad.m_Window.X -= int(Quad.m_Window.X * 0.02);
+                            Quad.m_Window.Y -= int(Quad.m_Window.Y * 0.02);
                             //Set_Text_Height(--Scale);
                         }
                         

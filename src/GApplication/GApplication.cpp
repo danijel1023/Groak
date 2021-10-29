@@ -103,13 +103,14 @@ void GApplication::Post_Event(const GEvent& Event) {
     glfwPostEmptyEvent();
 }
 
-void GApplication::Send_Event(const GEvent& Event) {
+int GApplication::Send_Event(GEvent& Event) {
     {
-        std::unique_lock<std::recursive_mutex> Lck(m_QRM);
+        m_SEEvent = &Event;
 
-        m_SE = true;
-        m_SEEvent = Event;
-        glfwPostEmptyEvent();
+        GEvent Event;
+        Event.Type = GEType::Core;
+        Event.Core_Message = GECore_Message::Send_Event;
+        Post_Event(Event);
     }
 
     {
@@ -118,16 +119,18 @@ void GApplication::Send_Event(const GEvent& Event) {
 
         m_SE_Continue = false;
     }
+
+    return m_SE_Ret;
 }
 
-void GApplication::Send_Event_NL(const GEvent& Event) {
+int GApplication::Send_Event_NL(GEvent& Event) {
     std::unique_lock<std::recursive_mutex> Lck(m_QRM);
-    Worker(Event);
+    return Callback_Func(Event);
 }
 
 
 
-void GApplication::Worker(const GEvent& Event) {
+int GApplication::Callback_Func(GEvent& Event) {
     switch (Event.Core_Message) {
         case GECore_Message::Register:
         {
@@ -255,7 +258,7 @@ void GApplication::Worker(const GEvent& Event) {
             GLFWimage Image;
             Image.width = Cursor.Size.X;
             Image.height = Cursor.Size.Y;
-            Image.pixels = (unsigned char*)Cursor.Data;
+            Image.pixels = Cursor.Data;
 
             Cursor.m_Ptr = glfwCreateCursor(&Image, Cursor.Hot_Spot.X, Cursor.Size.Y - Cursor.Hot_Spot.Y);
             break;
@@ -270,20 +273,64 @@ void GApplication::Worker(const GEvent& Event) {
         case GECore_Message::Get_Clipboard:
         {
             const char* Clipboard = glfwGetClipboardString(nullptr);
-            if (Clipboard) {
-                GError() << "";
-                break;
-            }
+            if (Clipboard)
+                Event.String = Clipboard;
 
             break;
         }
 
         case GECore_Message::Set_Clipboard:
         {
+            glfwSetClipboardString(nullptr, Event.String.c_str());
+            break;
+        }
+
+        case GECore_Message::Send_Event:
+        {
+            m_SE_Ret = Callback_Func(*m_SEEvent);
+            m_SE_Continue = true;
+            m_SECV.notify_all();
 
             break;
         }
+
+        case GECore_Message::Set_Window_Icon:
+        {
+            GWindow* Window = static_cast<GWindow*>(Event.Data_Ptr);
+            GLFWimage* Images = static_cast<GLFWimage*>(_malloca(sizeof(GLFWimage) * Event.Texture_Count));
+            if (!Images) {
+                GError() << "Unable to allocate memory for \"Images\" - Set_Window_Icon request.";
+                break;
+            }
+
+            for (int i = 0; i < Event.Texture_Count; i++) {
+                Images[i].height = Event.Texture_Arrays[i].Size.Y;
+                Images[i].width = Event.Texture_Arrays[i].Size.X;
+                Images[i].pixels = Event.Texture_Arrays[i].Pixels;
+            }
+
+            glfwSetWindowIcon(Window->m_Window_Hndl, Event.Texture_Count, Images);
+
+            GEvent Respond;
+            Respond = Event;
+            Respond.Data_Ptr = Window;
+            Respond.Type = GEType::Window;
+            Respond.Wind_Message = GEWind_Message::Set_Window_Icon;
+            Window->Post_Event(Respond);
+
+            _freea(Images);
+            break;
+        }
+
+        case GECore_Message::Set_Window_Name:
+        {
+            GWindow* Window = static_cast<GWindow*>(Event.Data_Ptr);
+            glfwSetWindowTitle(Window->m_Window_Hndl, Event.String.c_str());
+            break;
+        }
     }
+
+    return 0;
 }
 
 
@@ -294,16 +341,9 @@ int GApplication::Run() {
         glfwWaitEvents();
         std::unique_lock<std::recursive_mutex> Lck(m_QRM);
 
-        if (m_SE) {
-            m_SE = false;
-            Worker(m_SEEvent);
-            m_SE_Continue = true;
-            m_SECV.notify_all();
-        }
-
-        else while (!m_Queue.Empty()) {
-            const GEvent& Event = m_Queue.Peek_Front();
-            Worker(Event);
+        while (!m_Queue.Empty()) {
+            GEvent& Event = m_Queue.Peek_Front();
+            Callback_Func(Event);
             m_Queue.Pop();
         }
     }

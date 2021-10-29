@@ -38,8 +38,8 @@ void main() {
     v_Tex_Coord = cpu_Tex_Coord;
     v_Type = cpu_Type;
 
-    //1 -> Atlas
-    //if (v_Type == 1) v_Tex_Coord.y = 1.0 - v_Tex_Coord.y;
+
+    if (bool(v_Type & 0x0100)) v_Tex_Coord.y = 1.0 - v_Tex_Coord.y;
 }
 
 )";
@@ -81,7 +81,9 @@ vec4 Get_Texture(int Tex_Slot) {
 
 
 void main() {
-    switch (v_Type) {
+    int Type = v_Type & 0x00ff;
+
+    switch (Type) {
     case 0: {
         if (v_Tex_Slot == -1)   Color = v_Color;
         else                    Color = Get_Texture(v_Tex_Slot);

@@ -1,6 +1,6 @@
 #pragma once
+#include <mutex>
 #include "GLog_Stream.h"
-
 
 
 class GLog_Manager {
@@ -28,6 +28,7 @@ public:
     }
 
 private:
+    static std::mutex m_Write_Mutex;
     static GLog_Stream* m_Stream_Ptr;
     static GLog_Level m_Log_Lvl;
 
