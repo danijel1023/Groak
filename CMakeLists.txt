@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.8)
 set (CMAKE_CXX_STANDARD 17)
 
-project(Groak VERSION 1.0)
+project(Groak VERSION 0.1.0)
 
 set(OpenGL_GL_PREFERENCE "GLVND")
 find_package(OpenGL REQUIRED)

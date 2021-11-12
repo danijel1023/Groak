@@ -160,7 +160,10 @@ int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
             }
 
             if (Event.Mouse_Message == GEMouse_Message::Down) {
-                m_Main_Window->m_Mouse_Buttons_Pressed++;
+                uint8_t& PMB = m_Main_Window->m_Pressed_Mouse_Buttons;
+                uint8_t Key = static_cast<uint8_t>(Event.Mouse_Button);
+
+                PMB |= 1 << Key;
 
                 GEvent Gain_Focus;
                 Gain_Focus.Type = GEType::Mouse;
@@ -197,7 +200,7 @@ int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
             }
 
 
-            if (m_Main_Window->m_Mouse_Buttons_Pressed == 0 && Mouse_Focus) {
+            if (m_Main_Window->m_Pressed_Mouse_Buttons == 0 && Mouse_Focus) {
                 Mouse_Focus = nullptr;
                 return 1;
             }

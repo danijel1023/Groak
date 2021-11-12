@@ -44,7 +44,7 @@ enum class GEWind_Message {
 };
 
 
-enum class GEMouse_Button { RMB, LMB, MMB };
+enum class GEMouse_Button :uint8_t { RMB, LMB, MMB };
 enum class GEMouse_Message {
     Down, Up,
 

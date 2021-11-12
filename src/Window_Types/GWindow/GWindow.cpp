@@ -100,14 +100,21 @@ int GWindow::Dispatcher_Func(const GEvent& Event) {
                 GEvent ncEvent = Event;
                 ncEvent.MP -= m_Mouse_Focus->m_Absolute_Screen;
 
-                if (ncEvent.Mouse_Message == GEMouse_Message::Down)
-                    m_Main_Window->m_Mouse_Buttons_Pressed++;
+                if (ncEvent.Mouse_Message == GEMouse_Message::Down) {
+                    uint8_t& PMB = m_Pressed_Mouse_Buttons;
+                    uint8_t Key = static_cast<uint8_t>(Event.Mouse_Button);
 
-                if (ncEvent.Mouse_Message == GEMouse_Message::Up)
-                    m_Mouse_Buttons_Pressed--;
+                    PMB |= 1 << Key;
+                }
 
+                if (ncEvent.Mouse_Message == GEMouse_Message::Up) {
+                    uint8_t& PMB = m_Pressed_Mouse_Buttons;
+                    uint8_t Key = static_cast<uint8_t>(Event.Mouse_Button);
 
-                if (m_Mouse_Buttons_Pressed != 0)
+                    PMB &= ~(1 << Key);
+                }
+
+                if (m_Pressed_Mouse_Buttons)
                     return GCall(m_Mouse_Focus, m_Callback_Ptr, ncEvent);
                 else {
                     GEvent Lose_Focus;

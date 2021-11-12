@@ -50,7 +50,7 @@ FT_Library& GApplication::Get_FT_Lib() {
 void GApplication::Attach_Simulator(GWindow* Window, bool Recording) {
     m_Simulator_Window = Window;
     m_Recording = Recording;
-
+    Window->m_Recording = Recording;
 
     if (Recording) {
         m_Simulator_File.open("Events.bin", std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
@@ -382,6 +382,13 @@ void GApplication::Simulator_Thread() {
         }
 
         Event[i].Resolve_Event(&std::cout);
+
+        if (Event[i].Type == GEType::Mouse) {
+            if (Event[i].Mouse_Message == GEMouse_Message::Down) {
+                __debugbreak();
+            }
+        }
+
         m_Simulator_Window->Post_Event(Event[i]);
     }
 

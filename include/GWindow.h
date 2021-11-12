@@ -50,7 +50,7 @@ private:
     GString m_Name;
     bool m_Running = true, m_Recording = false;
     GBasic_Window* m_Mouse_Focus = nullptr, * m_Wind_Under_Cursor = nullptr;
-    int m_Mouse_Buttons_Pressed = 0;
+    uint8_t m_Pressed_Mouse_Buttons = 0;
 
     GTEQueue m_Queue;
     std::recursive_mutex m_Dispatcher_Mutex;
