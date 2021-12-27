@@ -308,7 +308,7 @@ GFont* GWindow::Load_Font_From_Memory(const unsigned char* Buffer, size_t Size) 
     GFont* Font = new GFont;
     Font->File = "Memory loaded";
 
-    auto Error = FT_New_Memory_Face(GApp()->Get_FT_Lib(), Buffer, Size, 0, &Font->Face);
+    auto Error = FT_New_Memory_Face(GApp()->Get_FT_Lib(), Buffer, (FT_Long)Size, 0, &Font->Face);
     if (Error == FT_Err_Unknown_File_Format) {
         GError() << "FreeType from memory: It appears that font format is unsupported.";
         delete Font;

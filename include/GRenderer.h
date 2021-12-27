@@ -13,7 +13,6 @@
 #define G_ATLAS_SIZE_X 2048
 #define G_ATLAS_SIZE_Y 2048
 
-class GBasic_Framebuffer;
 class GWindow;
 struct GLFWwindow;
 
@@ -22,8 +21,8 @@ public:
     GRenderer(GWindow* Main_Wind, GLFWwindow* Window_Hndl);
     ~GRenderer();
 
-    void Draw_Text(const GText& Str, const GPos& Pos, int Height);  //Use default font
-    void Draw_Text(const GText& Str, const GPos& Pos, int Height, GFont* Font);
+    float Draw_Ch(const char32_t& Ch, const GColor& Color, const GPos& Pos, float Height, GFont* Font = nullptr);
+    float Draw_Str(const GString& Str, const std::vector<GColor>& Str_Color, const GPos& Pos, float Height, GFont* Font = nullptr);
 
     GAtlas& Get_Atlas(GFont* Font, unsigned int Code_Point);
     GAtlas& Get_Empty_Atlas();

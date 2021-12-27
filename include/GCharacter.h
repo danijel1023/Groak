@@ -7,22 +7,12 @@
 #include <map>
 #include <vector>
 
-struct GCharacter {
-    GCharacter(int Code_Point, GColor Color)
-        :Code_Point(Code_Point), Color(Color) {}
-
-    unsigned int Code_Point = 0;
-    GColor Color;
-};
-
-using GText = std::vector<GCharacter>;
-
 //GAChar_Data - Groak Atlas Char Data
 struct GAChar_Data {
     GPos Pos;
     GSize Size;
-    GIVec2 Bearing;
-    unsigned int Advance = 0;
+    GVec2 Bearing;
+    float Advance = 0;
 };
 
 struct GAtlas {

@@ -60,7 +60,7 @@ void App::On_Close() {}
 
 GPos MP;
 bool Track = false;
-static GText Text;
+//static GText Text;
 size_t Quad_i = 0;
 int Window::Callback_Func(const GEvent& Event) {
     switch (Event.Type) {
@@ -70,7 +70,7 @@ int Window::Callback_Func(const GEvent& Event) {
                 //Set_Default_Font(Load_Font("C:/Windows/Fonts/segoeui.ttf"));
                 Set_Default_Font(Load_Font("C:/Windows/Fonts/consola.ttf"));
 
-                Text.push_back({ '!', {255, 0, 255}});
+                //Text.push_back({ '!', {255, 0, 255}});
 
                 
 
@@ -85,15 +85,15 @@ int Window::Callback_Func(const GEvent& Event) {
             }
 
             else if (Event.Wind_Message == GEWind_Message::Render) {
-                GRenderer& Renderer = *Get_Renderer();
-                Renderer.Clear();
-                
-                //Default
-                GWindow::Callback_Func(Event);
-                
-                //Render text
-                Renderer.Draw_Text(Text, { 0, 0 }, 20);
-                Renderer.Flush();
+                //GRenderer& Renderer = *Get_Renderer();
+                //Renderer.Clear();
+                //
+                ////Default
+                //GWindow::Callback_Func(Event);
+                //
+                ////Render text
+                //Renderer.Draw_Text(Text, { 0, 0 }, 20);
+                //Renderer.Flush();
                 return 0;
             }
 
@@ -117,35 +117,35 @@ int Window::Callback_Func(const GEvent& Event) {
                     static int Scale = 25;
 
                     if (265 >= Event.Key && Event.Key >= 262) {
-                        auto& Quad = Get_Quad(Quad_i);
-
-                        if (Event.Key == 265) {
-                            Quad.m_Window.X += int(Quad.m_Window.X * 0.02);
-                            Quad.m_Window.Y += int(Quad.m_Window.Y * 0.02);
-                            //Set_Text_Height(++Scale);
-                        } else if (Event.Key == 264) {
-                            Quad.m_Window.X -= int(Quad.m_Window.X * 0.02);
-                            Quad.m_Window.Y -= int(Quad.m_Window.Y * 0.02);
-                            //Set_Text_Height(--Scale);
-                        }
-                        
-                        else if (Event.Key == 263) {
-                            Quad.m_Rotation -= 0.5;
-                        } else if (Event.Key == 262) {
-                            Quad.m_Rotation += 0.5;
-                        }
-
-
-
-                        Text.clear();
-                        std::stringstream SS;
-                        SS << Scale;
-                        std::string Str = SS.str();
-
-                        for (auto& Ch : Str) {
-                            Text.push_back({ Ch, {255, 0, 255} });
-                        }
-                        GInfo() << "Scale: " << Scale;
+                        //auto& Quad = Get_Quad(Quad_i);
+                        //
+                        //if (Event.Key == 265) {
+                        //    Quad.m_Window.X += int(Quad.m_Window.X * 0.02);
+                        //    Quad.m_Window.Y += int(Quad.m_Window.Y * 0.02);
+                        //    //Set_Text_Height(++Scale);
+                        //} else if (Event.Key == 264) {
+                        //    Quad.m_Window.X -= int(Quad.m_Window.X * 0.02);
+                        //    Quad.m_Window.Y -= int(Quad.m_Window.Y * 0.02);
+                        //    //Set_Text_Height(--Scale);
+                        //}
+                        //
+                        //else if (Event.Key == 263) {
+                        //    Quad.m_Rotation -= 0.5;
+                        //} else if (Event.Key == 262) {
+                        //    Quad.m_Rotation += 0.5;
+                        //}
+                        //
+                        //
+                        //
+                        //Text.clear();
+                        //std::stringstream SS;
+                        //SS << Scale;
+                        //std::string Str = SS.str();
+                        //
+                        //for (auto& Ch : Str) {
+                        //    Text.push_back({ Ch, {255, 0, 255} });
+                        //}
+                        //GInfo() << "Scale: " << Scale;
 
                         return 0;
                     }

@@ -12,7 +12,7 @@ public:
     ~GDecorated_Window();
 
     void Set_Min_Size(const GSize& Size);
-    void Set_Max_Size(const GSize& Size);
+    void Set_Max_Size(const GSize& Size = { (uint16_t)-1, (uint16_t)-1 });
     GSize Get_Min_Size();
     GSize Get_Max_Size();
 
@@ -25,7 +25,7 @@ private:
     GResize_Area* m_Bot_Left = nullptr, * m_Bot = nullptr, * m_Bot_Right = nullptr;
     GResize_Area* m_Right = nullptr;
 
-    GSize m_Min_Size, m_Max_Size;
+    GSize m_Min_Size = { 184, 32 }, m_Max_Size = { (uint16_t)-1, (uint16_t)-1 };
 
 protected:
     int Callback_Func(const GEvent& Event);

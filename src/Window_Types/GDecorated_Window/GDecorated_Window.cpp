@@ -23,8 +23,8 @@ int GDecorated_Window::Callback_Func(const GEvent& Event) {
                     m_Left  = new GResize_Area(this, { 7, m_Window.Y - 14 }, { 0, 7 },              GResize_Ancor::Left,  m_Min_Size, m_Max_Size, true);
                     m_Right = new GResize_Area(this, { 7, m_Window.Y - 14 }, { m_Window.X - 7, 7 }, GResize_Ancor::Right, m_Min_Size, m_Max_Size, true);
                     
-                    m_Top = new GResize_Area(this, { m_Window.X - 14, 7 }, { 7, m_Window.Y - 7 }, GResize_Ancor::Top, m_Min_Size, m_Max_Size, true);
-                    m_Bot = new GResize_Area(this, { m_Window.X - 14, 7 }, { 7, 0 },              GResize_Ancor::Bot, m_Min_Size, m_Max_Size, true);
+                    m_Top = new GResize_Area(this, { m_Window.X - 14, 7 }, { 7, m_Window.Y - 7 },   GResize_Ancor::Top, m_Min_Size, m_Max_Size, true);
+                    m_Bot = new GResize_Area(this, { m_Window.X - 14, 7 }, { 7, 0 },                GResize_Ancor::Bot, m_Min_Size, m_Max_Size, true);
 
                     m_Top_Left  = new GResize_Area(this, {7, 7}, { 0, m_Window.Y - 7 },             GResize_Ancor::Top_Left,  m_Min_Size, m_Max_Size, true);
                     m_Top_Right = new GResize_Area(this, {7, 7}, { m_Window.X - 7, m_Window.Y - 7}, GResize_Ancor::Top_Right, m_Min_Size, m_Max_Size, true);

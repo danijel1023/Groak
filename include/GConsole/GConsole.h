@@ -1,6 +1,7 @@
 #pragma once
 #include "GConsole/GSBuff.h"
 #include "GConsole/Content_Area.h"
+#include "GText_Box.h"
 
 #include "GTitle_Bar.h"
 #include "GDecorated_Window.h"
@@ -29,12 +30,9 @@ private:
 
     std::mutex m_Buffer_Mutex, m_Render_Sync_Mutex;
     std::vector<GString> m_Buffer;
-    std::vector<GText> m_Render_Text;
 
-    GFont* m_Console_Font = nullptr;
-    int m_Text_Height = 20;
 
-    GPos m_Text_Offset;
+    GText_Box* m_Text_Box = nullptr;
 
 protected:
     int Callback_Func(const GEvent& Event);

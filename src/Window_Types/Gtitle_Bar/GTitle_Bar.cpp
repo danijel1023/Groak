@@ -28,10 +28,10 @@ int GTitle_Bar::Callback_Func(const GEvent& Event) {
                     On_Click.Type = GEType::Window;
                     On_Click.Data_Ptr = m_Main_Window;
 
-
                     On_Click.Wind_Message = GEWind_Message::Close;
                     m_Close = new GButton(this, { 46, 32 }, { m_Window.X - 1 * 46, 0 });
-                    m_Close->m_Texture = Groak::Load_Texture_From_Memory(PNG_Close_Data, sizeof(PNG_Close_Data));
+                    m_Close->m_Texture = Groak::Load_Texture("C:/Users/comp/Desktop/Close.png");
+                    //m_Close->m_Texture = Groak::Load_Texture_From_Memory(PNG_Close_Data, sizeof(PNG_Close_Data));
                     m_Main_Window->Store_Texture(&(m_Close->m_Texture));
 
                     m_Close->m_On_Press_Event = On_Click;
@@ -42,7 +42,8 @@ int GTitle_Bar::Callback_Func(const GEvent& Event) {
 
                     On_Click.Wind_Message = GEWind_Message::Should_Iconify;
                     m_Iconify = new GButton(this, { 46, 32 }, { m_Window.X - 3 * 46, 0 });
-                    m_Iconify->m_Texture = Groak::Load_Texture_From_Memory(PNG_Iconify_Data, sizeof(PNG_Iconify_Data));
+                    m_Iconify->m_Texture = Groak::Load_Texture("C:/Users/comp/Desktop/Mini.png");
+                    //m_Iconify->m_Texture = Groak::Load_Texture_From_Memory(PNG_Iconify_Data, sizeof(PNG_Iconify_Data));
                     m_Main_Window->Store_Texture(&(m_Iconify->m_Texture));
 
                     m_Iconify->m_On_Press_Event = On_Click;
@@ -51,10 +52,11 @@ int GTitle_Bar::Callback_Func(const GEvent& Event) {
                     m_Iconify->m_Press = { (60 * 255 / 100), (60 * 255 / 100), (60 * 255 / 100), (100 * 255 / 100) };
 
 
-                    m_Maximise_Tex = Groak::Load_Texture_From_Memory(PNG_Maximise_Data, sizeof(PNG_Maximise_Data));
-                    m_Restore_Tex = Groak::Load_Texture_From_Memory(PNG_Restore_Data, sizeof(PNG_Restore_Data));
+                    m_Maximise_Tex = Groak::Load_Texture("C:/Users/comp/Desktop/Maxi.png");
+                    //m_Maximise_Tex = Groak::Load_Texture_From_Memory(PNG_Maximise_Data, sizeof(PNG_Maximise_Data));
+                    //m_Restore_Tex = Groak::Load_Texture_From_Memory(PNG_Restore_Data, sizeof(PNG_Restore_Data));
                     m_Main_Window->Store_Texture(&m_Maximise_Tex);
-                    m_Main_Window->Store_Texture(&m_Restore_Tex);
+                    //m_Main_Window->Store_Texture(&m_Restore_Tex);
 
                     On_Click.Wind_Message = GEWind_Message::Should_Maximise;
                     m_Maximise = new GButton(this, { 46, 32 }, { m_Window.X - 2 * 46, 0 });
@@ -120,7 +122,7 @@ int GTitle_Bar::Callback_Func(const GEvent& Event) {
                     On_Click.Data_Ptr = m_Main_Window;
                     On_Click.Wind_Message = GEWind_Message::Should_Restore;
                     m_Maximise->m_On_Press_Event = On_Click;
-                    m_Maximise->Get_Texture_Quad().m_Texture = m_Restore_Tex.ID;
+                    //m_Maximise->Get_Texture_Quad().m_Texture = m_Restore_Tex.ID;
 
                     m_Maximised = true;
 
@@ -135,7 +137,7 @@ int GTitle_Bar::Callback_Func(const GEvent& Event) {
                         On_Click.Data_Ptr = m_Main_Window;
                         On_Click.Wind_Message = GEWind_Message::Should_Maximise;
                         m_Maximise->m_On_Press_Event = On_Click;
-                        m_Maximise->Get_Texture_Quad().m_Texture = m_Maximise_Tex.ID;
+                        //m_Maximise->Get_Texture_Quad().m_Texture = m_Maximise_Tex.ID;
                     }
 
                     m_Iconified = false;

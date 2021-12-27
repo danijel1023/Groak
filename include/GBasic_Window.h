@@ -42,7 +42,7 @@ private:
 
 public:
     //"Getters" and "setters"
-    inline const GPos  Get_Absolute_Screen_X() { return m_Absolute_Screen; }
+    inline const GPos  Get_Absolute_Screen() { return m_Absolute_Screen; }
     inline const GPos  Get_Screen() { return m_Screen; }
     inline const GSize Get_Window() { return m_Window; }
     void Set_Screen(const GPos& Pos);

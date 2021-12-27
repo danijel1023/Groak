@@ -310,60 +310,76 @@ void GRenderer::Clear() {
 }
 
 
-void GRenderer::Draw_Text(const GText& Str, const GPos& Pos, int Height) {
-    if (!m_Main_Wind->Get_Default_Font()) {
-        GError() << "Draw_Text called on no default font";
-        return;
-    }
-
-    Draw_Text(Str, Pos, Height, m_Main_Wind->Get_Default_Font());
-}
-
-void GRenderer::Draw_Text(const GText& Str, const GPos& Pos, int Height, GFont* Font) {
+float GRenderer::Draw_Ch(const char32_t& Ch, const GColor& Color, const GPos& Pos, float Height, GFont* Font) {
     if (!Font) {
-        GWarning() << "Draw_Text called with no font (nullptr). The default font will be used.";
+        GTrace() << "Draw_Text called with no font (nullptr). The default font will be used.";
 
         Font = m_Main_Wind->Get_Default_Font();
         if (!Font) {
             GError() << "No default font found!";
-            return;
+            return 0;
         }
     }
 
-    float Scale = (float)Height / (float)Font->Height;
-    int X_Offset = 0;
-    for (const auto& Ch : Str) {
-        GAtlas& Atlas = Get_Atlas(Font, Ch.Code_Point);  //Generate if needed
-        GAChar_Data& Ch_Data = Atlas.Map[Ch.Code_Point];
+    float Scale = Height / Font->Height;
 
-        //Remove float to int conversion data loss warning
+    GAtlas& Atlas = Get_Atlas(Font, Ch);
+    GAChar_Data& Ch_Data = Atlas.Map[Ch];
+
+    GQuad Quad(Ch_Data.Size.X * Scale, Ch_Data.Size.Y * Scale,
+               Pos.X + (Ch_Data.Bearing.X * Scale),
+               Pos.Y + ((-Ch_Data.Size.Y + Ch_Data.Bearing.Y + Font->Descender) * Scale));
+
+    Quad.m_Type = GQuad_Type::Char;
+    Quad.m_Color = Color;
+    Quad.Texture_Region(Atlas.FB->Get_Texture(), Ch_Data.Size, Ch_Data.Pos);
+
+    Add_Quad(Quad);
+    return Ch_Data.Advance;
+}
+
+float GRenderer::Draw_Str(const GString& Str, const std::vector<GColor>& Str_Color, const GPos& Pos, float Height, GFont* Font) {
+    if (!Font) {
+        GTrace() << "Draw_Text called with no font (nullptr). The default font will be used.";
+
+        Font = m_Main_Wind->Get_Default_Font();
+        if (!Font) {
+            GError() << "No default font found!";
+            return 0;
+        }
+    }
+
+    float Scale = Height / Font->Height;
+    float X_Offset = 0;
+
+    float Advance = 0;
+    for (int i = 0; i < Str.size(); i++) {
+        const auto& Ch = Str.at(i);
+        GAtlas& Atlas = Get_Atlas(Font, Ch);
+        GAChar_Data& Ch_Data = Atlas.Map[Ch];
+
         GQuad Quad(Ch_Data.Size.X * Scale, Ch_Data.Size.Y * Scale,
                    Pos.X + ((Ch_Data.Bearing.X + X_Offset) * Scale),
                    Pos.Y + ((-Ch_Data.Size.Y + Ch_Data.Bearing.Y + Font->Descender) * Scale));
 
         Quad.m_Type = GQuad_Type::Char;
-        Quad.m_Color = Ch.Color;
+        Quad.m_Color = Str_Color.at(i);
         Quad.Texture_Region(Atlas.FB->Get_Texture(), Ch_Data.Size, Ch_Data.Pos);
 
         Add_Quad(Quad);
-        X_Offset += Ch_Data.Advance;
+        Advance = Ch_Data.Advance;
+        X_Offset += Advance;
     }
+
+    return Advance;
 }
-
-
-#include <chrono>
 
 GAtlas& GRenderer::Get_Atlas(GFont* Font, unsigned int Code_Point) {
     for (auto& Atlas : Font->Atlas_List) {
         if (Atlas.Min <= Code_Point && Code_Point <= Atlas.Max) {
             if (Atlas.FB) return Atlas;
 
-            //uint64_t Start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
             Fill_Atlas(Font, Atlas);
-            //uint64_t End = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-            //std::cout << "Atlas creation: " << End - Start << std::endl;
-
-
             return Atlas;
         }
     }
@@ -372,19 +388,19 @@ GAtlas& GRenderer::Get_Atlas(GFont* Font, unsigned int Code_Point) {
     return Get_Empty_Atlas();
 }
 
+
 static inline void Set_Pixel(const GPos& Pos, unsigned char Color, unsigned char* Map) {
     int Offset = (G_ATLAS_SIZE_X * Pos.Y + Pos.X);
 
     Map[Offset] = Color;
 }
 
-
 void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
     unsigned char* Texture_Plane = new unsigned char[G_ATLAS_SIZE_X * G_ATLAS_SIZE_Y];
                                                     //Size * 4 channels (RGBW)
     memset(Texture_Plane, 0, G_ATLAS_SIZE_X * G_ATLAS_SIZE_Y);
 
-    int X_Offset = 0, Y_Offset = 0;
+    float X_Offset = 0, Y_Offset = 0;
     unsigned int Ch = 0;
 
     unsigned int Index = 0;
@@ -399,9 +415,9 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
 
         auto& Glyph = Font->Face->glyph;
 
-        Ch_Data.Size = { (int)Glyph->bitmap.width, (int)Glyph->bitmap.rows };
+        Ch_Data.Size = { (float)Glyph->bitmap.width, (float)Glyph->bitmap.rows };
         Ch_Data.Bearing = { Glyph->bitmap_left,       Glyph->bitmap_top };
-        Ch_Data.Advance = Glyph->advance.x >> 6;
+        Ch_Data.Advance = (float)(Glyph->advance.x >> 6);
 
 
         if (X_Offset + Ch_Data.Advance >= G_ATLAS_SIZE_X) {
