@@ -310,10 +310,8 @@ void GRenderer::Clear() {
 }
 
 
-float GRenderer::Draw_Ch(const char32_t& Ch, const GColor& Color, const GPos& Pos, float Height, GFont* Font) {
+int GRenderer::Draw_Ch(const char32_t& Ch, const GColor& Color, const GPos& Pos, float Height, GFont* Font) {
     if (!Font) {
-        GTrace() << "Draw_Text called with no font (nullptr). The default font will be used.";
-
         Font = m_Main_Wind->Get_Default_Font();
         if (!Font) {
             GError() << "No default font found!";
@@ -338,10 +336,8 @@ float GRenderer::Draw_Ch(const char32_t& Ch, const GColor& Color, const GPos& Po
     return Ch_Data.Advance;
 }
 
-float GRenderer::Draw_Str(const GString& Str, const std::vector<GColor>& Str_Color, const GPos& Pos, float Height, GFont* Font) {
+int GRenderer::Draw_Str(const GString& Str, const std::vector<GColor>& Str_Color, const GPos& Pos, float Height, GFont* Font) {
     if (!Font) {
-        GTrace() << "Draw_Text called with no font (nullptr). The default font will be used.";
-
         Font = m_Main_Wind->Get_Default_Font();
         if (!Font) {
             GError() << "No default font found!";
@@ -350,15 +346,15 @@ float GRenderer::Draw_Str(const GString& Str, const std::vector<GColor>& Str_Col
     }
 
     float Scale = Height / Font->Height;
-    float X_Offset = 0;
+    int X_Offset = 0;
 
-    float Advance = 0;
+    int Advance = 0;
     for (int i = 0; i < Str.size(); i++) {
         const auto& Ch = Str.at(i);
         GAtlas& Atlas = Get_Atlas(Font, Ch);
         GAChar_Data& Ch_Data = Atlas.Map[Ch];
 
-        GQuad Quad(Ch_Data.Size.X * Scale, Ch_Data.Size.Y * Scale,
+        GQuad Quad(static_cast<float>(Ch_Data.Size.X) * Scale, static_cast<float>(Ch_Data.Size.Y) * Scale,
                    Pos.X + ((Ch_Data.Bearing.X + X_Offset) * Scale),
                    Pos.Y + ((-Ch_Data.Size.Y + Ch_Data.Bearing.Y + Font->Descender) * Scale));
 
@@ -400,7 +396,7 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
                                                     //Size * 4 channels (RGBW)
     memset(Texture_Plane, 0, G_ATLAS_SIZE_X * G_ATLAS_SIZE_Y);
 
-    float X_Offset = 0, Y_Offset = 0;
+    int X_Offset = 0, Y_Offset = 0;
     unsigned int Ch = 0;
 
     unsigned int Index = 0;
@@ -415,9 +411,9 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
 
         auto& Glyph = Font->Face->glyph;
 
-        Ch_Data.Size = { (float)Glyph->bitmap.width, (float)Glyph->bitmap.rows };
-        Ch_Data.Bearing = { Glyph->bitmap_left,       Glyph->bitmap_top };
-        Ch_Data.Advance = (float)(Glyph->advance.x >> 6);
+        Ch_Data.Size = { static_cast<int>(Glyph->bitmap.width),    static_cast<int>(Glyph->bitmap.rows) };
+        Ch_Data.Bearing = { Glyph->bitmap_left, Glyph->bitmap_top };
+        Ch_Data.Advance = Glyph->advance.x >> 6;
 
 
         if (X_Offset + Ch_Data.Advance >= G_ATLAS_SIZE_X) {
@@ -426,7 +422,7 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
         }
 
         Ch_Data.Pos = { X_Offset + Ch_Data.Bearing.X, Y_Offset + Ch_Data.Bearing.Y + Font->Descender - Ch_Data.Size.Y };
-        const GPos& Pos = Ch_Data.Pos;
+        const GPos& Pos = Ch_Data.Pos.Cast<int>();
 
         for (int Y = 0; Y < Ch_Data.Size.Y; Y++) {
             for (int X = 0; X < Ch_Data.Size.X; X++) {

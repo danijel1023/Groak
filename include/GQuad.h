@@ -10,7 +10,7 @@ struct GQuad {
     GQuad(float Window_X, float Window_Y, float Screen_X, float Screen_Y);
     GQuad(const GVec2& Size, const GVec2& Pos);
 
-    //To remove annoying warning of converting int to float
+    //removing warnings
     GQuad(int Window_X, int Window_Y, int Screen_X, int Screen_Y);
 
 
@@ -33,7 +33,7 @@ struct GQuad {
 
     void Repeat_Texture(const GTexture& Texture, float X_Repeat, float Y_Repeat);
     void Texture_Region(const GTexture& Texture, const GSize& Window, const GPos& Screen);
-    void Texture_Region(const GTexture& Texture, unsigned int Window_X, unsigned int Window_Y, unsigned int Screen_X, unsigned int Screen_Y);
+    void Texture_Region(const GTexture& Texture, float Window_X, float Window_Y, float Screen_X, float Screen_Y);
 
     void Insert_Vertices(GVertex* Buffer, int Texture_Slot) const;
 };

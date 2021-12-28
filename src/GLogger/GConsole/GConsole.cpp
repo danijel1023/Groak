@@ -81,20 +81,20 @@ int GConsole::Callback_Func(const GEvent& Event) {
 
                     GLog_Manager() << "Testing \"arbitrary\" mode";
 
-
-
                     break;
                 }
 
                 case GEWind_Message::Render:
                 {
+                    GDecorated_Window::Callback_Func(Event);
                     GRenderer* Renderer = m_Main_Window->Get_Renderer();
-
+                    
                     GColor Color = { 242, 245, 66, 255 };
                     std::vector<GColor> Color_Str(20, Color);
-                    Renderer->Draw_Str("E32.0p4-5a", Color_Str, { 0, 0 }, 40);
+                    Renderer->Draw_Str("E32.0p4-5a", Color_Str, { 0, 0 }, Text_Height);
+                    Renderer->Flush();
 
-                    break;
+                    return 1;
                 }
 
                 case GEWind_Message::Close:
@@ -145,7 +145,7 @@ int GConsole::Callback_Func(const GEvent& Event) {
                     //    //m_Text_Box->Get_Buffer().;
                     //}
 
-                    Render();
+                    //Render();
                     break;
                 }
             }
@@ -212,10 +212,10 @@ int GConsole::Callback_Func(const GEvent& Event) {
 
                 case GEMouse_Message::Scroll_Down:
                 {
-                    //if (m_Modifier_Ctrl) {
-                    //    if (m_Text_Height)
-                    //        m_Text_Height--;
-                    //}
+                    if (m_Modifier_Ctrl) {
+                        if (Text_Height)
+                            Text_Height--;
+                    }
                     //
                     //else {
                     //    if (m_Modifier_Shift)
@@ -224,16 +224,16 @@ int GConsole::Callback_Func(const GEvent& Event) {
                     //        m_Text_Offset.Y -= m_Text_Height;
                     //}
                     //
-                    //Render();
+                    Render();
                     break;
                 }
 
                 case GEMouse_Message::Scroll_Up:
                 {
-                    //if (m_Modifier_Ctrl) {
-                    //    if (m_Text_Height)
-                    //        m_Text_Height++;
-                    //}
+                    if (m_Modifier_Ctrl) {
+                        if (Text_Height)
+                            Text_Height++;
+                    }
                     //
                     //else {
                     //    if (m_Modifier_Shift)
@@ -242,7 +242,7 @@ int GConsole::Callback_Func(const GEvent& Event) {
                     //        m_Text_Offset.Y += m_Text_Height;
                     //}
                     //
-                    //Render();
+                    Render();
                     break;
                 }
             }

@@ -3,17 +3,15 @@
 
 GQuad::GQuad() {}
 
-
-//GQuad(int Window_X, int Window_Y, int Screen_X, int Screen_Y);
-
 GQuad::GQuad(int Window_X, int Window_Y, int Screen_X, int Screen_Y)
-    : GQuad({ Window_X, Window_Y }, { Screen_X, Screen_Y }) {}
+    : GQuad({ static_cast<float>(Window_X), static_cast<float>(Window_Y) }, { static_cast<float>(Screen_X), static_cast<float>(Screen_Y) }) {}
 
 GQuad::GQuad(float Window_X, float Window_Y, float Screen_X, float Screen_Y)
     : GQuad({ Window_X, Window_Y }, { Screen_X, Screen_Y }) {}
 
 GQuad::GQuad(const GVec2& Size, const GVec2& Pos)
     : m_Window(Size), m_Screen(Pos) {}
+
 
 void GQuad::Repeat_Texture(const GTexture& Texture, float X_Repeat, float Y_Repeat) {
     m_Texture = Texture.ID;
@@ -25,20 +23,19 @@ void GQuad::Repeat_Texture(const GTexture& Texture, float X_Repeat, float Y_Repe
 
 
 void GQuad::Texture_Region(const GTexture& Texture, const GSize& Window, const GPos& Screen) {
-    Texture_Region(Texture, Window.X, Window.Y, Screen.X, Screen.Y);
+    Texture_Region(Texture, static_cast<float>(Window.X), static_cast<float>(Window.Y), static_cast<float>(Screen.X), static_cast<float>(Screen.Y));
 }
 
-void GQuad::Texture_Region(const GTexture& Texture, unsigned int Window_X, unsigned int Window_Y, unsigned int Screen_X, unsigned int Screen_Y) {
-    float Window_Xf = (float)Window_X, Window_Yf = (float)Window_Y, Screen_Xf = (float)Screen_X, Screen_Yf = (float)Screen_Y;
-    Window_Xf /= Texture.Size.X;
-    Window_Yf /= Texture.Size.Y;
-    Screen_Xf /= Texture.Size.X;
-    Screen_Yf /= Texture.Size.Y;
+void GQuad::Texture_Region(const GTexture& Texture, float Window_X, float Window_Y, float Screen_X, float Screen_Y) {
+    Window_X /= Texture.Size.X;
+    Window_Y /= Texture.Size.Y;
+    Screen_X /= Texture.Size.X;
+    Screen_Y /= Texture.Size.Y;
 
-    m_Tex_Coords[0] = { Screen_Xf,              Screen_Yf };
-    m_Tex_Coords[1] = { Screen_Xf + Window_Xf,  Screen_Yf };
-    m_Tex_Coords[2] = { Screen_Xf + Window_Xf,  Screen_Yf + Window_Yf };
-    m_Tex_Coords[3] = { Screen_Xf,              Screen_Yf + Window_Yf };
+    m_Tex_Coords[0] = { Screen_X,             Screen_Y };
+    m_Tex_Coords[1] = { Screen_X + Window_X,  Screen_Y };
+    m_Tex_Coords[2] = { Screen_X + Window_X,  Screen_Y + Window_Y };
+    m_Tex_Coords[3] = { Screen_X,             Screen_Y + Window_Y };
 
     m_Texture = Texture.ID;
 }

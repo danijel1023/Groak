@@ -11,8 +11,8 @@
 struct GAChar_Data {
     GPos Pos;
     GSize Size;
-    GVec2 Bearing;
-    float Advance = 0;
+    GIVec2 Bearing;
+    int Advance = 0;
 };
 
 struct GAtlas {

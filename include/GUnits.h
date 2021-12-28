@@ -1,98 +1,86 @@
 #pragma once
 #include <ostream>
 
-template<typename T>
-struct Template_Vec2 {
-    T X, Y;
+template<typename Base>
+struct Vector2d {
+    Base X = Base(), Y = Base();
 
-    template<typename TCastX = float, typename TCastY = float>
-    Template_Vec2(TCastX x = TCastX(), TCastY y = TCastY())
-        : X((T)x), Y((T)y) {}
+    Vector2d operator+(const Vector2d& Right) const { return { X + Right.X, Y + Right.Y }; }
+    Vector2d operator-(const Vector2d& Right) const { return { X - Right.X, Y - Right.Y }; }
 
-    Template_Vec2 operator+(const Template_Vec2& Right) const { return { (X + Right.X), (Y + Right.Y) }; }
-    Template_Vec2 operator-(const Template_Vec2& Right) const { return { (X - Right.X), (Y - Right.Y) }; }
+    Vector2d& operator+=(const Vector2d& Right) { X += Right.X; Y += Right.Y; return *this; }
+    Vector2d& operator-=(const Vector2d& Right) { X -= Right.X; Y -= Right.Y; return *this; }
 
-    Template_Vec2& operator+=(const Template_Vec2& Right) { X += Right.X; Y += Right.Y; return *this; }
-    Template_Vec2& operator-=(const Template_Vec2& Right) { X -= Right.X; Y -= Right.Y; return *this; }
-
-    template<typename Cast_T>
-    Template_Vec2<Cast_T> Cast() const { return { static_cast<Cast_T>(X), static_cast<Cast_T>(Y) }; }
+    template<typename Type>
+    Vector2d<Type> Cast() const { return { static_cast<Type>(X), static_cast<Type>(Y) }; }
 };
 
-template<typename T>
-struct Template_Vec3 {
-    T X, Y, Z;
+template<typename Base>
+struct Vector3d {
+    Base X = Base(), Y = Base(), Z = Base();
 
-    template<typename TCastX = float, typename TCastY = float, typename TCastZ = float>
-    Template_Vec3(TCastX x = TCastX(), TCastY y = TCastY(), TCastZ z = TCastZ())
-        : X((T)x), Y((T)y), Z((T)z) {}
+    Vector3d operator+(const Vector3d& Right) const { return { X + Right.X, Y + Right.Y, Z + Right.Z }; }
+    Vector3d operator-(const Vector3d& Right) const { return { X - Right.X, Y - Right.Y, Z - Right.Z }; }
 
-    Template_Vec3 operator+(const Template_Vec3& Right) const { return { (X + Right.X), (Y + Right.Y), (Z + Right.Z) }; }
-    Template_Vec3 operator-(const Template_Vec3& Right) const { return { (X - Right.X), (Y - Right.Y), (Z - Right.Z) }; }
+    Vector3d& operator+=(const Vector3d& Right) { X += Right.X; Y += Right.Y; Z += Right.Z; return *this; }
+    Vector3d& operator-=(const Vector3d& Right) { X -= Right.X; Y -= Right.Y; Z -= Right.Z; return *this; }
 
-    Template_Vec3& operator+=(const Template_Vec3& Right) { X += Right.X; Y += Right.Y; Z += Right.Z; return *this; }
-    Template_Vec3& operator-=(const Template_Vec3& Right) { X -= Right.X; Y -= Right.Y; Z -= Right.Z; return *this; }
-
-    template<typename Cast_T>
-    Template_Vec3<Cast_T> Cast() const { return { static_cast<Cast_T>(X), static_cast<Cast_T>(Y), static_cast<Cast_T>(Z) }; }
+    template<typename Type>
+    Vector3d<Type> Cast() const { return { static_cast<Type>(X), static_cast<Type>(Y), static_cast<Type>(Z) }; }
 };
 
-template<typename T>
-struct Template_Vec4 {
-    T X, Y, Z, W;
+template<typename Base>
+struct Vector4d {
+    Base X = Base(), Y = Base(), Z = Base(), W = Base();
 
-    template<typename TCastX = float, typename TCastY = float, typename TCastZ = float, typename TCastW = float>
-    Template_Vec4(TCastX x = TCastX(), TCastY y = TCastY(), TCastZ z = TCastZ(), TCastW w = TCastW())
-        : X((T)x), Y((T)y), Z((T)z), W((T)w) {}
+    Vector4d operator+(const Vector4d& Right) const { return { X + Right.X, Y + Right.Y, Z + Right.Z, W + Right.W }; }
+    Vector4d operator-(const Vector4d& Right) const { return { X - Right.X, Y - Right.Y, Z - Right.Z, W - Right.W }; }
 
-    Template_Vec4 operator+(const Template_Vec4& Right) const { return { (X + Right.X), (Y + Right.Y), (Z + Right.Z), (W + Right.W) }; }
-    Template_Vec4 operator-(const Template_Vec4& Right) const { return { (X - Right.X), (Y - Right.Y), (Z - Right.Z), (W - Right.W) }; }
+    Vector4d& operator+=(const Vector4d& Right) { X += Right.X; Y += Right.Y; Z += Right.Z; W += Right.W; return *this; }
+    Vector4d& operator-=(const Vector4d& Right) { X -= Right.X; Y -= Right.Y; Z -= Right.Z; W -= Right.W; return *this; }
 
-    Template_Vec4& operator+=(const Template_Vec4& Right) { X += Right.X; Y += Right.Y; Z += Right.Z; W += Right.W; return *this; }
-    Template_Vec4& operator-=(const Template_Vec4& Right) { X -= Right.X; Y -= Right.Y; Z -= Right.Z; W -= Right.W; return *this; }
-
-    template<typename Cast_T>
-    Template_Vec4<Cast_T> Cast() const { return { static_cast<Cast_T>(X), static_cast<Cast_T>(Y), static_cast<Cast_T>(Z), static_cast<Cast_T>(W) }; }
+    template<typename Type>
+    Vector4d<Type> Cast() const { return { static_cast<Type>(X), static_cast<Type>(Y), static_cast<Type>(Z), static_cast<Type>(W) }; }
 };
 
-using GVec2 = Template_Vec2<float>;
-using GVec3 = Template_Vec3<float>;
-using GVec4 = Template_Vec4<float>;
+using GVec2 = Vector2d<float>;
+using GVec3 = Vector3d<float>;
+using GVec4 = Vector4d<float>;
 
-using GIVec2 = Template_Vec2<int>;
-using GIVec3 = Template_Vec3<int>;
-using GIVec4 = Template_Vec4<int>;
+using GIVec2 = Vector2d<int>;
+using GIVec3 = Vector3d<int>;
+using GIVec4 = Vector4d<int>;
 
-using GUIVec2 = Template_Vec2<unsigned int>;
-using GUIVec3 = Template_Vec3<unsigned int>;
-using GUIVec4 = Template_Vec4<unsigned int>;
+using GUIVec2 = Vector2d<unsigned int>;
+using GUIVec3 = Vector3d<unsigned int>;
+using GUIVec4 = Vector4d<unsigned int>;
 
-using GCVec2 = Template_Vec2<char>;
-using GCVec3 = Template_Vec3<char>;
-using GCVec4 = Template_Vec4<char>;
+using GCVec2 = Vector2d<char>;
+using GCVec3 = Vector3d<char>;
+using GCVec4 = Vector4d<char>;
 
-using GUCVec2 = Template_Vec2<unsigned char>;
-using GUCVec3 = Template_Vec3<unsigned char>;
-using GUCVec4 = Template_Vec4<unsigned char>;
+using GUCVec2 = Vector2d<unsigned char>;
+using GUCVec3 = Vector3d<unsigned char>;
+using GUCVec4 = Vector4d<unsigned char>;
 
-using GPos = Template_Vec2<int>;
-using GSize = Template_Vec2<int>;
+using GPos = Vector2d<int>;
+using GSize = Vector2d<int>;
 
 
 template<typename T>
-std::ostream& operator<<(std::ostream& Stream, const Template_Vec2<T>& Vec) {
+std::ostream& operator<<(std::ostream& Stream, const Vector2d<T>& Vec) {
     Stream << "x:" << Vec.X << ", y:" << Vec.Y;
     return Stream;
 }
 
 template<typename T>
-std::ostream& operator<<(std::ostream& Stream, const Template_Vec3<T>& Vec) {
+std::ostream& operator<<(std::ostream& Stream, const Vector3d<T>& Vec) {
     Stream << "x:" << Vec.X << ", y:" << Vec.Y << ", z:" << Vec.Z;
     return Stream;
 }
 
 template<typename T>
-std::ostream& operator<<(std::ostream& Stream, const Template_Vec4<T>& Vec) {
+std::ostream& operator<<(std::ostream& Stream, const Vector4d<T>& Vec) {
     Stream << "x:" << Vec.X << ", y:" << Vec.Y << ", z:" << Vec.Z << ", w:" << Vec.W;
     return Stream;
 }

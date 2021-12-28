@@ -287,8 +287,12 @@ void GEvent::Resolve_Event(std::ostream* Stream_Ptr, const GString& Prefix, bool
                     Stream << "Sync";
                     break;
 
+                case GEConsole_Message::Update_Rendered_Text:
+                    Stream << "Update_Rendered_Text";
+                    break;
+
                 default:
-                    Stream << "Renderer -- Unknown";
+                    Stream << "Console -- Unknown";
                     break;
             }
 

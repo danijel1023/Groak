@@ -112,20 +112,20 @@ int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
                 //If the mouse is left form the child wondow, ignore
                 if (MP.X < Ch_Wnd->m_Screen.X)
                     continue;
-                
+
                 //If the mouse is right form the child wondow, ignore
                 if (MP.X > Ch_Wnd->m_Screen.X + Ch_Wnd->m_Window.X)
                     continue;
-                
+
                 //If the mouse is below form the child wondow, ignore
                 if (MP.Y < Ch_Wnd->m_Screen.Y)
                     continue;
-                
+
                 //If the mouse is above form the child wondow, ignore
                 if (MP.Y > Ch_Wnd->m_Screen.Y + Ch_Wnd->m_Window.Y)
                     continue;
-            
-            
+
+
                 //else - the mouse is inside the child windows' box
                 GEvent Child_Event;
                 Child_Event = Event;
@@ -137,7 +137,7 @@ int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
             for (auto Ch_Wnd : m_Child_Windows) {
                 if (MP.X < Ch_Wnd->m_Screen.X)
                     continue;
-                
+
                 if (MP.X > Ch_Wnd->m_Screen.X + Ch_Wnd->m_Window.X)
                     continue;
 
@@ -198,7 +198,6 @@ int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
                     Wind_Under_Cursor = this;
                 }
             }
-
 
             if (m_Main_Window->m_Pressed_Mouse_Buttons == 0 && Mouse_Focus) {
                 Mouse_Focus = nullptr;

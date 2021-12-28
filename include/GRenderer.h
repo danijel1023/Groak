@@ -21,8 +21,8 @@ public:
     GRenderer(GWindow* Main_Wind, GLFWwindow* Window_Hndl);
     ~GRenderer();
 
-    float Draw_Ch(const char32_t& Ch, const GColor& Color, const GPos& Pos, float Height, GFont* Font = nullptr);
-    float Draw_Str(const GString& Str, const std::vector<GColor>& Str_Color, const GPos& Pos, float Height, GFont* Font = nullptr);
+    int Draw_Ch(const char32_t& Ch, const GColor& Color, const GPos& Pos, float Height, GFont* Font = nullptr);
+    int Draw_Str(const GString& Str, const std::vector<GColor>& Str_Color, const GPos& Pos, float Height, GFont* Font = nullptr);
 
     GAtlas& Get_Atlas(GFont* Font, unsigned int Code_Point);
     GAtlas& Get_Empty_Atlas();

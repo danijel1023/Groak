@@ -47,7 +47,7 @@ int GText_Box::Callback_Func(const GEvent& Event) {
 
                     for (int i = m_Text_Offset.Y; i < m_Text.size(); i++) {
                         const GString& Line = m_Text[i];
-                        GPos Pos = { -m_Text_Offset.X, m_Window.Y - (m_Text_Height * (i + 1)) };
+                        GPos Pos = { -m_Text_Offset.X, m_Window.Y - static_cast<int>(m_Text_Height * (i + 1)) };
 
                         Renderer.Draw_Str(Line, m_Text_Color.at(i), Pos, m_Text_Height, m_Console_Font);
                     }
