@@ -9,7 +9,28 @@
 (Event).Texture_Count = Count;\
 (Event).Texture_Arrays = Array_Ptr;
 
+#include <chrono>
+#include <thread>
 
+static std::thread Quad_Thread;
+static size_t Quad_id = 0;
+static std::atomic<bool> Running = true;
+static std::atomic<float> Dur = 16;
+
+void Rotate(GConsole* This = nullptr) {
+    while (Running) {
+        auto& Quad = This->Get_Quad(Quad_id);
+
+        if (Quad.m_Rotation < 360)
+            Quad.m_Rotation += 1.0f;
+        else
+            Quad.m_Rotation = 0.0f;
+
+        This->Render();
+
+        std::this_thread::sleep_for(std::chrono::microseconds(static_cast<int>(Dur)));
+    }
+}
 
 GConsole::GConsole()
     : GDecorated_Window("Groak Console", 500, 250), m_Stream_Buff(this), m_Stream(&m_Stream_Buff) {
@@ -51,66 +72,6 @@ GTexture Icon;
 float Text_Height = 40;
 int GConsole::Callback_Func(const GEvent& Event) {
     switch (Event.Type) {
-        case GEType::Window:
-        {
-            switch (Event.Wind_Message) {
-                case GEWind_Message::Run:
-                {
-                    //m_Text_Box = new GText_Box();
-
-                    GQuad Quad({ 2, 100 }, { 50, 0 });
-                    Quad.m_Color = { 255, 0, 0, 255 };
-                    Quad.m_Rotation = 31;
-
-                    Add_Quad(Quad);
-                    Render();
-
-                    //Load_Font("C:/Windows/Fonts/consola.ttf");
-
-                    Icon = Groak::Load_Texture("../../../../Test_Application/res/Image1.png");
-                    Store_Texture(&Icon);
-                    GEvent Event;
-                    Window_Icon_Event(Event, &Icon, 1);
-                    GApp()->Post_Event(Event);
-
-                    GTrace() << "Testing Trace mode";
-                    GInfo() << "Testing Info mode";
-                    GWarning() << "Testing Warning mode";
-                    GError() << "Testing Error mode";
-                    GFatal() << "Testing Fatal mode";
-
-                    GLog_Manager() << "Testing \"arbitrary\" mode";
-
-                    break;
-                }
-
-                case GEWind_Message::Render:
-                {
-                    GDecorated_Window::Callback_Func(Event);
-                    GRenderer* Renderer = m_Main_Window->Get_Renderer();
-                    
-                    GColor Color = { 242, 245, 66, 255 };
-                    std::vector<GColor> Color_Str(20, Color);
-                    Renderer->Draw_Str("E32.0p4-5a", Color_Str, { 0, 0 }, Text_Height);
-                    Renderer->Flush();
-
-                    return 1;
-                }
-
-                case GEWind_Message::Close:
-                {
-                    GEvent Event;
-                    Event.Type = GEType::Core;
-                    Event.Core_Message = GECore_Message::Terminate;
-                    GApp()->Post_Event(Event);
-                    break;
-                }
-            }
-
-            break;
-        }
-
-
         case GEType::Console:
         {
             switch (Event.Console_Message) {
@@ -145,7 +106,7 @@ int GConsole::Callback_Func(const GEvent& Event) {
                     //    //m_Text_Box->Get_Buffer().;
                     //}
 
-                    //Render();
+                    Render();
                     break;
                 }
             }
@@ -153,6 +114,76 @@ int GConsole::Callback_Func(const GEvent& Event) {
             break;
         }
 
+        case GEType::Window:
+        {
+            switch (Event.Wind_Message) {
+                case GEWind_Message::Run:
+                {
+                    GQuad Quad({ 1, 100 }, { 200, 200 });
+                    Quad.m_Color = { 0, 255, 0, 255 };
+                    Quad.m_Rot_Point = { 0, -20 };
+                    Quad_id = Add_Quad(Quad);
+
+                    GQuad Quad2({ 1, 1 }, { 200, 200-20 });
+                    Quad2.m_Color = { 0, 255, 0, 255 };
+                    Add_Quad(Quad2);
+
+                    Render();
+
+                    //Load_Font("C:/Windows/Fonts/consola.ttf");
+
+                    Icon = Groak::Load_Texture("../../../../Test_Application/res/Image1.png");
+                    Store_Texture(&Icon);
+                    GEvent Event;
+                    Window_Icon_Event(Event, &Icon, 1);
+                    GApp()->Post_Event(Event);
+
+                    GTrace() << "Testing Trace mode";
+                    GInfo() << "Testing Info mode";
+                    GWarning() << "Testing Warning mode";
+                    GError() << "Testing Error mode";
+                    GFatal() << "Testing Fatal mode";
+
+                    GLog_Manager() << "Testing \"arbitrary\" mode";
+
+                    Quad_Thread = std::thread(Rotate, this);
+
+                    break;
+                }
+
+                case GEWind_Message::Render:
+                {
+                    GRenderer* Renderer = m_Main_Window->Get_Renderer();
+                    Renderer->Clear();
+                    
+                    GDecorated_Window::Callback_Func(Event);
+                    
+                    GColor Color = { 242, 245, 66, 255 };
+                    std::vector<GColor> Color_Str(20, Color);
+                    Renderer->Draw_Str("E32.0p4-5a", Color_Str, {0, 0}, Text_Height);
+                    Renderer->Flush();
+                    return 1;
+                }
+
+                case GEWind_Message::Close:
+                {
+                    GEvent Event;
+                    Event.Type = GEType::Core;
+                    Event.Core_Message = GECore_Message::Terminate;
+                    GApp()->Post_Event(Event);
+                    break;
+                }
+
+                case GEWind_Message::Terminate_Thread:
+                {
+                    Running = false;
+                    Quad_Thread.join();
+                    break;
+                }
+            }
+
+            break;
+        }
 
         case GEType::Keyboard:
         {
@@ -212,10 +243,12 @@ int GConsole::Callback_Func(const GEvent& Event) {
 
                 case GEMouse_Message::Scroll_Down:
                 {
-                    if (m_Modifier_Ctrl) {
-                        if (Text_Height)
-                            Text_Height--;
-                    }
+                    Dur = Dur - (Dur * (1.0f / 100.0f));
+                    std::cout << "Dur (-1%): " << Dur << std::endl;
+                    //if (m_Modifier_Ctrl) {
+                    //    if (m_Text_Height)
+                    //        m_Text_Height--;
+                    //}
                     //
                     //else {
                     //    if (m_Modifier_Shift)
@@ -224,16 +257,18 @@ int GConsole::Callback_Func(const GEvent& Event) {
                     //        m_Text_Offset.Y -= m_Text_Height;
                     //}
                     //
-                    Render();
+                    //Render();
                     break;
                 }
 
                 case GEMouse_Message::Scroll_Up:
                 {
-                    if (m_Modifier_Ctrl) {
-                        if (Text_Height)
-                            Text_Height++;
-                    }
+                    Dur = Dur + (Dur * (1.0f / 100.0f));
+                    std::cout << "Dur (+1%): " << Dur << std::endl;
+                    //if (m_Modifier_Ctrl) {
+                    //    if (m_Text_Height)
+                    //        m_Text_Height++;
+                    //}
                     //
                     //else {
                     //    if (m_Modifier_Shift)
@@ -242,7 +277,7 @@ int GConsole::Callback_Func(const GEvent& Event) {
                     //        m_Text_Offset.Y += m_Text_Height;
                     //}
                     //
-                    Render();
+                    //Render();
                     break;
                 }
             }

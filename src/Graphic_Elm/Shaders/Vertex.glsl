@@ -20,7 +20,7 @@ void main() {
     vec2 Centre = vec2(cpu_Centre);
     float Radiant = radians(cpu_Rotation);
 
-    //Rotate the vertex
+    //Rotate the vertex around a point
     Pos -= Centre;
     Pos = vec2(Pos.x * vec2(cos(Radiant), sin(Radiant))) + vec2(Pos.y * vec2(-sin(Radiant), cos(Radiant)));
     Pos += Centre;
@@ -31,12 +31,12 @@ void main() {
 
     gl_Position = vec4(Pos, 1.0, 1.0);
 
-    v_Color = vec4(cpu_Color.r / 255, cpu_Color.g / 255, cpu_Color.b / 255, cpu_Color.a / 255);
+    v_Color = vec4(float(cpu_Color.r) / 255.0, float(cpu_Color.g) / 255.0, float(cpu_Color.b) / 255.0, float(cpu_Color.a) / 255.0);
 
     v_Tex_Slot = cpu_Tex_Slot;
     v_Tex_Coord = cpu_Tex_Coord;
     v_Type = cpu_Type;
 
-
+    //Test for "invert texture" bit
     if (bool(v_Type & 0x0100)) v_Tex_Coord.y = 1.0 - v_Tex_Coord.y;
 }

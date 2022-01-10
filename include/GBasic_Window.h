@@ -13,7 +13,7 @@ public:
     virtual ~GBasic_Window();
     
     GFramebuffer* Create_Framebuffer();
-    size_t Add_Quad(GQuad& Quad);
+    size_t Add_Quad(const GQuad& Quad);
     GQuad& Get_Quad(size_t Quad_i);
     void Set_Viewport();
     void Render();

@@ -6,11 +6,26 @@ project(Groak VERSION 0.1.0)
 set(OpenGL_GL_PREFERENCE "GLVND")
 find_package(OpenGL REQUIRED)
 
-file(GLOB_RECURSE SRC_FILES src/*.cpp)
-add_library(Groak STATIC ${SRC_FILES})
-target_compile_definitions(Groak PRIVATE GROAK_BUILD)
+#Update Shaders file on cmake-proj configure
+set(OUTPUT_FILE_LOC ${CMAKE_CURRENT_BINARY_DIR})
+include("src/Graphic_Elm/Shaders/Update_Shaders.cmake")
 
-#build glad & glfw libraries
+#Update Shaders file on build
+add_custom_command(
+    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Shaders.inl"
+    COMMAND ${CMAKE_COMMAND} -DOUTPUT_FILE_LOC=${CMAKE_CURRENT_BINARY_DIR} -P "${CMAKE_SOURCE_DIR}/src/Graphic_Elm/Shaders/Update_Shaders.cmake"
+    DEPENDS "${CMAKE_SOURCE_DIR}/src/Graphic_Elm/Shaders/Vertex.glsl" "${CMAKE_SOURCE_DIR}/src/Graphic_Elm/Shaders/Fragment.glsl" "${CMAKE_SOURCE_DIR}/src/Graphic_Elm/Shaders/Shaders.inl.in"
+)
+
+
+#Create library
+file(GLOB_RECURSE SRC_FILES "src/*.cpp")
+add_library(Groak STATIC ${SRC_FILES} "${CMAKE_CURRENT_BINARY_DIR}/Shaders.inl")
+target_compile_definitions(Groak PRIVATE GROAK_BUILD)
+target_compile_definitions(Groak PRIVATE Shaders_File="${CMAKE_CURRENT_BINARY_DIR}/Shaders.inl")
+
+
+#Build glad & glfw libraries
 add_subdirectory("Vendor/glad")
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -27,7 +42,7 @@ target_include_directories(Groak PRIVATE "include")
 #FreeType beeing FreeType requiers to add include dir directly to it's own include dir
 target_include_directories(Groak PUBLIC "Vendor/freetype/include")
 
-#link all of the libraries
+#Link all of the libraries
 target_link_libraries(Groak PRIVATE glad glfw freetype stb)
 
 

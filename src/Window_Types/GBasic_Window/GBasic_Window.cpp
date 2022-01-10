@@ -38,7 +38,7 @@ GFramebuffer* GBasic_Window::Create_Framebuffer() {
     return new GFramebuffer(m_Window, this);
 }
 
-size_t GBasic_Window::Add_Quad(GQuad& Quad) {
+size_t GBasic_Window::Add_Quad(const GQuad& Quad) {
     m_Quad_List.push_back(Quad);
     return m_Quad_List.size() - 1;
 }
@@ -221,15 +221,29 @@ int GBasic_Window::Dispatcher_Func(const GEvent& Event) {
                 GCall(this, m_Callback_Ptr, Event);
             }
 
-            else if (Event.Wind_Message == GEWind_Message::Run || Event.Wind_Message == GEWind_Message::Render) {
+            else if (Event.Wind_Message == GEWind_Message::Run) {
                 GCall(this, m_Callback_Ptr, Event);
 
                 for (auto Ch_Wnd : m_Child_Windows) {
                     GCall(Ch_Wnd, m_Dispatcher_Ptr, Event);
                 }
-
+                
                 for (auto Ch_Wnd : m_Overlay_Windows) {
                     GCall(Ch_Wnd, m_Dispatcher_Ptr, Event);
+                }
+            }
+
+            else if (Event.Wind_Message == GEWind_Message::Render) {
+                Set_Viewport();
+                GCall(this, m_Callback_Ptr, Event);
+
+                //Reverse order (I could write this: 'for (int i = m_Child_Windows.size(); i--;)' but, it's not so readable)
+                for (size_t i = m_Child_Windows.size(); i > 0; i--) {
+                    GCall(m_Child_Windows[i - 1], m_Dispatcher_Ptr, Event);
+                }
+
+                for (size_t i = m_Overlay_Windows.size(); i > 0; i--) {
+                    GCall(m_Overlay_Windows[i - 1], m_Dispatcher_Ptr, Event);
                 }
             }
 
@@ -253,9 +267,8 @@ int GBasic_Window::Callback_Func(const GEvent& Event) {
             switch (Event.Wind_Message) {
                 case GEWind_Message::Render:
                 {
-                    auto& Renderer = *(m_Main_Window->m_Renderer);
+                    auto& Renderer = *m_Main_Window->m_Renderer;
 
-                    Set_Viewport();
                     for (auto& Quad : m_Quad_List) if (Quad.m_Active) Renderer.Add_Quad(Quad);
                     Renderer.Flush();
 

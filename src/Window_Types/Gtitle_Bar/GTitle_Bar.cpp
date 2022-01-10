@@ -72,7 +72,7 @@ int GTitle_Bar::Callback_Func(const GEvent& Event) {
                     m_Bkg_Quad = Add_Quad(Bkg_Quad);
 
                     GQuad Icon_Quad({ 32, 32 }, { 0, 0 });
-                    Icon_Quad.m_Color = { 0, 0, 0, 0 };
+                    Icon_Quad.m_Color = m_Bkg_Color;
                     m_Icon_Quad = Add_Quad(Icon_Quad);
 
                     if (!m_Iconified && !m_Maximised) {

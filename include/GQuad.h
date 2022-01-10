@@ -21,6 +21,7 @@ struct GQuad {
 
     GVec2 m_Window = { 0, 0 };
     GVec2 m_Screen = { 0, 0 };
+    GVec2 m_Rot_Point = { 0, 0 };
     GColor m_Color;
     float m_Rotation = 0.0f;
     unsigned int m_Texture = -1;
@@ -34,6 +35,7 @@ struct GQuad {
     void Repeat_Texture(const GTexture& Texture, float X_Repeat, float Y_Repeat);
     void Texture_Region(const GTexture& Texture, const GSize& Window, const GPos& Screen);
     void Texture_Region(const GTexture& Texture, float Window_X, float Window_Y, float Screen_X, float Screen_Y);
+    void Centre_Rot_Point();
 
     void Insert_Vertices(GVertex* Buffer, int Texture_Slot) const;
 };

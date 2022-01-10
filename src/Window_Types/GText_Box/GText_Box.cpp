@@ -22,6 +22,14 @@ int GText_Box::Callback_Func(const GEvent& Event) {
             switch (Event.Wind_Message) {
                 case GEWind_Message::Run:
                 {
+                    m_Text_Color.emplace_back();
+                    m_Text_Color.back().push_back({ 255, 255, 255, 100 });
+                    m_Text_Color.back().push_back({ 30, 255, 65, 255 });
+                    m_Text_Color.back().push_back({ 255, 184, 255, 255 });
+                    m_Text_Color.back().push_back({ 255, 255, 255, 255 });
+
+                    m_Text.push_back("Text");
+
                     break;
                 }
 
@@ -33,7 +41,8 @@ int GText_Box::Callback_Func(const GEvent& Event) {
                 case GEWind_Message::Render:
                 {
                     GRenderer& Renderer = *m_Main_Window->Get_Renderer();
-                    Renderer.Clear();
+                    Set_Viewport();
+
 
                     //Default
                     GBasic_Window::Callback_Func(Event);
@@ -43,7 +52,7 @@ int GText_Box::Callback_Func(const GEvent& Event) {
 
 
                     //vertical scrolling (y): YScroll(0.90) * Line_Height -> scrolled 0.90 lines
-                    // - effect: scaling up and down doesnt effect the
+                    // - effect: scaling up and down doesnt effect the current line (??)
 
                     for (int i = m_Text_Offset.Y; i < m_Text.size(); i++) {
                         const GString& Line = m_Text[i];
@@ -53,7 +62,7 @@ int GText_Box::Callback_Func(const GEvent& Event) {
                     }
 
                     Renderer.Flush();
-                    return 0;
+                    return 1;
                 }
             }
         }

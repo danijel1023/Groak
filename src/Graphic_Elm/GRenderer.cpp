@@ -2,7 +2,6 @@
 #include <iostream>
 #include <map>
 #include <fstream>
-#include "Shaders/Shaders.inl"
 
 #include "GCore.h"
 #include "GRenderer.h"
@@ -15,6 +14,7 @@
 #include "GApplication.h"
 
 #include "Inconsolata-Black.inl"
+#include Shaders_File
 
 const unsigned char* GRenderer::Get_Integrated_Font_File() {
     return Font_File;
@@ -26,7 +26,6 @@ size_t GRenderer::Get_Integrated_Font_File_Size() {
 
 
 static unsigned int Create_Shader(const std::string& Vertex, const std::string& Fragment);
-
 
 GRenderer::GRenderer(GWindow* Main_Wind, GLFWwindow* Window_Hndl)
     : m_Main_Wind(Main_Wind), m_Window_Hndl(Window_Hndl) {
@@ -79,8 +78,6 @@ GRenderer::GRenderer(GWindow* Main_Wind, GLFWwindow* Window_Hndl)
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    Textures_id[-1] = -1;
 
     m_Main_Wind->Set_Default_Font(
         m_Main_Wind->Load_Font_From_Memory(Get_Integrated_Font_File(),
@@ -191,7 +188,6 @@ int GRenderer::Callback_Func(GEvent& Event) {
         case GERenderer_Message::Render:
         {
             m_Render_Request--;
-            Clear();
 
             GEvent Event;
             Event.Type = GEType::Window;
@@ -257,6 +253,7 @@ void GRenderer::Set_Scale(const GSize& Window) {
 }
 
 void GRenderer::Set_Window_Space(const GPos& Screen, const GSize& Window) {
+    glScissor(Screen.X, Screen.Y, Window.X, Window.Y);
     glViewport(Screen.X, Screen.Y, Window.X, Window.Y);
     Set_Scale(Window);
 }
@@ -273,10 +270,13 @@ void GRenderer::Add_Quad(const GQuad& Quad) {
             Textures_id[Quad.m_Texture] = Current_Tex_id;
             Current_Tex_id++;
         }
+
+        Quad.Insert_Vertices(&m_Buffer[Quad_i * 4], Textures_id[Quad.m_Texture]);
     }
 
-    //Copy the vertices of quad to memory
-    Quad.Insert_Vertices(&m_Buffer[Quad_i * 4], Textures_id[Quad.m_Texture]);
+    else
+        Quad.Insert_Vertices(&m_Buffer[Quad_i * 4], -1);
+
     if (++Quad_i == G_QUAD_COUNT) Flush();
 }
 
@@ -286,7 +286,7 @@ void GRenderer::Render() {
     glBindVertexArray(m_VAO);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 
-    if (Textures_id.size() > 1)
+    if (Textures_id.size())
         for (const auto& Texture : Textures_id) {
             glActiveTexture(GL_TEXTURE0 + Texture.second);
             glBindTexture(GL_TEXTURE_2D, Texture.first);
@@ -301,7 +301,6 @@ void GRenderer::Render() {
     Quad_i = 0;
     Current_Tex_id = 0;
     Textures_id.clear();
-    Textures_id[-1] = -1;
 }
 
 
