@@ -8,7 +8,7 @@
 class GWindow;
 class GBasic_Window {
 public:
-    GBasic_Window(GBasic_Window* Parent, int Window_X, int Window_Y, int Screen_X, int Screen_Y, bool Overlay = false);
+    GBasic_Window(GBasic_Window* Parent, int Window_X, int Window_Y, int Screen_X, int Screen_Y, bool Overlay);
     GBasic_Window(GBasic_Window* Parent, const GSize& Window, const GPos& Screen, bool Overlay = false);
     virtual ~GBasic_Window();
     

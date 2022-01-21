@@ -25,23 +25,12 @@ public:
     std::ostream* Get_Stream();
 
     void New_Line();
-    GLog_Stream& operator<<(GString Right);
-    GLog_Stream& operator<<(char Right);
 
-    GLog_Stream& operator<<(bool Right);
-    GLog_Stream& operator<<(short Right);
-    GLog_Stream& operator<<(unsigned short Right);
-    GLog_Stream& operator<<(int Right);
-    GLog_Stream& operator<<(unsigned int Right);
-    GLog_Stream& operator<<(long Right);
-    GLog_Stream& operator<<(unsigned long Right);
-    GLog_Stream& operator<<(long long Right);
-    GLog_Stream& operator<<(unsigned long long Right);
-    GLog_Stream& operator<<(float Right);
-    GLog_Stream& operator<<(double Right);
-    GLog_Stream& operator<<(long double Right);
-    GLog_Stream& operator<<(const char* Right);
-    GLog_Stream& operator<<(const void* Right);
+    template<class T>
+    GLog_Stream& operator<<(T Right) {
+        if (m_Enable_Log) (*m_Stream_Ptr) << Right;
+        return (*this);
+    }
 
 private:
     GString m_Line_Ending = "\n";

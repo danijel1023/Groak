@@ -24,11 +24,11 @@ int GButton::Callback_Func(const GEvent& Event) {
             switch (Event.Wind_Message) {
                 case GEWind_Message::Run:
                 {
-                    GQuad Color(m_Window.Cast<float>(), { 0, 0 });
+                    GQuad Color(m_Window.Cast<GVec2>(), { 0, 0 });
                     Color.m_Color = m_Leave;
                     m_Color_Quad = Add_Quad(Color);
 
-                    GQuad Texture(m_Window.Cast<float>(), { 0, 0 });
+                    GQuad Texture(m_Window.Cast<GVec2>(), { 0, 0 });
                     Texture.m_Texture = m_Texture.ID;
                     Texture.m_Active = m_Texture.ID;
                     m_Texture_Quad = Add_Quad(Texture);

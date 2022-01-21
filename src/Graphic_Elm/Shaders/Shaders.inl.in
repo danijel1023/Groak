@@ -1,9 +1,9 @@
-const char* Vertex_Shader = R"(
+static const char* Vertex_Shader = R"(
 @Vertex_Shader_File@
 )";
 
 
 
-const char* Fragment_Shader = R"(
+static const char* Fragment_Shader = R"(
 @Fragment_Shader_File@
 )";

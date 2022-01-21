@@ -29,7 +29,7 @@ void main() {
     vec2 Scale = u_Scale / 2;
     Pos = (Pos / Scale) - 1.0;
 
-    gl_Position = vec4(Pos, 1.0, 1.0);
+    gl_Position = vec4(Pos, 0.0, 1.0);
 
     v_Color = vec4(float(cpu_Color.r) / 255.0, float(cpu_Color.g) / 255.0, float(cpu_Color.b) / 255.0, float(cpu_Color.a) / 255.0);
 

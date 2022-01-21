@@ -123,11 +123,11 @@ void GApplication::GLFW_Scroll_Callback(GLFWwindow* Window_Hndl, double X_Offset
     GEvent Event;
     Event.Type = GEType::Mouse;
 
-    if (Y_Offset == -1) Event.Mouse_Message = GEMouse_Message::Scroll_Down;
-    else if (Y_Offset == 1) Event.Mouse_Message = GEMouse_Message::Scroll_Up;
+    if (Y_Offset > 0) Event.Mouse_Message = GEMouse_Message::Scroll_Up;
+    else if (Y_Offset < 0) Event.Mouse_Message = GEMouse_Message::Scroll_Down;
     
-    if (X_Offset == -1) Event.Mouse_Message = GEMouse_Message::Scroll_Left;
-    else if (X_Offset == 1) Event.Mouse_Message = GEMouse_Message::Scroll_Right;
+    if (X_Offset > 0) Event.Mouse_Message = GEMouse_Message::Scroll_Right;
+    else if (X_Offset < 0) Event.Mouse_Message = GEMouse_Message::Scroll_Left;
 
     double X, Y;
     glfwGetCursorPos(Window_Hndl, &X, &Y);

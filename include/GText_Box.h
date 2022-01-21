@@ -20,18 +20,19 @@ public:
     GText_Box(GBasic_Window* Parent, const GSize& Window, const GPos& Screen, bool Overlay = false);
     ~GText_Box();
 
-    std::mutex& Get_Mutex();
 
-private:
+    std::mutex m_Buffer_Mutex;
     std::vector<GString> m_Text;
     std::vector<std::vector<GColor>> m_Text_Color;
-    std::mutex m_Buffer_Mutex;
-
-    GFont* m_Console_Font = nullptr;
-    float m_Text_Height = 20;
 
     //Scrolling: Y is in multiples of lines and X is in pixels
-    GPos m_Text_Offset;
+    GVec2 m_Text_Offset;
+    float m_Text_Height = 20;
+
+    GFont* m_Console_Font = nullptr;
+
+private:
+
 
 protected:
     int Callback_Func(const GEvent& Event);

@@ -67,7 +67,7 @@ int GTitle_Bar::Callback_Func(const GEvent& Event) {
                     m_Maximise->m_Press = { (60 * 255 / 100), (60 * 255 / 100), (60 * 255 / 100), (100 * 255 / 100) };
 
 
-                    GQuad Bkg_Quad(m_Window.Cast<float>(), { 0, 0 });
+                    GQuad Bkg_Quad(m_Window.Cast<GVec2>(), { 0, 0 });
                     Bkg_Quad.m_Color = m_Bkg_Color;
                     m_Bkg_Quad = Add_Quad(Bkg_Quad);
 
@@ -84,7 +84,7 @@ int GTitle_Bar::Callback_Func(const GEvent& Event) {
                 case GEWind_Message::Resize:
                 {
                     GBasic_Window::Callback_Func(Event);
-                    Get_Quad(m_Bkg_Quad).m_Window = m_Window.Cast<float>();
+                    Get_Quad(m_Bkg_Quad).m_Window = m_Window.Cast<GVec2>();
 
                     GEvent Event;
                     Event.Type = GEType::Window;

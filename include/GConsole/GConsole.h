@@ -33,6 +33,7 @@ private:
 
 
     GText_Box* m_Text_Box = nullptr;
+    GTexture m_Texture;
 
 protected:
     int Callback_Func(const GEvent& Event);

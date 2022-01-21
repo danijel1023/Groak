@@ -348,7 +348,7 @@ int GRenderer::Draw_Str(const GString& Str, const std::vector<GColor>& Str_Color
     int X_Offset = 0;
 
     int Advance = 0;
-    for (int i = 0; i < Str.size(); i++) {
+    for (int i = 0; i < Str.length(); i++) {
         const auto& Ch = Str.at(i);
         GAtlas& Atlas = Get_Atlas(Font, Ch);
         GAChar_Data& Ch_Data = Atlas.Map[Ch];
@@ -421,7 +421,7 @@ void GRenderer::Fill_Atlas(GFont* Font, GAtlas& Atlas) {
         }
 
         Ch_Data.Pos = { X_Offset + Ch_Data.Bearing.X, Y_Offset + Ch_Data.Bearing.Y + Font->Descender - Ch_Data.Size.Y };
-        const GPos& Pos = Ch_Data.Pos.Cast<int>();
+        const GPos& Pos = Ch_Data.Pos.Cast<GPos>();
 
         for (int Y = 0; Y < Ch_Data.Size.Y; Y++) {
             for (int X = 0; X < Ch_Data.Size.X; X++) {

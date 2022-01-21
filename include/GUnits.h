@@ -4,6 +4,7 @@
 template<typename Base>
 struct Vector2d {
     Base X = Base(), Y = Base();
+    typedef Base Type;
 
     Vector2d operator+(const Vector2d& Right) const { return { X + Right.X, Y + Right.Y }; }
     Vector2d operator-(const Vector2d& Right) const { return { X - Right.X, Y - Right.Y }; }
@@ -11,13 +12,14 @@ struct Vector2d {
     Vector2d& operator+=(const Vector2d& Right) { X += Right.X; Y += Right.Y; return *this; }
     Vector2d& operator-=(const Vector2d& Right) { X -= Right.X; Y -= Right.Y; return *this; }
 
-    template<typename Type>
-    Vector2d<Type> Cast() const { return { static_cast<Type>(X), static_cast<Type>(Y) }; }
+    template<class Vec>
+    Vec Cast() const { return { static_cast<Vec::Type>(X), static_cast<Vec::Type>(Y) }; }
 };
 
 template<typename Base>
 struct Vector3d {
     Base X = Base(), Y = Base(), Z = Base();
+    typedef Base Type;
 
     Vector3d operator+(const Vector3d& Right) const { return { X + Right.X, Y + Right.Y, Z + Right.Z }; }
     Vector3d operator-(const Vector3d& Right) const { return { X - Right.X, Y - Right.Y, Z - Right.Z }; }
@@ -25,13 +27,14 @@ struct Vector3d {
     Vector3d& operator+=(const Vector3d& Right) { X += Right.X; Y += Right.Y; Z += Right.Z; return *this; }
     Vector3d& operator-=(const Vector3d& Right) { X -= Right.X; Y -= Right.Y; Z -= Right.Z; return *this; }
 
-    template<typename Type>
-    Vector3d<Type> Cast() const { return { static_cast<Type>(X), static_cast<Type>(Y), static_cast<Type>(Z) }; }
+    template<class Vec>
+    Vec Cast() const { return { static_cast<Vec::Type>(X), static_cast<Vec::Type>(Y), static_cast<Vec::Type>(Z) }; }
 };
 
 template<typename Base>
 struct Vector4d {
     Base X = Base(), Y = Base(), Z = Base(), W = Base();
+    typedef Base Type;
 
     Vector4d operator+(const Vector4d& Right) const { return { X + Right.X, Y + Right.Y, Z + Right.Z, W + Right.W }; }
     Vector4d operator-(const Vector4d& Right) const { return { X - Right.X, Y - Right.Y, Z - Right.Z, W - Right.W }; }
@@ -39,8 +42,8 @@ struct Vector4d {
     Vector4d& operator+=(const Vector4d& Right) { X += Right.X; Y += Right.Y; Z += Right.Z; W += Right.W; return *this; }
     Vector4d& operator-=(const Vector4d& Right) { X -= Right.X; Y -= Right.Y; Z -= Right.Z; W -= Right.W; return *this; }
 
-    template<typename Type>
-    Vector4d<Type> Cast() const { return { static_cast<Type>(X), static_cast<Type>(Y), static_cast<Type>(Z), static_cast<Type>(W) }; }
+    template<class Vec>
+    Vec Cast() const { return { static_cast<Vec::Type>(X), static_cast<Vec::Type>(Y), static_cast<Vec::Type>(Z), static_cast<Vec::Type>(W) }; }
 };
 
 using GVec2 = Vector2d<float>;

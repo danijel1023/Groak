@@ -1,5 +1,6 @@
 #include <iostream>
 #include "GCore.h"
+#include "GLog_Manager.h"
 
 
 namespace Groak {
@@ -7,6 +8,11 @@ namespace Groak {
         GTexture Texture;
         stbi_set_flip_vertically_on_load(Flip);
         Texture.Pixels = stbi_load(Path.c_str(), &Texture.Size.X, &Texture.Size.Y, &Texture.Channels, 0);
+        
+        if (!Texture.Pixels) {
+            GError() << "Could not load texture: " << Path;
+        }
+
         return Texture;
     }
 
@@ -14,6 +20,11 @@ namespace Groak {
         GTexture Texture;
         stbi_set_flip_vertically_on_load(Flip);
         Texture.Pixels = stbi_load_from_memory(Mem_Data, Size, &Texture.Size.X, &Texture.Size.Y, &Texture.Channels, 0);
+
+        if (!Texture.Pixels) {
+            GError() << "Could not load texture from memory";
+        }
+
         return Texture;
     }
 

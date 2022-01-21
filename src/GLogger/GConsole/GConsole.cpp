@@ -12,28 +12,8 @@
 #include <chrono>
 #include <thread>
 
-static std::thread Quad_Thread;
-static size_t Quad_id = 0;
-static std::atomic<bool> Running = true;
-static std::atomic<float> Dur = 16;
-
-void Rotate(GConsole* This = nullptr) {
-    while (Running) {
-        auto& Quad = This->Get_Quad(Quad_id);
-
-        if (Quad.m_Rotation < 360)
-            Quad.m_Rotation += 1.0f;
-        else
-            Quad.m_Rotation = 0.0f;
-
-        This->Render();
-
-        std::this_thread::sleep_for(std::chrono::microseconds(static_cast<int>(Dur)));
-    }
-}
-
 GConsole::GConsole()
-    : GDecorated_Window("Groak Console", 500, 250), m_Stream_Buff(this), m_Stream(&m_Stream_Buff) {
+    : GDecorated_Window("Groak Console", 500, 500), m_Stream_Buff(this), m_Stream(&m_Stream_Buff) {
     m_Callback_Ptr = &GConsole::Callback_Func;
 
     //GApp()->Attach_Simulator(this, false);
@@ -81,6 +61,12 @@ int GConsole::Callback_Func(const GEvent& Event) {
                     Event.Type = GEType::Console;
                     Event.Console_Message = GEConsole_Message::Update_Rendered_Text;
                     Post_Event(Event);
+
+                    std::unique_lock<std::mutex> Lck(m_Buffer_Mutex);
+                    for (const auto& Line : m_Buffer)
+                        std::cout << Line;
+
+                    m_Buffer.clear();
                     break;
                 }
 
@@ -119,21 +105,52 @@ int GConsole::Callback_Func(const GEvent& Event) {
             switch (Event.Wind_Message) {
                 case GEWind_Message::Run:
                 {
-                    GQuad Quad({ 1, 100 }, { 200, 200 });
-                    Quad.m_Color = { 0, 255, 0, 255 };
-                    Quad.m_Rot_Point = { 0, -20 };
-                    Quad_id = Add_Quad(Quad);
+                    GDecorated_Window::Callback_Func(Event);
+                    m_Main_Window->Set_Default_Font(m_Main_Window->Load_Font("C:/Windows/Fonts/Consola.ttf"));
+                    //m_Main_Window->Set_Default_Font(m_Main_Window->Load_Font("C:/Users/RI_Elev/Desktop/Cousine/Cousine-Regular.ttf"));
 
-                    GQuad Quad2({ 1, 1 }, { 200, 200-20 });
-                    Quad2.m_Color = { 0, 255, 0, 255 };
-                    Add_Quad(Quad2);
+                    m_Text_Box = new GText_Box(this, { m_Window.X, m_Window.Y - Get_Title_Bar_Window().Y }, {0, 0});
+                    m_Text_Box->m_Text_Height = 40;
 
-                    Render();
+
+                    m_Text_Box->m_Buffer_Mutex.lock();
+                    
+                    m_Text_Box->m_Text.push_back("0: iiiii This is some random line");
+                    m_Text_Box->m_Text.push_back("1: Today was such a nice sunny day");
+                    m_Text_Box->m_Text.push_back("2: I hate sun.. it's always so hot");
+                    m_Text_Box->m_Text.push_back("3: This morning was nice and cold");
+                    m_Text_Box->m_Text.push_back("4: By drinking water, you wont die");
+                    m_Text_Box->m_Text.push_back("5: Breathing air is important");
+                    m_Text_Box->m_Text.push_back("6: This is some random line");
+                    m_Text_Box->m_Text.push_back("7: Today was such a nice sunny day");
+                    m_Text_Box->m_Text.push_back("8: I hate sun.. it's always so hot");
+                    m_Text_Box->m_Text.push_back("9: This morning was nice and cold");
+                    m_Text_Box->m_Text.push_back("A: By drinking water, you wont die");
+                    m_Text_Box->m_Text.push_back("B: Breathing air is important");
+
+                    for (size_t Line = 0; Line < m_Text_Box->m_Text.size(); Line++) {
+                        m_Text_Box->m_Text_Color.emplace_back();
+
+                        for (size_t Ch = 0; Ch < m_Text_Box->m_Text[Line].length(); Ch++)
+                            m_Text_Box->m_Text_Color.back().push_back({ 97, 214, 214, 255 });
+                    }
+
+                    m_Text_Box->m_Buffer_Mutex.unlock();
+
 
                     //Load_Font("C:/Windows/Fonts/consola.ttf");
+                    //m_Texture = Groak::Load_Texture("C:/Users/comp/Desktop/asd.png", true);
+                    //Store_Texture(&m_Texture);
+                    //
+                    //GQuad Quad(m_Window.Cast<GVec2>(), m_Screen.Cast<GVec2>());
+                    //Quad.m_Color = { 193, 156, 0, 255 };
+                    //Quad.Repeat_Texture(m_Texture, (m_Window.X / m_Texture.Size.X) + 1, (m_Window.Y / m_Texture.Size.Y) + 1);
+                    //Add_Quad(Quad);
+
 
                     Icon = Groak::Load_Texture("../../../../Test_Application/res/Image1.png");
                     Store_Texture(&Icon);
+
                     GEvent Event;
                     Window_Icon_Event(Event, &Icon, 1);
                     GApp()->Post_Event(Event);
@@ -146,23 +163,15 @@ int GConsole::Callback_Func(const GEvent& Event) {
 
                     GLog_Manager() << "Testing \"arbitrary\" mode";
 
-                    Quad_Thread = std::thread(Rotate, this);
-
-                    break;
+                    return 1;
                 }
 
                 case GEWind_Message::Render:
                 {
                     GRenderer* Renderer = m_Main_Window->Get_Renderer();
                     Renderer->Clear();
-                    
-                    GDecorated_Window::Callback_Func(Event);
-                    
-                    GColor Color = { 242, 245, 66, 255 };
-                    std::vector<GColor> Color_Str(20, Color);
-                    Renderer->Draw_Str("E32.0p4-5a", Color_Str, {0, 0}, Text_Height);
-                    Renderer->Flush();
-                    return 1;
+
+                    break;
                 }
 
                 case GEWind_Message::Close:
@@ -173,13 +182,6 @@ int GConsole::Callback_Func(const GEvent& Event) {
                     GApp()->Post_Event(Event);
                     break;
                 }
-
-                case GEWind_Message::Terminate_Thread:
-                {
-                    Running = false;
-                    Quad_Thread.join();
-                    break;
-                }
             }
 
             break;
@@ -187,29 +189,61 @@ int GConsole::Callback_Func(const GEvent& Event) {
 
         case GEType::Keyboard:
         {
-            if (Event.Keyboard_Message == GEKeyboard_Message::Key) {
-                if (Event.Key_Action == GEKey_Action::Down) {
-                    if (Event.Key == 256) {
+            //Key: Up(265), Down(264), Left(263), Right(262)
+            switch (Event.Keyboard_Message) {
+                case GEKeyboard_Message::Key:
+                {
+                    if (Event.Key_Action == GEKey_Action::Down && Event.Key == 265) {
                         GEvent Event;
                         Event.Type = GEType::Core;
                         Event.Core_Message = GECore_Message::Terminate;
-                        GApp()->Post_Event(Event);
+                        //GApp()->Post_Event(Event);
                     }
+
+                    if (Event.Key_Action == GEKey_Action::Down || Event.Key_Action == GEKey_Action::Repeat) {
+                        switch (Event.Key) {
+                            case 265:
+                            {
+                                auto& Y = m_Text_Box->m_Text_Offset.Y;
+                                Y -= 0.5f;
+
+                                Render();
+                                break;
+                            }
+                            case 264:
+                            {
+                                auto& Y = m_Text_Box->m_Text_Offset.Y;
+                                Y += 0.5f;
+
+                                Render();
+                                break;
+                            }
+                            case 263:
+                            {
+                                auto& X = m_Text_Box->m_Text_Offset.X;
+                                X++;
+
+                                Render();
+                                break;
+                            }
+                            case 262:
+                            {
+                                auto& X = m_Text_Box->m_Text_Offset.X;
+                                X--;
+
+                                Render();
+                                break;
+                            }
+                        }
+                    }
+
+                    break;
                 }
 
-
-                if ((Event.Key_Action == GEKey_Action::Down || Event.Key_Action == GEKey_Action::Repeat)) {
-                    if (Event.Key == 86 && Event.Modifier_Ctrl) {
-                        GEvent Clipboard;
-                        Clipboard.Type = GEType::Core;
-                        Clipboard.Core_Message = GECore_Message::Get_Clipboard;
-                        GApp()->Send_Event(Clipboard);
-
-                        GInfo() << Clipboard.String;
-                    }
+                case GEKeyboard_Message::Text:
+                {
+                    break;
                 }
-
-                Event.Resolve_Event(&std::cout);
             }
 
             break;
@@ -243,8 +277,12 @@ int GConsole::Callback_Func(const GEvent& Event) {
 
                 case GEMouse_Message::Scroll_Down:
                 {
-                    Dur = Dur - (Dur * (1.0f / 100.0f));
-                    std::cout << "Dur (-1%): " << Dur << std::endl;
+                    auto& TH = m_Text_Box->m_Text_Height;
+                    TH = TH - (TH * (1.0f / 100.0f));
+
+                    Render();
+
+
                     //if (m_Modifier_Ctrl) {
                     //    if (m_Text_Height)
                     //        m_Text_Height--;
@@ -263,8 +301,11 @@ int GConsole::Callback_Func(const GEvent& Event) {
 
                 case GEMouse_Message::Scroll_Up:
                 {
-                    Dur = Dur + (Dur * (1.0f / 100.0f));
-                    std::cout << "Dur (+1%): " << Dur << std::endl;
+                    auto& TH = m_Text_Box->m_Text_Height;
+                    TH = TH + (TH * (1.0f / 100.0f));
+
+                    Render();
+
                     //if (m_Modifier_Ctrl) {
                     //    if (m_Text_Height)
                     //        m_Text_Height++;
