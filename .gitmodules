@@ -7,3 +7,6 @@
 [submodule "Vendor/tinyutf8"]
 	path = Vendor/tinyutf8
 	url = https://github.com/DuffsDevice/tiny-utf8
+[submodule "Vendor/msdfgen"]
+	path = Vendor/msdfgen
+	url = https://github.com/Chlumsky/msdfgen

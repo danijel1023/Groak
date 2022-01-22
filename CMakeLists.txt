@@ -28,12 +28,18 @@ target_compile_definitions(Groak PRIVATE Shaders_File="${CMAKE_CURRENT_BINARY_DI
 #Build glad & glfw libraries
 add_subdirectory("Vendor/glad")
 
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+option(GLFW_BUILD_DOCS OFF FORCE)
+option(GLFW_BUILD_TESTS OFF FORCE)
+option(GLFW_BUILD_EXAMPLES OFF FORCE)
 add_subdirectory("Vendor/glfw3")
 add_subdirectory("Vendor/freetype")
 add_subdirectory("Vendor/stb")
+
+option(MSDFGEN_BUILD_STANDALONE OFF FORCE)
+option(MSDFGEN_INSTALL OFF FORCE)
+set(FREETYPE_LIBRARY "${CMAKE_SOURCE_DIR}/Vendor/freetype")
+set(FREETYPE_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/Vendor/freetype/include")
+add_subdirectory("Vendor/msdfgen")
 
 
 target_compile_definitions(Groak PRIVATE GLEW_STATIC)
@@ -43,7 +49,7 @@ target_include_directories(Groak PRIVATE "include")
 target_include_directories(Groak PUBLIC "Vendor/freetype/include")
 
 #Link all of the libraries
-target_link_libraries(Groak PRIVATE glad glfw freetype stb)
+target_link_libraries(Groak PRIVATE glad glfw freetype stb msdfgen-ext)
 
 
 add_subdirectory("Test_Application")
